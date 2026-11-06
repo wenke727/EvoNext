@@ -10,10 +10,10 @@ pytestmark = [pytest.mark.integration, pytest.mark.skipif(
 
 def test_real_persistence_and_receipt_roundtrip():
     from evonext.config import Settings, secret
-    from evonext.domain import Snapshot, encode_json
-    from evonext.ledger import Ledger
-    from evonext.storage import stores
-    from evonext.verification import verify_snapshot
+    from evonext.contracts.trajectory import Snapshot, encode_json
+    from evonext.operations.ledger import Ledger
+    from evonext.evidence.store import stores
+    from evonext.operations.verification import verify_snapshot
     settings = Settings()
     assert not settings.demo
     assert 'test' in settings.mongo_database.lower(), 'Use an isolated test database'

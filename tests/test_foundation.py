@@ -11,15 +11,16 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr, ValidationError
 
-from evonext.api import create_app
+from evonext.app.api import create_app
 from evonext.config import Settings
-from evonext.domain import ContractError, EvaluationRecord, Snapshot, encode_json, load_json, sha256
-from evonext.legacy import BridgeUncertain, LegacyClient
-from evonext.models import ModelGateway
-from evonext.packages import export_bundle, import_bundle, safe_path
-from evonext.storage import MemoryAssets, MemorySnapshots
-from evonext.telemetry import Tracing
-from evonext.verification import verify_snapshot
+from evonext.contracts.trajectory import ContractError, EvaluationRecord, Snapshot, encode_json, load_json, sha256
+from evonext.compat.legacy import BridgeUncertain, LegacyClient
+from evonext.providers.gateway import ModelGateway
+from evonext.evidence.packages import export_bundle, import_bundle, safe_path
+from evonext.evidence.store import MemoryAssets, MemorySnapshots
+from evonext.providers.telemetry import Tracing
+from evonext.providers.receipts import MemoryCallReceipts
+from evonext.operations.verification import verify_snapshot
 
 # Synthetic bytes, not production evidence and not a success oracle.
 PNG = bytes.fromhex('89504e470d0a1a0a') + b'synthetic-image-fixture'
@@ -375,16 +376,16 @@ class FakeTracingClient:
 
 
 def test_model_call_traced_with_content_disabled_by_default():
-    s = settings(model_name='synthetic-model', model_base_url='https://model.example.invalid/v1',
+    s = settings(model_calls_enabled=True, model_name='synthetic-model', model_base_url='https://model.example.invalid/v1',
                  model_api_key=SecretStr('synthetic-model-key'))
     seen, trace_client = [], FakeTracingClient()
     def handler(request):
         seen.append(request)
         return httpx.Response(200, json={'model': 'observed-revision', 'choices': [],
                                           'usage': {'prompt_tokens': 5, 'completion_tokens': 2}})
-    gateway = ModelGateway(s, httpx.MockTransport(handler), Tracing(s, trace_client))
+    gateway = ModelGateway(s, httpx.MockTransport(handler), Tracing(s, trace_client), MemoryCallReceipts())
     try:
-        result = gateway.complete([{'role': 'user', 'content': 'private-sentinel'}], snapshot_id='source')
+        result = gateway.complete([{'role': 'user', 'content': 'private-sentinel'}], snapshot_id='source', operation_id='test-operation')
         assert str(seen[0].url) == 'https://model.example.invalid/v1/chat/completions'
         assert result['trace_id'] == 'synthetic-trace'
         assert result['observed_model'] == 'observed-revision'
@@ -395,14 +396,14 @@ def test_model_call_traced_with_content_disabled_by_default():
 
 
 def test_tracing_outage_does_not_retry_or_swallow_model_error():
-    s = settings(model_name='test', model_base_url='https://model.example.invalid/v1',
+    s = settings(model_calls_enabled=True, model_name='test', model_base_url='https://model.example.invalid/v1',
                  model_api_key=SecretStr('synthetic-model-key'))
     seen = []
     gateway = ModelGateway(s, httpx.MockTransport(lambda r: seen.append(r) or httpx.Response(503)),
-                           Tracing(s, FakeTracingClient(fail_start=True)))
+                           Tracing(s, FakeTracingClient(fail_start=True)), MemoryCallReceipts())
     try:
         with pytest.raises(httpx.HTTPStatusError):
-            gateway.complete([{'role': 'user', 'content': 'synthetic'}])
+            gateway.complete([{'role': 'user', 'content': 'synthetic'}], operation_id='test-operation')
         assert len(seen) == 1
     finally:
         gateway.close()
@@ -436,7 +437,7 @@ def test_evaluation_error_and_business_failure_are_separate():
 
 def test_postgres_model_is_namespaced_without_trajectory_truth():
     sqlalchemy = pytest.importorskip('sqlalchemy')
-    from evonext.ledger import receipts
+    from evonext.operations.ledger import receipts
     from sqlalchemy.dialects import postgresql
     sql = str(sqlalchemy.schema.CreateTable(receipts).compile(dialect=postgresql.dialect()))
     assert 'evonext.operation_receipts' in sql
@@ -487,7 +488,7 @@ def test_celery_configuration_without_broker_connection(monkeypatch):
     pytest.importorskip('pymongo')
     monkeypatch.setenv('EVONEXT_API_KEY', 'synthetic-ci-key')
     monkeypatch.setenv('EVONEXT_DEMO', 'false')
-    from evonext.worker import app, verify
+    from evonext.app.worker import app, verify
     assert app.conf.task_serializer == 'json'
     assert app.conf.task_ignore_result is True
     assert app.conf.task_default_queue == 'evonext.bulk'

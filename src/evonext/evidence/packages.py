@@ -4,7 +4,7 @@ import stat
 from pathlib import PurePosixPath
 from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile
 
-from .domain import ContractError, Snapshot, load_json, sha256
+from evonext.contracts.trajectory import ContractError, Snapshot, load_json, sha256
 
 
 def safe_path(name: str) -> bool:

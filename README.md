@@ -2,16 +2,20 @@
 
 面向 GUI Agent 的轨迹工作台与能力进化控制面。重新实现内部结构，保留数据、事实语义和外部协作边界，不复制旧平台实现。
 
+## 完整重构文档
+
+[docs/rebuild/README.md](docs/rebuild/README.md) 已收录完整 PRD、领域合同、架构、API/工作台、迁移、AC-001–063、实施任务书和原合成合同样例；按 Mongo/MinIO/PG、OpenCUA、Langfuse 的最新约束修订。AIHOT/OpenClaw 借鉴与取舍见 [ADR-001](docs/adr/0001-aihot-openclaw.md)。
+
 ## 当前交付
 
 这是 **M0/M1 工程底座**，不是已经完成生产替换的全功能平台。
 
-已实现的纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
+已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。新增本地 Skill 候选维护（版本/CAS/diff/Undo/固定导出）、Runtime 冻结消费与授权合同、严格策略模板、PG 收费调用恢复与请求预算。自动学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
 
 核心约束：
 
 - 轨迹继续是 `task_id / instruction / traj`。现有扩展字段、原始模型输出、步骤身份和执行回执保留；不引入替代它的新轨迹格式。
-- Mongo 保存轨迹事实；MinIO 保存对象字节；PG 保存本平台明确拥有的关系型控制记录。本轮只有 `evonext.operation_receipts`，不迁移旧平台数据库。
+- Mongo 保存轨迹事实；MinIO 保存对象字节；PG 保存本平台明确拥有的关系型控制记录。当前包含操作回执与 `evonext.model_call_receipts`，不迁移旧平台数据库。
 - 新快照使用独立 `evonext_` collection。旧数据可通过已有 HTTP API 按固定版本读取；不允许两套平台直接并发修改旧 Latest/History。
 - ZIP 的原始 `trajectory.json`、`metadata.json` 和图片逐字节保留。快照 ID 是版本化字节包身份，不冒充原 Task ID 或旧版本号。
 - 旧平台上传是 `traj → steps + multipart` 的显式投影，默认只预览；不能把 HTTP 成功当成无损同步或审核完成。
@@ -60,7 +64,7 @@ cp .env.example .env
 alembic upgrade head
 evonext serve
 # 可选：独立消费者，队列名与旧平台隔离。
-celery -A evonext.worker:app worker -Q evonext.high,evonext.bulk --concurrency=2
+celery -A evonext.app.worker:app worker -Q evonext.high,evonext.bulk --concurrency=2
 ```
 
 `compose.yaml` 只定义新应用/Worker，不另部署或替换已有存储和 Langfuse。容器内 `127.0.0.1` 不是宿主机，必须设置容器可达的服务地址。`docker compose --profile worker up --build` 不等于获准连接生产库。
@@ -68,7 +72,16 @@ celery -A evonext.worker:app worker -Q evonext.high,evonext.bulk --concurrency=2
 ## 目录
 
 ```text
-src/evonext/       应用、数据契约、存储适配、旧平台桥接、模型/追踪、Worker
+src/evonext/
+  app/            API / CLI / Worker 装配
+  contracts/      数据与消费合同
+  evidence/       证据、存储适配与统一导入用例
+  operations/     操作回执与完整性检查
+  providers/      模型、策略、收费回执与 Langfuse
+  compat/         旧系统 HTTP 适配
+  skills/workshop/ 候选方法维护，不放 offline
+  runtime/        固定上下文/授权/恢复/消费合同
+policies/gui/      可版本化的规则与 Prompt
 web/              React + TypeScript + Vite 工作台
 migrations/       本平台 PG schema 的显式 Alembic 迁移
 schemas/          只读格式视图与评估结果的 JSON Schema
@@ -89,9 +102,11 @@ ruff check .
 cd web && npm run build
 ```
 
-创建本框架时，本地运行 **61 passed / 3 skipped**：两个 skip 是当前执行容器未安装 Langfuse/Celery 的真实 SDK 形状检查，一个是未配置隔离实库的 integration 测试。Python 语法编译已通过；这不代表真实 Mongo/MinIO/PG、Langfuse 送达、设备恢复或旧平台端到端已验收。
+本轮离线测试和实际 CI 状态记录在 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。保留基线测试并增加分层、策略、调用恢复、Workshop 和 Runtime 合同回归。实库/设备/真实语义未测不得算通过；配置 CI 不等于本轮 CI 已通过。
 
-该执行容器无法访问包注册表，前端依赖安装/构建未在本地执行。CI 已定义 Python 3.11/3.12 契约测试、SDK 检查、lint 和前端构建；**以实际 Actions 结果为准，不将“配置了 CI”写成“CI 通过”**。依赖锁文件尚未生成，首次可联网构建后应提交锁定版本，再进入可复现部署验收。
+本地候选操作与 Runtime 准备命令见 [08](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md)。`prepare-trial` 仅产计划，不执行。模型 probe 需要显式开启 `EVONEXT_MODEL_CALLS_ENABLED`、PG 迁移和稳定 `--operation-id`；同一请求复用已收到响应，结果未知不自动重发。
+
+依赖锁文件仍未生成；可联网环境首次成功构建后应固定依赖，再进入可复现部署验收。
 
 ## 文档入口
 

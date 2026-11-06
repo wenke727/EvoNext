@@ -4,8 +4,8 @@ import io
 from threading import Lock
 from typing import Protocol
 
-from .config import Settings, secret
-from .domain import ContractError, Snapshot, sha256
+from evonext.config import Settings, secret
+from evonext.contracts.trajectory import ContractError, Snapshot, sha256
 
 
 class SnapshotStore(Protocol):
