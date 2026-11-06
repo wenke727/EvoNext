@@ -5,9 +5,9 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 
-from .config import secret
-from .domain import ContractError, Snapshot, encode_json
-from .packages import media_type
+from evonext.config import secret
+from evonext.contracts.trajectory import ContractError, Snapshot, encode_json
+from evonext.evidence.packages import media_type
 
 
 class BridgeUncertain(RuntimeError):
@@ -44,7 +44,7 @@ class LegacyClient:
                 chunks.extend(chunk)
                 if len(chunks) > self.settings.max_file_bytes:
                     raise ContractError("Legacy task exceeds input limit")
-        from .domain import load_json
+        from evonext.contracts.trajectory import load_json
         document = load_json(bytes(chunks))
         if document.get("task_id") != task_id:
             raise ContractError("Legacy response task identity mismatch")

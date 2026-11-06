@@ -1,0 +1,19 @@
+{
+  "authorized_execution": false,
+  "case_id": "case-001",
+  "evaluation_record_id": "record-001",
+  "handoff_id": "handoff-001",
+  "intervention_route": "unknown",
+  "request": "请根据当前证据判断是否存在可复用的流程经验缺口",
+  "request_owner": "skill-workshop",
+  "response": {
+    "candidate_ref": null,
+    "reason": "尚未证明是 skill 知识缺口；应先确定点击无效的因果路径",
+    "status": "needs_evidence",
+    "trial_id": null
+  },
+  "review_revision_id": "review-001-r1",
+  "schema_version": "intervention_handoff.synthetic.v1",
+  "synthetic": true,
+  "task_revision_id": "task-rev-1"
+}

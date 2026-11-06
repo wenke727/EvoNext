@@ -2,7 +2,7 @@ from alembic import context
 from sqlalchemy import create_engine
 
 from evonext.config import Settings, secret
-from evonext.ledger import metadata
+from evonext.operations.ledger import metadata
 
 settings = Settings()
 if not settings.postgres_dsn:

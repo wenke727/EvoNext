@@ -26,7 +26,7 @@ Mongo 快照单文档原子接受；图片已上传而快照失败时留下可�
 
 先核对现有服务版本，再开启 `EVONEXT_LANGFUSE_ENABLED=true`。本项目 SDK v4 使用 generation/OTel 路径；不调用旧 trace/generation ingestion API。若实例不满足官方最低版本，不自动替用户升级服务器。
 
-模型调用仅由显式 `evonext model-probe --text "..."` 或后续应用用例触发。probe 会真实调用配置的模型并可能计费；本次没有执行。`EVONEXT_TRACE_CONTENT=false` 是默认值，开启正文采集前确认数据授权和脱敏策略。Langfuse 不可用时业务结果不能被重复推理；关闭进程时 flush，具体送达仍需目标环境验收。
+模型调用仅由显式 `evonext model-probe --operation-id <stable-id> --text "..."` 或后续应用用例触发。probe 会真实调用配置的模型并可能计费；本次没有执行。`EVONEXT_TRACE_CONTENT=false` 是默认值，开启正文采集前确认数据授权和脱敏策略。Langfuse 不可用时业务结果不能被重复推理；关闭进程时 flush，具体送达仍需目标环境验收。
 
 ## 前端与服务
 
@@ -39,3 +39,13 @@ Docker 构建与 npm 依赖安装需要可联网环境。首次成功安装后�
 `/health/live` 只证明进程存活；鉴权后的 `/health/ready` 分项检查持久资源，不代表业务全链路或生产签署。PG configured 时会核对回执表可读，而不仅是 TCP 可连接。缺服务返回 unavailable，不静默改内存。
 
 旧平台 POST 响应丢失属于结果不确定，先按目标 Task ID 和来源核对，不自动重发或覆盖。演示数据丢失是已声明的易失性，不是恢复能力。所有旧数据库迁移、生产发布、批量修复和 destructive cleanup 都不属于本次默认操作。
+
+## 本轮增加的模型回执与本地资源
+
+模型调用默认关闭；显式设置 EVONEXT_MODEL_CALLS_ENABLED=true，并执行 Alembic 0002，才能让正式 ModelGateway 发送。已收到的响应包含原始内容，保存在授权 PG 账本，即使 Langfuse trace_content=false 也是如此。上线前设置账本权限、脱敏/保留策略和备份；本轮没有自动清理任务。3 个请求数预算共享稳定 deployment/account scope；不是精确费用限额。
+
+sending/unknown 不自动过期重发，也没有自动 reconciliation UI。先核对供应商请求/业务记录，再决定显式新尝试身份。应用无法保证供应商 exactly-once。收到的无效 JSON 与非 2xx 也保留，不反复付费直到解析成功。
+
+Workshop 使用明确 owner 和本地 FileLock，不支持未经验证的 NFS 多主机锁。目录不应由不可信用户同时修改；此本地模型不是完整远程 ACL。restore 是候选版本恢复，不是手机状态回滚。
+
+启动路径已变为 evonext.app.api:create_app / evonext.app.worker:app。使用旧模块路径的 systemd/脚本须显式更新；HTTP 路径与 evonext CLI 名称未改。未部署到旧生产环境。

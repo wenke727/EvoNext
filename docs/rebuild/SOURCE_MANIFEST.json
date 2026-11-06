@@ -1,0 +1,16 @@
+{
+  "origin": "user-requested generated design package, 2026-11-06",
+  "original_file_sha256": {
+    "01_PRODUCT_PRD.md": "1b11a70d5385a10207b4c21b1daa18a3d972cae191e8816df861dd348ea8d8b5",
+    "02_DOMAIN_CONTRACTS.md": "18708ef87d60539516af9059f3370d83de112adf5e9e9df0ed9cbafa4ba9ae10",
+    "05_CLEANROOM_MIGRATION.md": "361ff3281d2fbe29f160608550df5a74a92d269bc02595aa8b59a5375a8473be",
+    "00_REVIEW_AND_GAPS.md": "475e278283a25b77493efac78ec420dbadb24642ab07592cc9304e50aa24321f",
+    "06_ACCEPTANCE.md": "fa0261a30104f385c632b76576c9a1b544b684e0e2ae3de8fcc69d83b1c43b68",
+    "07_IMPLEMENTATION_PROMPT.md": "dd75c664ec5ec9ad033ed13f56a4151fc95df8b2a1efbdf55aa563768e3ca3d0",
+    "README.md": "d501990843b390923b7bec8908a1d4babc7b8c81106c7539a11cf5df098ccfd2",
+    "03_ARCHITECTURE.md": "f6d98a352f4f2773c3232f0b70e48b7da4019d7ecc85e6960adff01960625894",
+    "04_API_AND_WORKBENCH.md": "418877ae18bc4b17df86dada243f0abb9d56215f0507a43be1ffe4f16df298bb"
+  },
+  "treatment": "01/02/04/05/06/07 and synthetic fixtures retained with targeted amendments; README/00/03 rewritten; 08 added; private audit source pointers omitted",
+  "original_sha256_is_not_current_file_sha256": true
+}

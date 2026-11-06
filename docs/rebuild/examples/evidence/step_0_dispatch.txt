@@ -1,0 +1,1 @@
+SYNTHETIC EXECUTION RECEIPT. dispatched tap(toggle_auto_brightness); transport_ack=true. Does NOT establish effect.

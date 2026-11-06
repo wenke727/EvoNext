@@ -1,0 +1,33 @@
+{
+  "counters": {
+    "cancelled": 0,
+    "failed": 0,
+    "pending": 0,
+    "requested": 1,
+    "succeeded": 1
+  },
+  "idempotency_key": "synthetic-import-001",
+  "items": [
+    {
+      "item_id": "item-001",
+      "source_content_hash": "sha256:d88816e2dddec308a559dc99be989da13f9b4722fdb8a127b06a4a500b6facc1",
+      "status": "succeeded",
+      "task_revision_id": "task-rev-0"
+    }
+  ],
+  "job_id": "import-001",
+  "requested_items": 1,
+  "schema_version": "ingestion_receipt.synthetic.v1",
+  "source_binding": {
+    "agent_trial_id": "trial-original-01",
+    "raw_payload_ref": "source_rollout.synthetic.v1.json",
+    "source_content_hash": "sha256:d88816e2dddec308a559dc99be989da13f9b4722fdb8a127b06a4a500b6facc1",
+    "source_key": "batch-001/trial-001",
+    "source_revision": "source-r1",
+    "source_system": "rollout-synthetic",
+    "task_id": "202611061840001234567890",
+    "trajectory_id": "traj-001"
+  },
+  "status": "succeeded",
+  "synthetic": true
+}

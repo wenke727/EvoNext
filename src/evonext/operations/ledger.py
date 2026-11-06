@@ -3,7 +3,7 @@ from sqlalchemy import Column, DateTime, MetaData, String, Table, create_engine,
 from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.engine import make_url
 
-from .domain import ContractError, encode_json, sha256
+from evonext.contracts.trajectory import ContractError, encode_json, sha256
 
 metadata = MetaData(schema="evonext")
 receipts = Table("operation_receipts", metadata,
