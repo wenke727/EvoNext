@@ -3,7 +3,7 @@ import logging
 import sys
 from contextlib import contextmanager
 
-from .config import secret
+from evonext.config import secret
 
 log = logging.getLogger(__name__)
 

@@ -1,0 +1,26 @@
+{
+  "dataset_id": "dataset-001",
+  "dataset_revision_id": "dataset-snapshot-001-r1",
+  "members": [
+    {
+      "admission_reason": "diagnostic_only_and_contamination_unchecked",
+      "agent_trial_id": "trial-original-01",
+      "case_id": "case-001",
+      "contamination_status": "unchecked",
+      "family_id": "synthetic-family-001",
+      "formal_train_admitted": false,
+      "item_id": "item-001",
+      "review_revision_id": "review-001-r1",
+      "source_content_hash": "sha256:d88816e2dddec308a559dc99be989da13f9b4722fdb8a127b06a4a500b6facc1",
+      "split": "diagnostic",
+      "task_id": "202611061840001234567890",
+      "task_revision_id": "task-rev-1"
+    }
+  ],
+  "membership_manifest_hash": "sha256:0811dd3b32de8574f4f79c4e358ca0d995023183fd79750af1cb3783dfcb9f06",
+  "purpose": "diagnostic",
+  "schema_version": "dataset_snapshot.synthetic.v1",
+  "sealed": true,
+  "source_policy_revision": "diagnostic-admission-r1",
+  "synthetic": true
+}

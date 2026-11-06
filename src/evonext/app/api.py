@@ -8,11 +8,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 
-from .config import Settings, secret
-from .domain import ContractError, Snapshot, encode_json, load_json
-from .legacy import BridgeUncertain, LegacyClient
-from .packages import export_bundle, import_bundle, media_type
-from .storage import stores
+from evonext.config import Settings, secret
+from evonext.contracts.trajectory import ContractError
+from evonext.compat.legacy import BridgeUncertain, LegacyClient
+from evonext.evidence.packages import media_type
+from evonext.evidence.service import EvidenceService
+from evonext.evidence.store import stores
 
 
 async def limited_body(request, maximum):
@@ -29,6 +30,8 @@ def create_app(settings=None, repository=None, assets=None):
     if (repository is None) != (assets is None):
         raise ValueError("Inject both repository and assets, or neither")
     repository, assets = (repository, assets) if repository is not None else stores(settings)
+
+    service = EvidenceService(repository, assets, settings)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -76,7 +79,7 @@ def create_app(settings=None, repository=None, assets=None):
     def snapshot_or_404(snapshot_id):
         if len(snapshot_id) != 64 or any(c not in "0123456789abcdef" for c in snapshot_id):
             raise HTTPException(404, "Snapshot not found")
-        snapshot = repository.get(snapshot_id)
+        snapshot = service.get(snapshot_id)
         if snapshot is None:
             raise HTTPException(404, "Snapshot not found")
         return snapshot
@@ -96,7 +99,7 @@ def create_app(settings=None, repository=None, assets=None):
                 checks[name] = "unavailable:" + type(exc).__name__
         if settings.postgres_dsn and not settings.demo:
             try:
-                from .ledger import Ledger
+                from evonext.operations.ledger import Ledger
                 ledger = Ledger(secret(settings.postgres_dsn))
                 try:
                     ledger.ping()
@@ -113,7 +116,7 @@ def create_app(settings=None, repository=None, assets=None):
 
     @app.get("/api/v1/snapshots", dependencies=auth)
     def list_snapshots(after: str = "", limit: int = Query(50, ge=1, le=100)):
-        items = repository.list(after, limit)
+        items = service.list(after, limit)
         return {"items": items, "next_cursor": items[-1]["snapshot_id"] if len(items) == limit else None}
 
     @app.post("/api/v1/snapshots", dependencies=auth, status_code=201, openapi_extra={
@@ -121,12 +124,8 @@ def create_app(settings=None, repository=None, assets=None):
             "type": "object", "required": ["trajectory"], "additionalProperties": False,
             "properties": {"trajectory": {"type": "object"}, "metadata": {"type": "object"}}}}}}})
     async def import_json(request: Request):
-        value = load_json(await limited_body(request, settings.max_file_bytes))
-        if set(value) - {"trajectory", "metadata"} or "trajectory" not in value:
-            raise ContractError("Use an envelope with trajectory and optional metadata")
-        snapshot = Snapshot.create(encode_json(value["trajectory"]), encode_json(value.get("metadata", {})),
-                                   max_steps=settings.max_steps)
-        await run_in_threadpool(repository.put, snapshot)
+        raw = await limited_body(request, settings.max_file_bytes)
+        snapshot = await run_in_threadpool(service.import_json, raw)
         return {**snapshot.summary(), "media_complete": all(s.get("image") is None for s in snapshot.document["traj"])}
 
     @app.post("/api/v1/bundles", dependencies=auth, status_code=201, openapi_extra={
@@ -134,8 +133,7 @@ def create_app(settings=None, repository=None, assets=None):
             "type": "string", "format": "binary"}}}}})
     async def import_zip(request: Request):
         raw = await limited_body(request, settings.max_upload_bytes)
-        snapshot = await run_in_threadpool(import_bundle, raw, assets, settings)
-        await run_in_threadpool(repository.put, snapshot)
+        snapshot = await run_in_threadpool(service.import_zip, raw)
         return {**snapshot.summary(), "media_complete": True}
 
     @app.get("/api/v1/snapshots/{snapshot_id}", dependencies=auth)
@@ -152,7 +150,7 @@ def create_app(settings=None, repository=None, assets=None):
 
     @app.get("/api/v1/snapshots/{snapshot_id}/bundle", dependencies=auth)
     def download_bundle(snapshot_id: str):
-        raw = export_bundle(snapshot_or_404(snapshot_id), assets, settings.max_upload_bytes)
+        raw = service.export(snapshot_or_404(snapshot_id))
         return Response(raw, media_type="application/zip",
                         headers={"Content-Disposition": 'attachment; filename="opencua-bundle.zip"'})
 
@@ -170,7 +168,7 @@ def create_app(settings=None, repository=None, assets=None):
         bridge = LegacyClient(settings)
         try:
             snapshot = bridge.fetch(task_id, version)
-            repository.put(snapshot)
+            service.accept(snapshot)
             return {**snapshot.summary(), "media_complete": False,
                     "warning": "External screenshots are preserved as locators, not downloaded"}
         finally:

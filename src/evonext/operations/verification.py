@@ -1,4 +1,4 @@
-from .domain import ContractError, Snapshot, sha256
+from evonext.contracts.trajectory import ContractError, Snapshot, sha256
 
 
 def verify_snapshot(snapshot_id, repository, assets, ledger):

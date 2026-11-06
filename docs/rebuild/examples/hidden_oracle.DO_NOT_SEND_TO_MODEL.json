@@ -1,0 +1,13 @@
+{
+  "do_not_include_in_model_input": true,
+  "expected_business_outcome": "failure",
+  "expected_checks": {
+    "action.tap_dispatched": "pass",
+    "goal.mode_on": "fail"
+  },
+  "gold_authority": "synthetic_test_oracle_not_human_gold",
+  "schema_version": "hidden_oracle.synthetic.v1",
+  "source_task_id": "202611061840001234567890",
+  "source_task_revision_id": "task-rev-1",
+  "synthetic": true
+}

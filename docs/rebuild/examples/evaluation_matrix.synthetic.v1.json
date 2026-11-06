@@ -1,0 +1,86 @@
+{
+  "counts": {
+    "fail": 2,
+    "not_applicable": 1,
+    "not_assessed": 4,
+    "pass": 3,
+    "unknown": 2
+  },
+  "items": [
+    {
+      "check_id": "demo.check",
+      "judgment": "pass",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-01"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "pass",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-02"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "pass",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-03"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "fail",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-04"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "fail",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-05"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "unknown",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-06"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "unknown",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-07"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "not_applicable",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-08"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "not_assessed",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-09"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "not_assessed",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-10"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "not_assessed",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-11"
+    },
+    {
+      "check_id": "demo.check",
+      "judgment": "not_assessed",
+      "reason_code": "synthetic_fixture",
+      "request_id": "matrix-12"
+    }
+  ],
+  "requested": 12,
+  "schema_version": "evaluation_matrix.synthetic.v1",
+  "synthetic": true
+}

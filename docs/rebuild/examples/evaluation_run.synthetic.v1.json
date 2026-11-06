@@ -1,0 +1,80 @@
+{
+  "record": {
+    "checks": [
+      {
+        "check_id": "action.tap_dispatched",
+        "evidence_refs": [
+          "ev-dispatch"
+        ],
+        "judgment": "pass",
+        "reason_code": "receipt_observed"
+      },
+      {
+        "check_id": "goal.mode_on",
+        "evidence_refs": [
+          "ev-after"
+        ],
+        "judgment": "fail",
+        "reason_code": "observed_unmet_obligation"
+      }
+    ],
+    "coverage": {
+      "fail": 1,
+      "not_applicable": 0,
+      "not_assessed": 0,
+      "pass": 1,
+      "requested": 2,
+      "unknown": 0
+    },
+    "evidence_delivery_receipt": {
+      "delivered_to_model": [],
+      "note": "Contract fixture for a code grader. No model call or image delivery occurred.",
+      "read_by_deterministic_grader": [
+        "ev-before",
+        "ev-dispatch",
+        "ev-after"
+      ],
+      "unavailable": [
+        "ev-image-not-present"
+      ]
+    },
+    "execution_status": "completed",
+    "grader_kind": "deterministic_code",
+    "native_result": {
+      "format_id": "task_outcome.synthetic.v1",
+      "label": "failed",
+      "outcome_mapping_revision": "outcome-map-r1"
+    },
+    "outcome_status": "failure",
+    "record_id": "record-001",
+    "source_task_revision_id": "task-rev-1",
+    "usage": {
+      "known_cost": 0,
+      "provider_calls": 0,
+      "synthetic": true
+    }
+  },
+  "request": {
+    "agent_trial_id": "trial-original-01",
+    "attempt_id": "attempt-001",
+    "grader_binding_id": "outcome-trajectory-retrospective-r1",
+    "grading_repeat_index": 0,
+    "request_id": "request-001",
+    "requested_check_ids": [
+      "action.tap_dispatched",
+      "goal.mode_on"
+    ]
+  },
+  "run": {
+    "dataset_revision_id": "dataset-snapshot-001-r1",
+    "evidence_manifest_hash": "sha256:8143b50f1cc3d54c109463bbd457e734d361a5312873a543f1b6e223a683bee1",
+    "frozen_source_content_hash": "sha256:d88816e2dddec308a559dc99be989da13f9b4722fdb8a127b06a4a500b6facc1",
+    "input_task_revision_id": "task-rev-1",
+    "publication_mode": "none",
+    "run_id": "run-001",
+    "spec_revision_id": "spec-outcome-r1",
+    "status": "completed"
+  },
+  "schema_version": "evaluation_run.synthetic.v1",
+  "synthetic": true
+}

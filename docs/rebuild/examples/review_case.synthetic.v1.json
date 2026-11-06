@@ -1,0 +1,45 @@
+{
+  "case": {
+    "case_id": "case-001",
+    "failure_lifecycle": {
+      "intervention_route": "unknown",
+      "root_cause_locus": "unknown",
+      "state": "reviewed",
+      "unknowns": [
+        "无法仅从 ack+后态确认是坐标偏移、点击无效还是 UI 延时"
+      ]
+    },
+    "locator": {
+      "locator_revision": 1,
+      "module_key": "gui_executor",
+      "step_ids": [
+        "step-A",
+        "step-Z"
+      ],
+      "task_revision_id": "task-rev-1"
+    },
+    "memberships": [
+      {
+        "decision_ref": "review-001-r1",
+        "pool": "bad_case",
+        "purpose": "diagnostic"
+      }
+    ],
+    "review_revision_ref": "review-001-r1"
+  },
+  "review": {
+    "decision": "approved",
+    "evidence_refs": [
+      "ev-dispatch",
+      "ev-after"
+    ],
+    "finding": "点击回执存在，但后态显示自动亮度仍关闭",
+    "review_id": "review-001",
+    "review_revision_id": "review-001-r1",
+    "reviewer_id": "synthetic-reviewer",
+    "rubric_revision": "human-review-r1",
+    "task_revision_id": "task-rev-1"
+  },
+  "schema_version": "review_case.synthetic.v1",
+  "synthetic": true
+}

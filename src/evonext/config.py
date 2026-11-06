@@ -1,4 +1,4 @@
-from pydantic import SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     model_base_url: str = ""
     model_api_key: SecretStr | None = None
     model_name: str = ""
+    model_calls_enabled: bool = False
+    model_budget_scope: str = Field(default="default", min_length=1, max_length=64)
+    model_calls_per_minute: int = Field(default=10, ge=0, le=10000)
+    model_calls_per_hour: int = Field(default=100, ge=0, le=100000)
+    model_calls_per_day: int = Field(default=500, ge=0, le=1000000)
     max_upload_bytes: int = 64 * 1024 * 1024
     max_file_bytes: int = 8 * 1024 * 1024
     max_steps: int = 10000

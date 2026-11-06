@@ -3,10 +3,10 @@ from celery import Celery
 from pymongo.errors import AutoReconnect
 from sqlalchemy.exc import OperationalError
 
-from .config import Settings, secret
-from .ledger import Ledger
-from .storage import stores
-from .verification import verify_snapshot
+from evonext.config import Settings, secret
+from evonext.operations.ledger import Ledger
+from evonext.evidence.store import stores
+from evonext.operations.verification import verify_snapshot
 
 settings = Settings()
 if settings.demo:

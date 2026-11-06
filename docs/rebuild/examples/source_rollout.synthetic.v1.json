@@ -1,0 +1,53 @@
+{
+  "agent_trial_id": "trial-original-01",
+  "instruction": "在设置中开启自动亮度",
+  "schema_version": "rollout.synthetic.v1",
+  "source_key": "batch-001/trial-001",
+  "source_revision": "source-r1",
+  "source_system": "rollout-synthetic",
+  "steps": [
+    {
+      "dispatched_action": {
+        "action_id": "tap-01",
+        "kind": "tap",
+        "target": "auto_brightness_toggle"
+      },
+      "execution_receipt_ref": "evidence/step_0_dispatch.txt",
+      "observation_after_ref": "evidence/step_1_after.txt",
+      "observation_before_ref": "evidence/step_0_before.txt",
+      "proposed_action": {
+        "action_id": "tap-01",
+        "kind": "tap",
+        "target": "auto_brightness_toggle"
+      },
+      "source_ordinal": 0,
+      "step_id": "step-A"
+    },
+    {
+      "dispatched_action": null,
+      "observation_before_ref": "evidence/step_1_after.txt",
+      "proposed_action": null,
+      "source_ordinal": 1,
+      "step_id": "step-Z",
+      "terminal_reason": "agent_declared_done"
+    }
+  ],
+  "synthetic": true,
+  "task_contract": {
+    "completion_boundary": "自动亮度开启后结束",
+    "contract_revision": "goal-contract-r1",
+    "negative_constraints": [],
+    "obligations": [
+      {
+        "check_id": "action.tap_dispatched",
+        "criterion": "确实派发了开关点击动作"
+      },
+      {
+        "check_id": "goal.mode_on",
+        "criterion": "自动亮度最终为开启"
+      }
+    ]
+  },
+  "task_id": "202611061840001234567890",
+  "trajectory_id": "traj-001"
+}

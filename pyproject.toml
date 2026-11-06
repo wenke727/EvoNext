@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.128,<1", "uvicorn>=0.34,<1", "pydantic>=2.10,<3",
   "pydantic-settings>=2.7,<3", "httpx>=0.28,<1",
+  "Jinja2>=3.1.6,<4", "PyYAML>=6.0.2,<7", "filelock>=3.20,<4",
 ]
 
 [project.optional-dependencies]
@@ -21,7 +22,7 @@ tracing = ["langfuse>=4.7,<5"]
 dev = ["pytest>=8,<10", "ruff>=0.9,<1"]
 
 [project.scripts]
-evonext = "evonext.cli:main"
+evonext = "evonext.app.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

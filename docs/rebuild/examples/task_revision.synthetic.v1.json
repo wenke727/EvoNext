@@ -1,0 +1,85 @@
+{
+  "evidence_manifest": [
+    {
+      "action_id": "tap-01",
+      "available": true,
+      "content_hash": "sha256:8e4e70095de6ffbac0ac4e81505a9f22d4467c33478f6b24c05aa0bc729ec620",
+      "evidence_id": "ev-before",
+      "frame_relation": "before_action",
+      "kind": "text_observation",
+      "object_ref": "evidence/step_0_before.txt",
+      "step_id": "step-A"
+    },
+    {
+      "action_id": "tap-01",
+      "available": true,
+      "content_hash": "sha256:da03039176194120c6251262404e3342cd8f43902ad2428680b06756ff16c943",
+      "evidence_id": "ev-dispatch",
+      "kind": "execution_receipt",
+      "object_ref": "evidence/step_0_dispatch.txt",
+      "step_id": "step-A"
+    },
+    {
+      "action_id": "tap-01",
+      "available": true,
+      "content_hash": "sha256:0f4bf8238f3e588d9b316d1f759bbc9861553e1345c64e2173ebe062f5c65f56",
+      "evidence_id": "ev-after",
+      "frame_relation": "after_action",
+      "kind": "text_observation",
+      "object_ref": "evidence/step_1_after.txt",
+      "step_id": "step-Z"
+    },
+    {
+      "action_id": "tap-01",
+      "available": false,
+      "content_hash": null,
+      "evidence_id": "ev-image-not-present",
+      "frame_relation": "before_action",
+      "kind": "image",
+      "object_ref": null,
+      "reason": "synthetic_missing_media",
+      "step_id": "step-A"
+    }
+  ],
+  "evidence_manifest_hash": "sha256:8143b50f1cc3d54c109463bbd457e734d361a5312873a543f1b6e223a683bee1",
+  "instruction": "在设置中开启自动亮度",
+  "parent_revision_id": "task-rev-0",
+  "raw_task_revision_id": "task-rev-0",
+  "review_authority_ref": null,
+  "review_status": "unreviewed",
+  "revision_id": "task-rev-1",
+  "revision_kind": "derived_patch",
+  "schema_version": "task_revision.synthetic.v1",
+  "source_binding": {
+    "agent_trial_id": "trial-original-01",
+    "raw_payload_ref": "source_rollout.synthetic.v1.json",
+    "source_content_hash": "sha256:d88816e2dddec308a559dc99be989da13f9b4722fdb8a127b06a4a500b6facc1",
+    "source_key": "batch-001/trial-001",
+    "source_revision": "source-r1",
+    "source_system": "rollout-synthetic",
+    "task_id": "202611061840001234567890",
+    "trajectory_id": "traj-001"
+  },
+  "step_ids_in_source_order": [
+    "step-A",
+    "step-Z"
+  ],
+  "synthetic": true,
+  "task_contract": {
+    "completion_boundary": "自动亮度开启后结束",
+    "contract_revision": "goal-contract-r1",
+    "negative_constraints": [],
+    "obligations": [
+      {
+        "check_id": "action.tap_dispatched",
+        "criterion": "确实派发了开关点击动作"
+      },
+      {
+        "check_id": "goal.mode_on",
+        "criterion": "自动亮度最终为开启"
+      }
+    ]
+  },
+  "task_id": "202611061840001234567890",
+  "trajectory_id": "traj-001"
+}

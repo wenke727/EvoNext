@@ -1,42 +1,36 @@
-# 验收记录与剩余 Gate
+# 实施状态与验收证据
 
-本次为代码框架交付，不是生产替换。测试材料全部合成，没有读取目标服务数据、执行真实模型或操作手机。
+本页是当前交付事实；`docs/rebuild/` 是全量目标。测试通过不能替代语义质量、目标环境或生产替换签署。
 
-## 已执行
+## 本轮本地检查
 
-Python 3.13.5 执行 `pytest -q`：**61 passed / 3 skipped**。`python -m compileall -q src migrations` 通过。该环境包含 FastAPI/Pydantic/HTTPX/SQLAlchemy，但没有 PyMongo、MinIO、Celery、Langfuse、psycopg，且不能连接外部包注册表。
+环境：Python 3.13.5；当前离线容器不能解析 GitHub 或访问依赖注册表。工作树基线取用户提供的源码包，原始 Git tree 为 `7179532604aeb5cfa9b2d0109cf8becf1e2c30e9`，与远端 `c887ac5` 一致，避免在未知副本上修改。
 
-离线通过的行为覆盖：
+提交前执行 `PYTHONPATH=src pytest -q`：**104 passed / 3 skipped**。保留全部基线行为测试，并增加分层依赖、政策版本、收费调用恢复/预算、Workshop CAS/Undo/hash、Runtime 冻结/权限/回执及原规格示例校验。`python -m compileall -q src migrations` 通过；`docs/rebuild/examples/validate_examples.py` 验证 9 份 JSON 合同样例的身份、hash、分母和 Gold 隔离。
 
-| 范围 | 验证内容 |
-|---|---|
-| 数据 | 三字段主体、未知扩展、原输出空白、长字符串 ID、版本 0、sidecar 版本、冲突版本不猜测 |
-| 包 | JSON/metadata/媒体逐字节往返、重复导入、hash 核对、空截图、缺图不补造 |
-| 边界 | 非法 JSON、重复 key、非有限数、无效 Unicode、危险路径、symlink、重复/陌生 ZIP 成员、展开体积上限 |
-| API | 鉴权、错误不回显输入、完整纵向路径、分页、媒体绑定、缺图导出拒绝、请求体限制、OpenAPI body |
-| 旧平台 | 固定版本 HTTP 合同、版本不符拒绝、默认只预览、写回双重开关、POST 超时不重试、历史动作不自动转译 |
-| 模型/追踪 | 假传输下的有界调用、实际模型 ID、usage、默认不采集内容、追踪故障不吞模型错误或重复调用 |
-| Worker 核心 | 确定性完整性校验和幂等回执；完整性通过不是任务成功；PG 表归属检查 |
+3 个 skip 是未安装 Langfuse/Celery 的真实 SDK 形状检查与未配置隔离真实存储的 integration 测试。没有偷偷用内存结果替代实库。
 
-## 明确未执行
+## 本轮可用范围
 
-真实 SDK 形状检查有 2 项 skip（Langfuse、Celery），实库集成有 1 项 skip。它们不是通过。前端 npm install/build、实际浏览器验收、ruff、Docker build、真实 Mongo/MinIO/PG、broker 重启、Langfuse 送达、两平台端到端兼容均未在此容器执行。
+| 部分 | 已写且离线验证 | 仍未完成 |
+|---|---|---|
+| 重构文档 | 完整 00–08、原 AC-001–063/SEC-01–06、合成样例、来源摘要和 ADR | 全部目标能力的实施与生产签署 |
+| 分层 | app/contracts/evidence/operations/providers/compat/skills/runtime；旧扁平实现路径退出 | 使用旧 Python 启动路径的外部脚本需要更新 |
+| 数据链 | 原 JSON/ZIP 导入浏览导出与 HTTP 兼容行为回归；共用 EvidenceService | 真实旧新往返、多人权限、2000 步浏览器体验 |
+| Policy | 依赖内容 hash、严格变量/静态 include、冻结配置、禁止 secret config | 正式 grader 校准、自动发布到 Langfuse |
+| 模型调用 | 发送前回执、received 复用、unknown 不重发、独立 repetition、预算原子规则；真实 PG adapter/migration 已写 | PG 多进程/断电/重启/超时真实故障验收，货币计费、自动 reconciliation UI |
+| Workshop | 候选 create/patch/no_change、CAS、history/diff、archive/Undo、owner/hash 校验和固定导出 CLI | 模型学习/视觉复核/merge、反馈 UI、多人生产权限、独立质量 |
+| Runtime | none/raw/skill 固定上下文、local/cloud target、恢复请求、精确 grant、回执关联 | 实际设备 adapter、会话持久执行/租约、复位/teacher rollout、独立效果 |
+| 失败聚合 | 版本化关系模板与禁止自动合并 Case 的合同 | 候选检索、聚合引擎、人工分组与校准 |
 
-GitHub CI 配置会安装依赖，并执行 Python 3.11/3.12、SDK 形状检查、lint 和前端构建。CI 的实际结果以 Actions 页面为准，不能从本文件推定成功。
+## CI 的准确口径
 
-## 隔离服务验收
+基线 `c887ac5` 的 GitHub Actions 曾通过 Python 3.11/3.12、63 项非实库测试、Ruff 和前端构建。本轮创建提交时不得把基线成功挪用为新提交结果；新结果以对应 commit 的 Actions 为准。本地未执行 Ruff/前端构建/Docker build，不能记为通过。
 
-先创建名字包含 test 的独立 Mongo 数据库、MinIO bucket 和 PG 数据库，执行本平台迁移，再显式设置 `EVONEXT_INTEGRATION=1`，运行 `pytest -m integration`。测试仅写合成对象，不自动删除已有数据；严禁对生产名字/凭据绕过校验。
+## 隔离服务与后续 Gate
 
-当前 integration 测试只覆盖存储和 PG 回执；broker 重投、模型服务与 Langfuse 需要另外的环境验收。缺少配置不能用 mock 结果替代。
+实库测试必须显式 `EVONEXT_INTEGRATION=1` 并使用含 test 的隔离数据库/bucket，先运行本平台 Alembic。现有实库测试不覆盖完整模型回执、资源租约或真机恢复。
 
-## 可替代性 Gate
+下一步：真实脱敏 OpenCUA 往返 → 浏览器/持久化与兼容验收 → Review/Case → 一个独立 Outcome grader → 受控 Skill/Runtime 新 trial。Runtime prepare、签名/关联核验和文件 Undo 都不证明手机恢复成功。
 
-1. 真包往返：至少覆盖 raw-only、原生动作、历史扩展、缺图、辅助图、版本 0、长轨迹；核对源文件/媒体摘要，不公开真实材料。
-2. 旧读新、新读旧：逐消费者冻结格式与字段保真；HTTP 投影先审转换损失，再做目标端 readback。
-3. 浏览器：导入、切换、固定步骤、截图、原始输出/实际执行区分、导出、401/500/断线和 200/2000 步导航。
-4. 持久化：API/Worker 重启、重复消息、对象上传失败、Mongo 写失败、PG 回执冲突，逐项记录真实恢复结果。
-5. 后续 Review/Case：多人 CAS、机器结果不覆盖人审、固定 locator 与旧版本可回溯。
-6. 真实进化实验：状态恢复核验、新 trial、独立评估和完整分母；不能用本次存储测试宣称能力提升。
-
-本轮没有编辑旧仓库、迁移旧数据、切换线上服务或发布模型。
+本轮没有改变旧平台、写入生产数据库、执行付费模型/真机、训练或生产发布。PG 新迁移未在目标环境执行。原始模型响应将持久存于授权 PG，必须补访问与保留策略后才能生产启用。
