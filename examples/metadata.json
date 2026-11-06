@@ -1,0 +1,8 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "source_kind": "synthetic",
+  "do_not_train": true,
+  "human_gold": false,
+  "acceptance_eligible": false,
+  "image_hashes": {}
+}

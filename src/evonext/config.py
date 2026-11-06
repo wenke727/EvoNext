@@ -1,0 +1,48 @@
+from pydantic import SecretStr, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="EVONEXT_", env_file=".env", extra="ignore")
+    demo: bool = False
+    api_key: SecretStr | None = None
+    mongo_uri: SecretStr = SecretStr("mongodb://127.0.0.1:27017")
+    mongo_database: str = "evonext"
+    mongo_collection: str = "evonext_snapshots"
+    minio_endpoint: str = "127.0.0.1:9000"
+    minio_access_key: SecretStr | None = None
+    minio_secret_key: SecretStr | None = None
+    minio_bucket: str = "evonext"
+    minio_secure: bool = False
+    postgres_dsn: SecretStr | None = None
+    broker_url: SecretStr = SecretStr("redis://127.0.0.1:6379/0")
+    legacy_base_url: str = ""
+    legacy_api_key: SecretStr | None = None
+    legacy_writes: bool = False
+    langfuse_enabled: bool = False
+    langfuse_base_url: str = ""
+    langfuse_public_key: str = ""
+    langfuse_secret_key: SecretStr | None = None
+    trace_content: bool = False
+    model_base_url: str = ""
+    model_api_key: SecretStr | None = None
+    model_name: str = ""
+    max_upload_bytes: int = 64 * 1024 * 1024
+    max_file_bytes: int = 8 * 1024 * 1024
+    max_steps: int = 10000
+
+    @model_validator(mode="after")
+    def safe_defaults(self):
+        if not self.demo and (not self.api_key or not self.api_key.get_secret_value()):
+            raise ValueError("Set EVONEXT_API_KEY, or explicitly enable local-only demo mode")
+        if not self.mongo_collection.startswith("evonext_"):
+            raise ValueError("New snapshots require an evonext_ collection; no legacy direct writes")
+        if self.max_file_bytes <= 0 or self.max_upload_bytes < self.max_file_bytes:
+            raise ValueError("Invalid upload limits")
+        if self.demo and self.legacy_writes:
+            raise ValueError("Demo mode cannot publish to a legacy platform")
+        return self
+
+
+def secret(value: SecretStr | None) -> str:
+    return value.get_secret_value() if value else ""

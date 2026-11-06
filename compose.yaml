@@ -1,0 +1,16 @@
+# Connect to EXISTING MongoDB, MinIO, PostgreSQL, Redis and Langfuse.
+# Set routable endpoints in .env; 127.0.0.1 inside a container is not your host.
+services:
+  api:
+    build: .
+    env_file: .env
+    ports: ["127.0.0.1:8000:8000"]
+    init: true
+    restart: unless-stopped
+  worker:
+    build: .
+    env_file: .env
+    command: ["celery", "-A", "evonext.worker:app", "worker", "-Q", "evonext.high,evonext.bulk", "--concurrency=2", "--loglevel=INFO"]
+    init: true
+    restart: unless-stopped
+    profiles: ["worker"]

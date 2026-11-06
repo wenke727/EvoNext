@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "Check": {
+      "additionalProperties": false,
+      "properties": {
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "judgment": {
+          "enum": [
+            "pass",
+            "fail",
+            "unknown",
+            "not_applicable",
+            "not_assessed"
+          ],
+          "title": "Judgment",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "judgment"
+      ],
+      "title": "Check",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Transport contract only; it does not implement or approve a grader.",
+  "properties": {
+    "record_id": {
+      "title": "Record Id",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "title": "Snapshot Id",
+      "type": "string"
+    },
+    "grader_id": {
+      "title": "Grader Id",
+      "type": "string"
+    },
+    "grader_version": {
+      "title": "Grader Version",
+      "type": "string"
+    },
+    "execution_status": {
+      "enum": [
+        "completed",
+        "partial",
+        "error",
+        "cancelled"
+      ],
+      "title": "Execution Status",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "failure",
+        "unknown",
+        "not_assessed"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/Check"
+      },
+      "title": "Checks",
+      "type": "array"
+    },
+    "trace_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trace Id"
+    },
+    "native_result": {
+      "additionalProperties": true,
+      "title": "Native Result",
+      "type": "object"
+    }
+  },
+  "required": [
+    "record_id",
+    "snapshot_id",
+    "grader_id",
+    "grader_version",
+    "execution_status",
+    "outcome",
+    "checks"
+  ],
+  "title": "EvaluationRecord",
+  "type": "object"
+}

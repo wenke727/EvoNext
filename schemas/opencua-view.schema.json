@@ -1,0 +1,55 @@
+{
+  "$defs": {
+    "StepView": {
+      "additionalProperties": true,
+      "properties": {
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        },
+        "value": {
+          "additionalProperties": true,
+          "title": "Value",
+          "type": "object"
+        }
+      },
+      "title": "StepView",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "task_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "instruction": {
+      "title": "Instruction",
+      "type": "string"
+    },
+    "traj": {
+      "items": {
+        "$ref": "#/$defs/StepView"
+      },
+      "title": "Traj",
+      "type": "array"
+    }
+  },
+  "required": [
+    "task_id",
+    "instruction",
+    "traj"
+  ],
+  "title": "TrajectoryView",
+  "type": "object"
+}

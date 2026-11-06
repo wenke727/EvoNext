@@ -1,0 +1,19 @@
+{
+  "task_id": "synthetic-demo-001",
+  "instruction": "打开设置并查看显示选项，不修改任何设置。",
+  "traj": [
+    {
+      "index": 0,
+      "image": null,
+      "value": {
+        "raw_model_output": "Synthetic example: open Settings.",
+        "tool_call": {"name": "mobile_use", "arguments": {"action": "open", "text": "Settings"}}
+      }
+    },
+    {
+      "index": 1,
+      "image": null,
+      "value": {"raw_model_output": null, "recorded_fields": {"note": "No device was executed."}}
+    }
+  ]
+}
