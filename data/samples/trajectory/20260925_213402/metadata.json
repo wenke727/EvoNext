@@ -1,0 +1,75 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-b8a58b6f8bdacd7120c02028",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "kuaishou-bank-points-entry",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260925_kuaishou_bank_points_signin_logged_in",
+    "run_id": "20260925_213402:32957cfe5026469c83e54e6363b8ddf5",
+    "task_id": "20260925_213402"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260925_213402.task.json",
+    "snapshot_byte_sha256": "06cd828bad1d5f3b652b46dabe4ddee77cc0a8909b28617d5042c3041dd8dbeb",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.753232+00:00",
+    "local_run_id": "20260925_213402:32957cfe5026469c83e54e6363b8ddf5"
+  },
+  "source_task_sha256": "172caef3bf41708426188fd37dbe266e1b9f820c7c63223e3a82280a75fc9995",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_034_260925_214046.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "快手极速版"
+    ]
+  },
+  "image_hashes": {
+    "images/step_006_260925_213502.jpg": "0879890f30bc2912b904dcc850b00f7433d0a7bc7d419a61e88cc223de5a6b20",
+    "images/step_007_260925_213519.jpg": "0aaac07f0269f3146843f199300c06599e1e487b134a999226b20c208fe6a384",
+    "images/step_014_260925_213628.jpg": "0d5351842d680bbf7cbcae4bfa0d76630d97cc337a3f906f3af8268453773acb",
+    "images/step_032_260925_214012.jpg": "103fd0fab5b37086c044504dd4804ff41e9750c9c44084d497c55f8b6bef4e46",
+    "images/step_018_260925_213717.jpg": "148561f19f7476e6a72f6e09400b90a605ccce517129ea51fe07f23bb309fd33",
+    "images/step_002_260925_213419.jpg": "156ae46dd9d84697c9d2fd61ffde020d032e659dfbb25cbeb021b15ec5f3c68d",
+    "images/step_022_260925_213802.jpg": "163cb9f6355ad10d8240a947b7238b829f95642e6ff4c487801317036e910025",
+    "images/step_029_260925_213927.jpg": "1a0017007db14b550c78e8cd04e79aac648af4145b814f65b670c932a0234ced",
+    "images/step_030_260925_213937.jpg": "26b921c2acbb1f5896507fbc78ca7ccd7fe976a1c0a2d343ce23c5b6e2836641",
+    "images/step_011_260925_213601.jpg": "273dd2a4613313f0436eedffb66d0912212ff603cef03114dab76d809cd80831",
+    "images/step_027_260925_213900.jpg": "2889a95dfb19be84f9d4d71e3b59e981783663acf26fe6778931e3f093c569e6",
+    "images/step_015_260925_213637.jpg": "31e4fa0123e8a115b7e408ca293da987d1443ee5c63f22dafb612a594edccf31",
+    "images/step_012_260925_213609.jpg": "33a75bc5294f952049b735478077d4b1ecbd2eb0c68b2a3374c5ff7627c0a244",
+    "images/step_004_260925_213442.jpg": "340d68c329c77455286663e64845a1f0ecd03db2b06e95d5a48a20675dd19834",
+    "images/step_001_260925_213411.jpg": "482a46ecbdc3c483370599a1184e0f952c22513fe1f6b2325fd55d7ec27e7728",
+    "images/step_017_260925_213706.jpg": "48f013ca8f669f43e89d837f033569982adb4582c040778be8fc4c24cc31d181",
+    "images/step_033_260925_214029.jpg": "4acd6b592a96e95c2179d45f72d763af55a0c8c416cd99b8e7e54fbf81f6aa67",
+    "images/step_008_260925_213530.jpg": "50178003d7ea3de567bb84f38cc7a18bd6cfa033fbec5c48ce4878f9d00c7cd3",
+    "images/step_023_260925_213811.jpg": "51c0935dd75499d54403392087cba5c8e122dccac9ae82b04a4dc24e9cfa14bf",
+    "images/step_020_260925_213741.jpg": "527a065f727999ab031d648e9e0115e0070e1a9427f76a4a7c7e5410fa397233",
+    "images/step_005_260925_213451.jpg": "52dead6f5b87d67f5a06bbb58edeb4a0c065d6b327298c00c12e809010dad910",
+    "images/step_019_260925_213730.jpg": "5ba97b6efcbb3db2915f02e72e6fd47a72cdf5a1501c0be66d04bfb9907b453d",
+    "images/step_034_260925_214046.jpg": "63172c2b97caa4f62e255e70397d7bfebdb7f19ddc8cfd6bdaeec01db3a7673f",
+    "images/step_010_260925_213549.jpg": "662da5e13547ba9879eb40f0088fd8e98025d374674c8439d304b1465ed2016e",
+    "images/step_013_260925_213618.jpg": "7d525c566107b38646203a4d29d2738f751f1f1fee75ab068ec08838af6f0525",
+    "images/step_028_260925_213914.jpg": "85f1918c61ad0eeb340e94cfe641c6fc2f88d7af475127cf1e82119dabf49e9a",
+    "images/step_024_260925_213824.jpg": "8e2edb9a07d050691dc31d733287ebbf91e67498c55d086279141a36d3885a49",
+    "images/step_003_260925_213431.jpg": "ae6a887bd441a424c84fc7fbc41f6dfe640d7789211dda20fd1bc5a9e6af5371",
+    "images/step_031_260925_213947.jpg": "b10b901cb26ddb20589b68527852d821b65dc463abcb0c813bcf83902c6fe011",
+    "images/step_025_260925_213836.jpg": "bf85f7be2190b90a02210640df5205a55829d8a2c868a2078b3f61ab728a5424",
+    "images/step_016_260925_213653.jpg": "d01a9870089dfc80adece07872ef164cf27a462c8fb63787182fdd80d0b34d2c",
+    "images/step_026_260925_213847.jpg": "d448706a9e6fa48ef845fd04a4c08f6136747711f73f5d9e7d33ff2a65eb5ac9",
+    "images/step_009_260925_213540.jpg": "d7e3db0f88e2dbe0ed7372a792edfcdab6b3bf0e9a1871c2c5f55a90a18cc11e",
+    "images/step_021_260925_213752.jpg": "e537c1661b5a7b1b8ee504a60aa30180ebfecb46fa57658de21c9bde47db8302"
+  },
+  "created_at": "2026-09-25 21:46:58",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-25 21:46:58",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "record_id": "ea-20260911_184633",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "wechat-moments-feature-on",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260911_184633",
+    "platform_tags": [
+      "ea"
+    ],
+    "fetched_at": "2026-10-10T13:49:39.112323+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T13:49:39.112323+00:00",
+    "task_byte_sha256": "5d0d275d6fdaa6d86669ac2885067876d56a8d792505772431b5a8d9b878fa82",
+    "evidence_projection_byte_sha256": "4bec5711129e9917528763b8d91bae881492a70dfc31dabc2cb979ea5b361bb3",
+    "platform_version_number": 1
+  },
+  "image_profile": "jpeg98_qwen32_patch980",
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260911_184633_9c5a4c75",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260911_184633_9c5a4c75",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 19
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_5.jpg": "00802bd27d9cfa0a3dc7dc223944a2a89991ce17c3c81b06e061e20ccb804ee3",
+    "images/image_14.jpg": "1016c4a9cbf1dda3f5ee0bb1f1a1ce1bbfd230ae2463c766b8ded3bc5c5b3580",
+    "images/image_1.jpg": "1de55389e9c42343904daecb7a75c4b3a31c96de2b74dec5153412ff81ebaed4",
+    "images/image_0.jpg": "2400fc5a9a67b55f99262db65ac7ef91c74f63abc9c932c3e053ce35f93703ef",
+    "images/image_3.jpg": "2c906c6138ae77e11f1eabae66fb310c3eba8d7a17518c221604cc48dadef335",
+    "images/image_6.jpg": "2e21f0c97fe831389de9a83696b4945816ddfa25180c68fa1efe277958189ae2",
+    "images/image_13.jpg": "399277a47315448eb3bb9f81dbd600877d20657f2487eb46b9796560b28093ad",
+    "images/image_17.jpg": "50cd1758b9ff9b90c81d6153d7e280f45a075d3bc432b3a92f3fd975e5ea2655",
+    "images/image_18.jpg": "722cae5d28c6f81e9f34604486d2093efd83c22c1e2acbda7125b10e49a1c69c",
+    "images/image_12.jpg": "8b17850fb7909d3a030c6350aeab01420fdfa741186b8ea7de054a2d69d8974f",
+    "images/image_9.jpg": "99deee272f062b68ecf33da4ef9d28c0cbe16d9e1c2d79ec26977d3d07caa2b0",
+    "images/image_11.jpg": "a9e543a0985bb032e6b33aefd18c54913d1b59dc00b838df6ccf84c93659baa8",
+    "images/image_8.jpg": "b2aa29df31e0692754d30c39d0d4eb67c82fd5b4d8cfa1884c4b014f694795fb",
+    "images/image_2.jpg": "b6921412c706815b359508df66d90e33941efbb373303a739628c972cb0fa175",
+    "images/image_10.jpg": "f35fe774be2a043437508abc2d365ac8ca09dd0e55d764bb303f951aec73dff6",
+    "images/image_15.jpg": "f42ced9f8c64c6219024db329b7729a8ee066018f180b39960971b12ca4d477a",
+    "images/image_16.jpg": "f77099876a9379afafa072c51b2740c8069d2672b6a0c14e0b5c5ee97792b678",
+    "images/image_7.jpg": "fc122cb95304ef6927958af174bc1e21703e299afd8765e0e34ecb5aa3fc0064",
+    "images/image_4.jpg": "ff8d65318b6ea57d3222382a3c8971bfbfda56deb66687ea7734f75d1bd0cf1b"
+  },
+  "created_at": "2026-09-11 18:52:14",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:47",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

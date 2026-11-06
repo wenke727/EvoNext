@@ -1,0 +1,63 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-21a94f1154ccfb9558777242",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "douyin-liziqi-hottest-sort",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260920_224832_打开抖音关注李子柒，然后点赞并收藏她播放量最高的一个视频，并在该视频下评论“好美”。"
+  },
+  "source_snapshot": {
+    "status": "refreshed",
+    "task_version": 2,
+    "source_outcome_label": "failed",
+    "task_snapshot_sha256": "6f128ec38f2d5ea1c78808c3354961ef42fb09f00e865fbbe6ddfb42c86b6bf7",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260920_224832.task.json"
+  },
+  "source_task_sha256": "cc95359d418862bcb276ccabab6545def752cd4386846b5300cd9ee18a7aeb45",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_025_260920_225354.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "抖音"
+    ]
+  },
+  "image_hashes": {
+    "images/image_8.jpg": "0fed69bedb672c080c81718c1cd04796402c3eed30554313a8ecbec3496d9aec",
+    "images/image_16.jpg": "14aa63bfd86fc915c0ba43b847253ea1ba33384379b56d6c6c27b57b2589aa78",
+    "images/image_17.jpg": "1bb41fe969d0149530c700900edddd3f7d70382809d298ea79897b3ca007b837",
+    "images/image_0.jpg": "2500ce0dafc87c9fbb4f68a443fcbe96f97d3bca1d407c9b90cf8c7155fd03cc",
+    "images/image_7.jpg": "2affcc30721ca72d3758249c88085e9ba410b826f0fe288a1a4c5b45d6a7b2c2",
+    "images/image_19.jpg": "4b84dea716279f161bb3d49d2c10ade6a022f4f4d093c29decf848beb58165d6",
+    "images/image_3.jpg": "4f1e0f1d346d8d828ee9e759a033c2b04a081b792286d7b153b2c21929ac2405",
+    "images/image_9.jpg": "4f58b61b695950617d19df18be8d7654dba243cd7f9d641442740a0b982fcf69",
+    "images/image_21.jpg": "65e51e5fc3ca34ca0ab49688d3d32720848b66c8e2087c025a8c29dfd56444d1",
+    "images/image_6.jpg": "6b10512de0902af3c1efa503d181a047bd17de0299ae7be9395d465f59a0bfd2",
+    "images/image_13.jpg": "6b29091728b34dca900e8adaf22c784bd31cbead22f6601a9fb6ff2e5914e68c",
+    "images/image_12.jpg": "8d2e30b0a05baf2a5f9c3fb6b3503a085173a646699e794b95dd7e79d5ad49d8",
+    "images/image_22.jpg": "8eae55e9f414e71916c55b508379ee5b07af7ef5973aebd367d92a7574f1fd59",
+    "images/image_4.jpg": "99796ebfa22861d54139d783f9754b8f02154f238dd37bb4e842f1344860750e",
+    "images/image_24.jpg": "9e82034e737aef0211965543af5bd7a6d126f4a3930e6a562892af130f6c6b16",
+    "images/image_11.jpg": "9ecd95e1225ea2b9aa1fa39e931359fb89802085ce8f1296a484e4de82d6c040",
+    "images/image_23.jpg": "a737c4278756f3223743888fca88efded271438c05678e1e591af52418c6b45f",
+    "images/image_5.jpg": "abd0bcf6555c503974e351bb188a4e89fb699f34bb8e96ddf57676908ebc7b50",
+    "images/image_1.jpg": "b9daad98b1b4a808d39db3480421b91f21b87d03916c3201c43bb21ff8cca287",
+    "images/image_20.jpg": "c2fb413319daf38d1faa04d61e2c384f16bb3db7589b280dddd64555585135ec",
+    "images/step_025_260920_225354.jpg": "c933f1bc71384a5dab2d8be08a681211a39de304acbdab8d9f665505ce2717bc",
+    "images/image_15.jpg": "e1405d63c0d578c2a5a4f947adc8098b416e17c2335ee4b56f2af48a9b4fb12c",
+    "images/image_2.jpg": "f040b6b14d90c04ae0c37e38d87b375ec4d782b43f797037319be2cb7e0be271",
+    "images/image_18.jpg": "fa27b3c31b75cdbc38379ceb2a9b0df6f9779fea85ac9b77f8cdaa60fc6babf7"
+  },
+  "created_at": "2026-09-20T22:48:32+08:00",
+  "_version_info": {
+    "version_number": 2,
+    "version_created_at": "2026-09-22 23:52:21",
+    "version_reason": "关联 DPO 候选 prelabel_pref_e60d8f7b96c766f5d474555794be1112 到首次偏航步",
+    "available_versions": 2,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

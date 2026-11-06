@@ -1,0 +1,64 @@
+{
+  "record_id": "ea-20260804_103302",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-three-weekends-enumeration",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260804_103302",
+    "fetched_at": "2026-10-10T14:11:42.582435+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:42.582435+00:00",
+    "task_sha256": "e4fb785319fdbea556dd262e40d4483fcc11f845e0581116dc5af62b5702365f",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260804_103302_c98a5ef4",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260804_103302_c98a5ef4",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 5
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_1.jpg": "6fb90b8823bbbe4ba8b33425884ed30edc85f72592e02523db92add6a3cb35d9",
+    "images/image_0.jpg": "78cb15939e0b86b3f1a47a5dc2849b40b00e4f35e6bdf3b252828a473ec36585",
+    "images/image_4.jpg": "dc1bae79efd82c0179907243704b1c9d7fa8e051960ca8b9dd5d8c7c8b18d549",
+    "images/image_2.jpg": "fabd3b0802330aa587f63e7a41dab979a2da1d7f5e99321c5c83f65612141d7a"
+  },
+  "created_at": "2026-08-04 10:34:06",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

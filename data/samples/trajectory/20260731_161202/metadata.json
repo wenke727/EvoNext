@@ -1,0 +1,67 @@
+{
+  "record_id": "ea-20260731_161202",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-allday-past-wednesday",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260731_161202",
+    "fetched_at": "2026-10-10T14:11:40.818331+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:40.818331+00:00",
+    "task_sha256": "c2abf0b9537cf5b540c421a56eb63538fb7f79b045e3b4e1fb0ab1bd7a7b624c",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260731_161202_95e1d5e1",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": "Doubao-Seed-2.1-Pro-Preview",
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "single_step",
+        "teacher_model": null,
+        "teacher_provider": null
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260731_161202_95e1d5e1",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 7
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_2.jpg": "0a9f5429a10f5e7a9b49dfdc317b10a9555c4d5ac1665934e79a2922c20978a7",
+    "images/image_1.jpg": "39c0fedb8f6d6404c959dd4ad3c7d854d54daf9c34410828c6a07f06643f2f2d",
+    "images/image_4.jpg": "7fec6aac36ff2a04c58b1d09be977884b9e2d13eb2d049bf85149ec12514f8e7",
+    "images/image_3.jpg": "85c24825946f1e99a40a5fb032da89aefa5433689aa12ad42828c15093f66fc3",
+    "images/image_5.jpg": "ad297fab988a1bbc5ff58fc5adb55424e1b40f72145b642c0b131acebb0b9a5e",
+    "images/image_0.jpg": "bc989562ca613935ff833298d33b5c08a2bc61e95efaf78a3e820937c0efff6e",
+    "images/image_6.jpg": "fcec234fb6145260879e01be935fcfd6fc72a0b79db8ed39b7491bdf6f57f7e1"
+  },
+  "created_at": "2026-07-31T16:23:48.583780+08:00",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:49",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-ca721c1c5417aa4dd9fef31c",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "nanjing-airport-travel-comparison",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260920_212520_我明天到南京的机场，大概是12点半到。帮我查一下这个点从南京机场去金融城，打车和坐地铁分别需要多长时间？",
+    "run_id": "20260920_212520:10953690b6e8449dbb09b16a9bc1a99b",
+    "task_id": "20260920_212520"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260920_212520.task.json",
+    "snapshot_byte_sha256": "feef60181cc2a52d598e67042413e485ab8db8f78a7e631e451c3a640e88519f",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.675883+00:00",
+    "local_run_id": "20260920_212520:10953690b6e8449dbb09b16a9bc1a99b"
+  },
+  "source_task_sha256": "cf9e3fe2c93a983be0aa83cc709a64814a17b393013b0ca13c25b38f9ae76ca2",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "source_metadata": {
+    "apps": [
+      "高德地图"
+    ]
+  },
+  "image_hashes": {
+    "images/step_009_260920_212706.jpg": "2f2356fb16a351be5d1752bb87c105492e1a09cac0be1561aed58ba406ca70a7",
+    "images/step_015_260920_212813.jpg": "3555647864aa931a52a0f818ae0c2d947fe258dd3cfd916dfd8dab24eb2756dc",
+    "images/step_010_260920_212717.jpg": "45d28fc487b75546a72b26ff9889b1be9431591f5a76dde61528db817966a72b",
+    "images/step_022_260920_212941.jpg": "45d396a70f641d19a734b87588e98d34a62fe640862949940cbb08086c1519b9",
+    "images/step_014_260920_212800.jpg": "550d714dab637f46ed05cb921468ffa66d9dedaedcfd00edba1ddca8e123c417",
+    "images/step_007_260920_212646.jpg": "6548ac983e63a6a30c99bbab822bdd867c8e2524270db57054afc3cefc07fdb3",
+    "images/step_024_260920_213004.jpg": "6dbfdd1aeab6f26a78ace8e170d31c138099c2181358cdc53a3caa84a63b9f0f",
+    "images/step_020_260920_212910.jpg": "72bae15f94e0feeaf846eaff5bd609c47907c5611a2565464239049f58bb86aa",
+    "images/step_011_260920_212725.jpg": "7cc6b375e4e960a2342c8ac56c39547c0ddb8ad628fe306ea1c4c79a36d0e73c",
+    "images/step_000_260920_212520.jpg": "80130a797711ef50d2d0c8bb70c7cf85b2e0c3d952f496be72462310de440256",
+    "images/step_027_260920_213041.jpg": "81a98249a16df3e2650a8ab4116609d1ff5d1f2e0965e66ac754d01c37d4aa9f",
+    "images/step_023_260920_212953.jpg": "854e2ce61b96a7c65d417c40ac37fb7470e7189abfaf81b06b2a728412e4d119",
+    "images/step_017_260920_212837.jpg": "940f9dfc53e789ffe4b7b46fd8e7a417cb28b3f3378f11f3e0f59de309da761d",
+    "images/step_008_260920_212655.jpg": "969855b2d76c0f6ca5a3ed50fceed49b829702f734e59f1d46c40bd3e6c1c323",
+    "images/step_019_260920_212857.jpg": "b3bd6519f4327f19499707bf00250b7bed06ef2c228a50463277091e5d002192",
+    "images/step_005_260920_212626.jpg": "c0850d1f2a4c40b99d2224be4e55490d2d6c119a8b5776011fc8e44b3c240a57",
+    "images/step_003_260920_212558.jpg": "c0ef186dbe3c353f933f3b084a56d5cdf94fa89d376b4bff1e516d766b8fad67",
+    "images/step_006_260920_212635.jpg": "c4d0aabd393d1253b314618e67e64ed7fd1b034c61a26f1b549dd302e96221c8",
+    "images/step_012_260920_212737.jpg": "ccbb0c785afe55d3c17d3dd3f72a5e07a2beb9fbae5c3cec2099eb5fcf70bd9b",
+    "images/step_018_260920_212846.jpg": "d2b50240b9654f59e81bacc31dbfc6b18eae052262fc541577f1fd7523a50272",
+    "images/step_025_260920_213013.jpg": "dad2e12c9225405e18f616bf56c76083576e66bfe530df45a6410ae003bf2632",
+    "images/step_004_260920_212612.jpg": "e41b5b79d0f37d55a26bbc64faf28e3151e1e427724d9ea3d755185c3991906a",
+    "images/step_016_260920_212827.jpg": "e8e435e578052903df53e6643b13900ec1f40e125d11252c1e6a6ef18c8240cc",
+    "images/step_002_260920_212548.jpg": "ef0d325d0c15dbdb1089bdf67cf27b4ac6370b397e3c836577c0e07164974b66",
+    "images/step_021_260920_212930.jpg": "f75931bc8b81bf2ad41a7399d0ff668dc253a6e0877261c01e0ca934392e1324",
+    "images/step_013_260920_212748.jpg": "f8678df9f72b092f476a3dea24b392337dfe27b5e13ab5e72621b1e59f80941c",
+    "images/step_001_260920_212538.jpg": "fcdfebfe8d1fe2a5b8cb78ec3234f959f6753575534c659c7d4abeac3e973c00"
+  },
+  "created_at": "2026-09-20T21:25:20+08:00",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-20 21:34:35",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

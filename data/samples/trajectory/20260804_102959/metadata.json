@@ -1,0 +1,68 @@
+{
+  "record_id": "ea-20260804_102959",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-allday-next-saturday-museum",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260804_102959",
+    "fetched_at": "2026-10-10T14:11:42.343034+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:42.343034+00:00",
+    "task_sha256": "6e9c183377f0af5c8cd3d136f61847157d9eabad619777f10af5a57caea0f64e",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260804_102959_0e25b54f",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260804_102959_0e25b54f",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 8
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_2.jpg": "229f6a7baeed9f4ac52572079720a3c50f108aba2f8ade0cab6ceef09c373603",
+    "images/image_4.jpg": "28405314b539eed8b0d3188f69e7bbcd1fd21bc6daf624a303fdc6d28ef019da",
+    "images/image_0.jpg": "475a1016e9b743f2b50d6c1ebbdb2f44bf27ac034ebd7b71db2ae73f52322c0a",
+    "images/image_7.jpg": "a10fe0b85971955a338e976bd82e00db2a144f84b0846557d76c9ac28affccad",
+    "images/image_6.jpg": "a491132a2cb9dce51826102a3ceb5a323f9ec5c89f842a29e95c78c259f2370b",
+    "images/image_5.jpg": "b3c97ba7f3c33a66b18be0d2d8935384d7ed759e387751d5eb13a3beb2724f26",
+    "images/image_1.jpg": "c0f1288043c970c30211d1feabd4bc05de3a02b6c0b5aec6930d5d92eb28f7a4",
+    "images/image_3.jpg": "d20b47ebf10778cce40c92dffde703a48982dc75a6c50d114089198579a8f56f"
+  },
+  "created_at": "2026-08-04 10:32:34",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

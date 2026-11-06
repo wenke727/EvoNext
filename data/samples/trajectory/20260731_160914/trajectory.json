@@ -1,0 +1,162 @@
+{
+  "task_id": "20260731_160914",
+  "instruction": "在日历中创建一个全天日程，日期是周日，标题是“检查项目进度”",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": "<think>用户需要创建周日的全天日程，首先得回到当前月份（2026年7月），点击右下角的“今”按钮可以快速跳转到今天所在的月份，这样就能找到对应的周日日期了。</think>\n<action>点击右下角的“今”按钮，回到当前月份视图</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [885, 820]}}</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_001_260731_160958.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(939, 1950)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              885,
+              820
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": "<think>现在回到了2026年7月的月视图，今天是7月31日周五，即将到来的周日是8月2日，在日历最右侧列的最后一行位置，先点击选中这个周日日期，为后续创建日程做准备。</think>\n<action>点击8月2日这个周日日期，选中该日期</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [890, 505]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_002_260731_161026.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(944, 1201)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              890,
+              505
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_2.jpg",
+      "value": {
+        "raw_model_output": "<action>点击右下角的红色加号按钮，打开新建日程选项</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [885, 883]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_003_260731_161036.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(939, 2100)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              885,
+              883
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image": "images/image_3.jpg",
+      "value": {
+        "raw_model_output": "<think>现在新建日程页面的标题输入框已经激活，先输入日程标题“检查项目进度”，之后再开启全天选项。</think>\n<action>在标题输入框中输入“检查项目进度”</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"type\", \"text\": \"检查项目进度\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_004_260731_161045.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "text(\"检查项目进度\")",
+          "normalized_tool_call": {
+            "action": "type",
+            "text": "检查项目进度"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 4,
+      "image": "images/image_4.jpg",
+      "value": {
+        "raw_model_output": "<think>标题已经输入完成，现在需要开启“全天”选项，点击全天右侧的开关按钮，将其切换为开启状态，这样日程就会设置为全天日程了。</think>\n<action>点击“全天”右侧的开关按钮，开启全天日程模式</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [857, 383]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_005_260731_161054.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(909, 911)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              857,
+              383
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 5,
+      "image": "images/image_5.jpg",
+      "value": {
+        "raw_model_output": "<think>所有设置都已完成：标题是“检查项目进度”，全天模式已开启，日期为8月2日周日，现在点击右上角的对勾按钮保存这个日程。</think>\n<action>点击右上角的对勾按钮，保存新建的全天日程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [910, 106]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_006_260731_161103.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(966, 252)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              910,
+              106
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 6,
+      "image": "images/image_6.jpg",
+      "value": {
+        "raw_model_output": "<think>从当前界面可以看到，8月2日（周日）已经成功创建了标题为“检查项目进度”的全天日程，所有要求都已满足，任务完成。</think>\n<action>提交任务，确认日程创建成功</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"已在日历中创建8月2日（周日）的全天日程，标题为“检查项目进度”，任务完成。\", \"summary\": \"成功创建周日全天日程“检查项目进度”\", \"status\": \"success\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_160914_3bd50f58\\screenshots\\step_006_260731_161103.png",
+          "status": "executed",
+          "terminal": true
+        },
+        "recorded_execution": {
+          "code": "terminate(\"success\", \"已在日历中创建8月2日（周日）的全天日程，标题为“检查项目进度”，任务完成。\")",
+          "normalized_tool_call": {
+            "action": "terminate",
+            "status": "success",
+            "answer": "已在日历中创建8月2日（周日）的全天日程,标题为“检查项目进度”,任务完成。"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    }
+  ]
+}

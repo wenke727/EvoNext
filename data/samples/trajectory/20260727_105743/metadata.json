@@ -1,0 +1,67 @@
+{
+  "record_id": "ea-20260727_105743",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "appmarket-update-xiaoyuzhou",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260727_105743",
+    "fetched_at": "2026-10-10T14:11:42.864473+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:42.864473+00:00",
+    "task_sha256": "031e2321ad317a64ad1c35bb382a7e4ddeb6116d680e30c65bb92bd3736633da",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260727_105743_164ea0e0",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260727_105743_164ea0e0",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 5,
+        "live_executor_edited": 1
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_0.jpg": "191df16eaf8a088d2334d06e9ab386eb340d1b3617f06ac4012df2ebfb56f15b",
+    "images/image_2.jpg": "19d786c1f7cd6a454e471dd2012c0523cd967ed716d688788d38c413ebce3e22",
+    "images/image_3.jpg": "3042ceabd446625d613d73fce420cbed05e758aea8f17929d4d012dab1840ebd",
+    "images/image_1.jpg": "718aa6e019bd0a62b183905b4df0b4b7a00d070a7e8406ba2f014ca6f1345e7f",
+    "images/image_4.jpg": "9b2f0df0d49922e29f0c7d9c2a27d1e9e7ba04355fe5b9aff6d66bd7f78e45ae",
+    "images/image_5.jpg": "b1b6be99ebcf13e594503b8dda5a1d21acf6c26540dbb1a78b34a9dc490a7669"
+  },
+  "created_at": "2026-07-27T10:59:53.107517+08:00",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:49",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

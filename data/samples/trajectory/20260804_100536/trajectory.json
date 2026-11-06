@@ -1,0 +1,70 @@
+{
+  "task_id": "20260804_100536",
+  "instruction": "在日历中查找上周三的行程",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": "<think>用户需要在日历中查找上周三的行程，首先得打开日历应用，当前主屏幕没直接显示日历图标，直接通过启动指令打开日历APP即可。</think>\n<action>打开日历应用</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"open\", \"text\": \"日历\"}}</tool_call>\n```",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_100536_98fb8193\\screenshots\\step_001_260804_100557.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "open(\"日历\")",
+          "normalized_tool_call": {
+            "action": "open",
+            "text": "日历"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": "<think>当前是2026年8月4日周二，上周三是7月29日，在日历中找到7月29日的位置并点击，即可查看当日行程。</think>\n<action>点击日历中的7月29日（上周三的日期）查看对应行程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [370, 227]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_100536_98fb8193\\screenshots\\step_002_260804_100613.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(393, 540)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              370,
+              227
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_2.jpg",
+      "value": {
+        "raw_model_output": "<think>已成功定位到上周三（2026年7月29日）的日历页面，该日期下显示无任何行程安排，任务已完成。</think>\n<action>告知用户上周三的行程查询结果：2026年7月29日（上周三）没有安排任何行程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"2026年7月29日（上周三）没有安排任何行程。\", \"summary\": \"已完成日历中上周三行程的查询，结果为该日期无行程安排。\", \"status\": \"success\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_100536_98fb8193\\screenshots\\step_002_260804_100613.png",
+          "status": "executed",
+          "terminal": true
+        },
+        "recorded_execution": {
+          "code": "terminate(\"success\", \"2026年7月29日（上周三）没有安排任何行程。\")",
+          "normalized_tool_call": {
+            "action": "terminate",
+            "status": "success",
+            "answer": "2026年7月29日（上周三）没有安排任何行程。"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    }
+  ]
+}

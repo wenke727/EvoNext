@@ -1,0 +1,83 @@
+{
+  "record_id": "ea-20260731_144353",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-reminder-relative-offset-friday",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260731_144353",
+    "fetched_at": "2026-10-10T14:11:39.782121+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:39.782121+00:00",
+    "task_sha256": "b555a876d8ec4af23759af8fee2b7f43323b64b27e767a810975323ce8f70d90",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "apps": [
+      "日历"
+    ],
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260731_144353_2d82ece9",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260731_144353_2d82ece9",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 9,
+        "live_executor_edited": 10
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_15.jpg": "15190d5bef52c6d98b5f238c91b175f5df71618cb5cbf01d830a7a46c57703ed",
+    "images/image_11.jpg": "1601ebe7ca7d947f8651f05cf39c52fc213bd2cf48c7901d8a35b093f4566e78",
+    "images/image_17.jpg": "1d6251d8c345a558241dc90e7236f3a1682797ebbb2d055e71307dc67e1aa825",
+    "images/image_18.jpg": "1ed2279c7506e5f403c13f39e677912e5f26747e5c3de0b1473a252e57e79b55",
+    "images/image_2.jpg": "33f57849de33c43d0f97c0a50e96b2f9a2bd2768f5cacea465dfe786a69fee4a",
+    "images/image_6.jpg": "3c2bc7baad17d6d9df8ca00fef9722314bcb3965ed00b49f577e000a7f128494",
+    "images/image_16.jpg": "3e7031040c5a84ee008c9dcf4910ebdd33bae89f55c499f91cf1be6f8b155602",
+    "images/image_5.jpg": "3ff750db3ae68ab557b9b6715fde2fcde6d17bce847de57c2210bfff82a12a78",
+    "images/image_14.jpg": "577e2a79b8c139196a07f313a1ecab25ef80978cdaae3f3531d9eb40829e4fc1",
+    "images/image_0.jpg": "6c8d0d65e082b4f71e71cebef4ba4e72ea205125f4cfca02ca2488bce2f4dfe8",
+    "images/image_4.jpg": "866f1e2011361f7116a48ea24371ea5ae96104572fa6baa05e2ceddb02c6c4c1",
+    "images/image_12.jpg": "8f29deada9cb9584bc5ed0ccd2a4e98b6558e60643032e998003359b5b0d7ff2",
+    "images/image_9.jpg": "c802fe5d2d872a7cbe4acaf68b3c06c1bcce9c74bdf39d2a6d3e1a4c2e38c184",
+    "images/image_1.jpg": "ce5e2892254a75a39da855a1b8b8412d0dddb54970d8a5a410f43dbe3a957a15",
+    "images/image_13.jpg": "d485a471c2386402d31141ee44ef422027cdccc63855049d405424bd1a2a47e2",
+    "images/image_3.jpg": "d78396e342ba34c754939f3ca15197e0a151e1f11dd44fd3e27645d5eedf7bcf",
+    "images/image_7.jpg": "e7dad0d88b3c32e78a58eacd9dd4a8be2c51ef781f1920a1c41f93239e4fe16d",
+    "images/image_8.jpg": "e7f8b0c7e5707dd3fd14f0526ffcd255f5b6e088bbe75cb82820748a2b4fd9a0",
+    "images/image_10.jpg": "ef098c5ace36a32ac7c455b035450fdfe4a6220bebd844e8d4dc5243d39d2aa0"
+  },
+  "created_at": "2026-07-31T14:48:41.581037+08:00",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:49",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

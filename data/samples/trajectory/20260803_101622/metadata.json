@@ -1,0 +1,49 @@
+{
+  "record_id": "ea-20260803_101622",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-event-tomorrow-duration",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260803_101622",
+    "fetched_at": "2026-10-10T14:11:41.159080+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:41.159080+00:00",
+    "task_sha256": "0088c344c07150484feb8c0036c3acf2b1e37b52d9b05abc3bf8c2ea53c29fc0",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "image_hashes": {
+    "images/image_2.jpg": "0d7658778bc506c1831c17dfbe680c5fc4d9c113b10054026f7e4922d918c056",
+    "images/image_10.jpg": "1540bb595564eddd9fd0c17b3bee3478af8c5b8f516900d8aff073789accc809",
+    "images/image_7.jpg": "1e47eda8957672eb212c26f4d4719e0ed4b3aab42228eed3e184349ceb5a4c8c",
+    "images/image_14.jpg": "39d28de53b888e2d40b8eb4d3d7572b34ff4caba20b0f1392a161f6b56a0fc49",
+    "images/image_11.jpg": "8f3d1343f16bd003bd4492416e546de2397496e02d15f25274ee74ecff315c1b",
+    "images/image_17.jpg": "9752ff6dea99b1f75f9cb1f5ea5a0fc983f6d77553e705ee461da4d17d03e634",
+    "images/image_16.jpg": "9e5aaf32089943262a39c14ad22d838b3fc154fab61de4ab7e2db2b4ae774acf",
+    "images/image_3.jpg": "a17037efe92889dd5781221f9df9ca8aea42ada6a3a59f28fe7e3b61bc137744",
+    "images/image_15.jpg": "ab4ee79faad839a742e2c8cf4f6c76aa309a32edc2a86c8d1cff4d4d5df48e20",
+    "images/image_6.jpg": "ab6b9904f2a223988352116e255d205a3c06ad7862609712899022c5a36a9cb9",
+    "images/image_4.jpg": "b0d1215f1cc104c1f5080ede982a0ac25bd08877a2ea8d66bd53a6a4c766eee0",
+    "images/image_0.jpg": "c3c40fafe420059f82e0ed365c5d079dd853ac8c9017a92664b4d4e8ddcd5095",
+    "images/image_13.jpg": "d18bb0508f205e1e2337a0450067d35627d613021df6cef20f4f963bbe5f328d",
+    "images/image_12.jpg": "e431afdb1ae1bb06c2f99e26b4e8f86ceac5b1635aa7f11da4d89e7028c6b81b",
+    "images/image_1.jpg": "e760f914091e49b350a3240449e6096ff825e72118acffaf7a42dd1c12c6bd6b",
+    "images/image_8.jpg": "e8541fe0f3be7b700b735a1addb609050cec0ab5cdebbd9a11d79f93dd00be68",
+    "images/image_5.jpg": "ec81794b10d300117b33f31221141387f36e2e1362c277f863043cf926a8f142",
+    "images/image_9.jpg": "ffc5c8ea5d47ccc697fdab83352a164358bd489eaca8e014d15d0125c8b120e5"
+  },
+  "created_at": "2026-08-03 10:19:40",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

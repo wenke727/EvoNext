@@ -1,0 +1,73 @@
+{
+  "task_id": "20260804_101701",
+  "instruction": "帮我在日历中查找明年的母亲节是哪一天？母亲节是每年5月的第二个星期日",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": "\n用户现在需要找明年也就是2027年的母亲节，是5月第二个周日，现在日历显示的是2027年2月，所以得往右滑到5月对吧？不对，哦不对，当前是2026年8月？不对不对，当前日历显示的是2027年2月？哦不对，用户说“明年”，现在当前时间是2026年8月，所以明年是2027年对吧？对的，现在日历在2027年2月，要到5月，所以需要向右滑动？不对不对，月份是往前是更早，往后是更晚？哦不对，2月之后是3、4、5月，所以应该是从右往左滑？不对，你看现在是2月，下一个月是3月，所以滑动的话，要显示后面的月份，应该是手指从右往左滑，也就是start在右边，end在左边？不对，不对，日历的月视图，你左滑是下一个月，右滑是上一个月对吧？对，比如现在是2月，左滑一次到3月，再左滑到4月，再左滑到5月。那现在我需要滑动到5月，所以先从右往左滑，从[900, 300]滑到[100, 300]，先到3月，然后再滑两次到5月？不对，或者有没有更快的？哦不对，顶部有个“年”的选项，点击年的话可以直接选月份？哦对，顶部有年、月、周、日，现在选的是月，点击“年”的话，就能看到2027年的所有月份，直接点5月更方便。哦对，那个左上角的“年”按钮，坐标大概是[126, 131]对吧？对，我看顶部的导航，第一个是“年”，坐标[126,131]，点击它就能进入年视图，然后直接选5月，这样更快。所以下一步应该点击“年”这个按钮。\n</think>\n<action>点击顶部的“年”选项，切换到年视图以快速选择5月</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [126, 131]}}</tool_call>\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_101701_9d72d0ed\\screenshots\\step_001_260804_101721.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(134, 312)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              126,
+              131
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": "<action>点击5月的日历区域，进入2027年5月的详细月视图</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [494, 438]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_101701_9d72d0ed\\screenshots\\step_002_260804_101730.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(524, 1042)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              494,
+              438
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_2.jpg",
+      "value": {
+        "raw_model_output": "<think>现在已经进入2027年5月的月视图，查看周日列：第一个周日是5月2日，第二个周日是5月9日，且日历也标注了5月9日为母亲节，确认结果正确。</think>\n<action>已查询到明年（2027年）的母亲节是5月9日，星期日，任务完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"明年（2027年）的母亲节是5月9日，星期日。\", \"summary\": \"通过打开日历年视图选择5月，查看2027年5月的日历，确认5月的第二个星期日为5月9日，即为该年母亲节。\", \"status\": \"success\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260804_101701_9d72d0ed\\screenshots\\step_002_260804_101730.png",
+          "status": "executed",
+          "terminal": true
+        },
+        "recorded_execution": {
+          "code": "terminate(\"success\", \"明年（2027年）的母亲节是5月9日，星期日。\")",
+          "normalized_tool_call": {
+            "action": "terminate",
+            "status": "success",
+            "answer": "明年（2027年）的母亲节是5月9日,星期日。"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-e71367fed0e5041ce6136e51",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "xiaohongshu-railway-boarding-query",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260926_121739_帮我打开小红书查询一下，我在12306购买的火车票，始发点是香港西九龙，能否在福田上车？",
+    "run_id": "20260926_121739:71087d40d094465c9431aec38baae633",
+    "task_id": "20260926_121739"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260926_121739.task.json",
+    "snapshot_byte_sha256": "0bda7940cf2985bf635a864e22f8f84c104a8c9a6323165fe5a6236a67519c0f",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.752620+00:00"
+  },
+  "source_task_sha256": "6613a9b2245b930fd2b17165407222685a638f8b00a5d7200f7f0ab4d533d6be",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_012_260926_121948.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "小红书"
+    ]
+  },
+  "image_hashes": {
+    "images/step_002_260926_121757.jpg": "02295e0ae3c7d0d9a1170d2954894e750835c28520bc93dcb73860174949d662",
+    "images/step_012_260926_121948.jpg": "08dab1256ea50da38dd6e7420f3c1308efba8cfcfb56d4b6bb2a2cf432736a0a",
+    "images/step_009_260926_121914.jpg": "13c03328613086f9cf339ff514ca49a84289128f3faee5bbead549edefe10757",
+    "images/step_004_260926_121824.jpg": "19a9bc9dad5efabb6915b3bb70a3476e1a300247b4a4d0a6b25679893cf0a67f",
+    "images/step_006_260926_121846.jpg": "248717279b47a4bcaa8cfb30c110b195c7f75162d7d2e0a05149c695f396080e",
+    "images/step_010_260926_121925.jpg": "3a4f43e5c53739c4d34228fadbf52be0a68629ca5cd9cd1cc58ed4dac9397d08",
+    "images/step_005_260926_121837.jpg": "4e8a48f7c2b0bfa919630b7b3bf5b72e1080f5b6fd6e21c8e2fab7b75b8e2bbd",
+    "images/step_011_260926_121935.jpg": "57a60b4276a7b3b4fa2d2cbd3c18b7e4f2aa44c2111b961abb985a3ef4a7d1da",
+    "images/step_000_260926_121739.jpg": "5c461a99dc6c5fc9f83320c88f5a2618e94cd7a34802102f2fb0aebc3bd191cc",
+    "images/step_007_260926_121854.jpg": "7b758cd2ee976e4ec5781d919870a606e4514059ef978d2a25f2358416ff71c3",
+    "images/step_003_260926_121805.jpg": "aa95fee540f08d309f3deb43c965fb2b079ed15e014d146117c5e0bd10b9d67d",
+    "images/step_008_260926_121905.jpg": "bcdffc4c46acca9e6ec26713ee962b5f1b30a9e2e32101a9d78bc505a755b7fc",
+    "images/step_001_260926_121748.jpg": "e16b49e913904cd5409e8e40c18321b1861433a980c0a1967b0bc9eeb5eebf27"
+  },
+  "created_at": "2026-09-26 12:19:49",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-26 12:19:49",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

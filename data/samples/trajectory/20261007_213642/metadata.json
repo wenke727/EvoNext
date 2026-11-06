@@ -1,0 +1,51 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-9832c79b9acec631f88ceb1c",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "meituan-bike-scanner-entry",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20261007_213642_打开美团，找到共享单车骑行入口，进入扫码用车的扫一扫页面并停留；不要扫描车辆二维码或解锁单车。",
+    "run_id": "20261007_213642:4b7a67ece89f434681e3cd618c73d58a",
+    "task_id": "20261007_213642"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20261007_213642.task.json",
+    "snapshot_byte_sha256": "266afe1c754db0cc0211175146f97c70b3ad5e19135cff7404069165d094490e",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.794244+00:00",
+    "local_run_id": "20261007_213642:4b7a67ece89f434681e3cd618c73d58a"
+  },
+  "source_task_sha256": "5b2f2a87e3a5138c2c3bff794f6d67d42a69ec2fc2248dba93f0446803262ac8",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_009_261007_213908.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "美团"
+    ]
+  },
+  "image_hashes": {
+    "images/step_007_261007_213848.jpg": "57b794f850fecf176b73b731a141ed925d6a4096639c9a10f988dbd76d031bbf",
+    "images/step_008_261007_213855.jpg": "668a1abc8deea26a91c5bcf5c39a0e97dd1b1b3d57e237cb2194c28a7de6a673",
+    "images/step_004_261007_213813.jpg": "7762b082218e31c8f77cefaed87d55c3c7c76a6714c6abfc632457af74d4c5c4",
+    "images/step_005_261007_213827.jpg": "7e71fb9e4901e697c4c7a1880cbbebc59f57f3015ac103712dd78c15df2d5b29",
+    "images/step_003_261007_213805.jpg": "9a1d990e2ac6a45520844e9f03d73abb412a5934016ca8e22d07b1366b0cfd9c",
+    "images/step_000_261007_213642.jpg": "a8f3650a6c06ad9870e777aa8d0139266341d7e6fc20b7acd75cf5b7f853e91b",
+    "images/step_001_261007_213649.jpg": "b2bd87b7ae2b6d08d829dd3842c010b0634b86e898bba683b4395c57ccb0eab8",
+    "images/step_002_261007_213658.jpg": "e5507b6a6f0d1b7a19e5a4dd14fc6efbf18b2586be18b9d0f2f1f163f0bf767d",
+    "images/step_009_261007_213908.jpg": "fa82b13f5624234ff90c18005abb4b0b5740ee485adc9b6602ce28166764d539",
+    "images/step_006_261007_213837.jpg": "ffe9725a0e4eb0b1aa34f7255dfb105a412204311a0b42d5fb033b0e7144111b"
+  },
+  "created_at": "2026-10-07 21:39:09",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-10-07 21:39:09",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

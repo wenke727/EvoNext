@@ -1,0 +1,63 @@
+{
+  "record_id": "ea-20260804_102240",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-festival-relative-lookup-plus-schedule",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260804_102240",
+    "fetched_at": "2026-10-10T14:11:42.177975+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:42.177975+00:00",
+    "task_sha256": "73ca8456e923494aa46f40dbe6fb7a81ac363397834b8b51e528cd6748f18c4f",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260804_102240_17a64a01",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260804_102240_17a64a01",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 3
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_2.jpg": "2a99c04ea3a8fe94bfbebd641284467870a6fd47635a67c69c3ff27dd1417bbb",
+    "images/image_0.jpg": "46e98b6e8e4de546982f2ee56130ece3fc01b73b683934072d6f8ff161a32409",
+    "images/image_1.jpg": "83f494f6c106caa4f29d23a72973ffb988d65a8e76382c7288949d34528a6d9e"
+  },
+  "created_at": "2026-08-04 10:23:26",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

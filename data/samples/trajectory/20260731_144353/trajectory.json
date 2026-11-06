@@ -1,0 +1,475 @@
+{
+  "task_id": "20260731_144353",
+  "instruction": "在日历中创建一个提醒，时间是下下周五的晚上7点45，事项是购买功夫足球门票",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": "\n用户现在需要在日历里创建提醒，首先得打开日历APP对吧。首先第一步就是打开日历应用，所以action是open，text是日历。然后要确保工具调用的格式正确，arguments是字典，里面action是open，text是\"日历\"。对，先打开日历再说后面的步骤。\n</think>\n<action>打开日历应用，以便后续创建提醒事项</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"open\", \"text\": \"日历\"}}</tool_call>\n```",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_001_260731_144412.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "open(\"日历\")",
+          "normalized_tool_call": {
+            "action": "open",
+            "text": "日历"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": "<think>现在日历显示的是7月的日期，今天是7月31日周五，要找到下下周五的话需要先查看8月的日历，所以需要向左滑动日历区域来切换到8月的页面。</think>\n<action>向左滑动日历页面，切换到8月的日期视图，以便找到下下周五的日期</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [875, 326], \"end_coordinate\": [112, 326]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_002_260731_144427.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(928, 775, 119, 775)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              875,
+              326
+            ],
+            "end_coordinate": [
+              112,
+              326
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_2.jpg",
+      "value": {
+        "raw_model_output": "<think>现在已经切换到8月的日历，今天是7月31日周五，下下周五为8月14日，所以点击这个日期选中它，以便后续创建该日期的提醒。</think>\n<action>点击8月14日的日期，选中该日期作为提醒的日期</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [628, 367]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_003_260731_144443.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(666, 873)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              628,
+              367
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image": "images/image_3.jpg",
+      "value": {
+        "raw_model_output": "<action>点击右下角的加号按钮，开始创建新的提醒事项</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [887, 882]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_004_260731_144452.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(941, 2098)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              887,
+              882
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 4,
+      "image": "images/image_4.jpg",
+      "value": {
+        "raw_model_output": "<action>在标题输入框中输入提醒事项内容“购买功夫足球门票”</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"type\", \"text\": \"购买功夫足球门票\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_005_260731_144500.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "text(\"购买功夫足球门票\")",
+          "normalized_tool_call": {
+            "action": "type",
+            "text": "购买功夫足球门票"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 5,
+      "image": "images/image_5.jpg",
+      "value": {
+        "raw_model_output": "<action>点击开始时间的15:00选项，进入时间选择页面修改时间为19:45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [848, 432]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_006_260731_144510.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(900, 1027)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              848,
+              432
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 6,
+      "image": "images/image_6.jpg",
+      "value": {
+        "raw_model_output": "<action>向上滑动小时选择滚轮，将小时从15调整到19</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [296, 807], \"end_coordinate\": [296, 650]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_007_260731_144519.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(314, 1919, 314, 1546)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              296,
+              807
+            ],
+            "end_coordinate": [
+              296,
+              650
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 7,
+      "image": "images/image_7.jpg",
+      "value": {
+        "raw_model_output": "<think></think>\n<action>向上滑动小时滚轮，将小时从18调整到19</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [296, 855], \"end_coordinate\": [296, 807]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_008_260731_144527.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(314, 2034, 314, 1919)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              296,
+              855
+            ],
+            "end_coordinate": [
+              296,
+              807
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 8,
+      "image": "images/image_8.jpg",
+      "value": {
+        "raw_model_output": "<action>向上滑动分钟选择滚轮，将分钟从00调整到45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"coordinate\": [704, 807], \"coordinate2\": [704, 600], \"start_coordinate\": [704, 807], \"end_coordinate\": [704, 600]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_009_260731_144536.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(747, 1919, 747, 1427)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              704,
+              807
+            ],
+            "end_coordinate": [
+              704,
+              600
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 9,
+      "image": "images/image_9.jpg",
+      "value": {
+        "raw_model_output": "<action>继续向上滑动分钟选择滚轮，将分钟从04调整到45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [700, 806], \"end_coordinate\": [700, 400]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_010_260731_144546.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(743, 1917, 743, 951)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              700,
+              806
+            ],
+            "end_coordinate": [
+              700,
+              400
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 10,
+      "image": "images/image_10.jpg",
+      "value": {
+        "raw_model_output": "<action>继续向上滑动分钟选择滚轮，将分钟从12调整到45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [702, 805], \"end_coordinate\": [702, 300]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_011_260731_144556.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(745, 1915, 745, 714)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              702,
+              805
+            ],
+            "end_coordinate": [
+              702,
+              300
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 11,
+      "image": "images/image_11.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟显示为22，需要大幅向上滑动分钟选择滚轮，快速将分钟调整到接近45的数值，提高调整效率。</think>\n<action>大幅向上滑动分钟选择滚轮，将分钟从22向45调整</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [705, 808], \"end_coordinate\": [705, 320]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_012_260731_144623.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(748, 1922, 748, 761)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              705,
+              808
+            ],
+            "end_coordinate": [
+              705,
+              320
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 12,
+      "image": "images/image_12.jpg",
+      "value": {
+        "raw_model_output": "<action>向上滑动分钟选择滚轮，将分钟从32调整到约42，进一步接近目标45分钟</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [706, 809], \"end_coordinate\": [706, 310]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_013_260731_144653.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(749, 1924, 749, 737)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              706,
+              809
+            ],
+            "end_coordinate": [
+              706,
+              310
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 13,
+      "image": "images/image_13.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟为42，距离目标45还差3分钟，需要短距离向上滑动分钟选择滚轮3格，即可精确调整到45，避免大幅滑动超过目标值。</think>\n<action>短距离向上滑动分钟选择滚轮3格，将分钟从42精确调整为45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [708, 807], \"end_coordinate\": [708, 705]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_014_260731_144721.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(751, 1919, 751, 1677)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              708,
+              807
+            ],
+            "end_coordinate": [
+              708,
+              705
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 14,
+      "image": "images/image_14.jpg",
+      "value": {
+        "raw_model_output": "<think></think>\n<action>点击分钟滚轮中的“45”选项，将开始时间精确设置为19:45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [707, 862]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_015_260731_144745.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(750, 2050)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              707,
+              862
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 15,
+      "image": "images/image_15.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟为44，45在当前选中项下方，需要向上滑动分钟滚轮将45调整到选中位置，完成时间设置</think>\n<action>向上滑动分钟选择滚轮，将分钟从44调整为45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [705, 860], \"end_coordinate\": [705, 795]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_016_260731_144800.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "drag(748, 2045, 748, 1891)",
+          "normalized_tool_call": {
+            "action": "drag",
+            "start_coordinate": [
+              705,
+              860
+            ],
+            "end_coordinate": [
+              705,
+              795
+            ]
+          },
+          "policy_source": "live_executor_edited"
+        }
+      }
+    },
+    {
+      "index": 16,
+      "image": "images/image_16.jpg",
+      "value": {
+        "raw_model_output": "<think>现在时间已经调整为19:45，日期是8月14日（下下周五），事项也输入好了，接下来需要点击确定按钮保存这个时间设置，然后再保存整个日程。</think>\n<action>点击确定按钮，确认设置的开始时间为19:45</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [731, 941]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_017_260731_144810.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(776, 2238)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              731,
+              941
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 17,
+      "image": "images/image_17.jpg",
+      "value": {
+        "raw_model_output": "<action>点击右上角的对勾保存按钮，完成整个提醒事项的创建</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [907, 105]}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_018_260731_144819.png",
+          "status": "executed",
+          "terminal": false
+        },
+        "recorded_execution": {
+          "code": "tap(962, 250)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              907,
+              105
+            ]
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    },
+    {
+      "index": 18,
+      "image": "images/image_18.jpg",
+      "value": {
+        "raw_model_output": "<think>当前日历页面中8月14日（下下周五）已经成功显示了“购买功夫足球门票”的提醒，时间为19:45，说明提醒创建任务已经完成。</think>\n<action>确认提醒创建完成，结束任务</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"已成功在日历中创建下下周五（2026年8月14日）晚上7点45的提醒，事项为购买功夫足球门票。\", \"summary\": \"完成日历提醒创建：日期为2026年8月14日（下下周五）19:45，事项为购买功夫足球门票。\", \"status\": \"success\"}}\n</tool_call>",
+        "execution_result": {
+          "after_screenshot": "E:\\Agent\\debug\\online_rollout_sessions\\orl_20260731_144353_2d82ece9\\screenshots\\step_018_260731_144819.png",
+          "status": "executed",
+          "terminal": true
+        },
+        "recorded_execution": {
+          "code": "terminate(\"success\", \"已成功在日历中创建下下周五（2026年8月14日）晚上7点45的提醒，事项为购买功夫足球门票。\")",
+          "normalized_tool_call": {
+            "action": "terminate",
+            "status": "success",
+            "answer": "已成功在日历中创建下下周五（2026年8月14日）晚上7点45的提醒,事项为购买功夫足球门票。"
+          },
+          "policy_source": "live_executor_confirmed"
+        }
+      }
+    }
+  ]
+}

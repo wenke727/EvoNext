@@ -1,0 +1,54 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-2db407aa366bf1f4b2451851",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "wechat-family-member-code",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260927_173352_在微信中打开全家便利店的会员码",
+    "run_id": "20260927_173352:a759c3ba1bec48da870358e0f0de2bef",
+    "task_id": "20260927_173352"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260927_173352.task.json",
+    "snapshot_byte_sha256": "0bf58e801e83efa16094f4c7bdb4af24d21cd1b85632f7f863cc348be557b8dd",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.782672+00:00",
+    "local_run_id": "20260927_173352:a759c3ba1bec48da870358e0f0de2bef"
+  },
+  "source_task_sha256": "c09bb26198ac2fcc4a4b87d2d6d9aeaba2d531f710e4d1f9672dff8a07fccec6",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_012_260927_173635.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "微信"
+    ]
+  },
+  "image_hashes": {
+    "images/step_012_260927_173635.jpg": "167828913c1b0e5a7a196bafbdc6d335fc52400790027a5a6f9e70025e71794a",
+    "images/step_009_260927_173525.jpg": "3e67e69667760efd66bb1c2160d8a2f02b6f7bcbd4a1221b32a337f6fec96cb8",
+    "images/step_011_260927_173556.jpg": "5f06f509bd3d1403c0c410408671a9d7fc2a76b45af1113d9ba26bab8b58a547",
+    "images/step_000_260927_173352.jpg": "6c4023a39378681886b9fb56b0fbe737abc639ce8310006a67aa323baa084f25",
+    "images/step_004_260927_173433.jpg": "7c93b0210dacae799288a5d997aa6a0bd696cf8e92816c9cfb77ce2c4c02ba10",
+    "images/step_005_260927_173441.jpg": "86f92f6673cc2e8c78712fa057e2dcc33cfcdc1e6219cc3ab544934c3dfd8d13",
+    "images/step_010_260927_173537.jpg": "96358d3713d7ae6f251af207cf2d1b4bf6ebfae761a2b97377fe7d5ed11739ee",
+    "images/step_002_260927_173413.jpg": "b4f07a2d8a0b45cb233252fdf1d5b90441ead63b3a81e82d7fa7924165d476b4",
+    "images/step_008_260927_173511.jpg": "c3346160108cf840b2a7b278258ffa10c13d857bcf95cdee4a391120ebb053c9",
+    "images/step_006_260927_173451.jpg": "c4ce4389028c32ea9a832febf4d86fd788d23c015084ddf224e23c9bd5b2131f",
+    "images/step_003_260927_173422.jpg": "dbc666d36138d48961b138507defbe67d1f9ec5085cb9fd87ab137391867d98a",
+    "images/step_007_260927_173459.jpg": "e205da91ed948cea0ec2bb9a9a6d25c7bf5515f643ec9596e2e1ac77d7713b79",
+    "images/step_001_260927_173402.jpg": "e20aa12ccd88e1216ac964de0b97eef056a60005b58512f1a823e0f836daf39f"
+  },
+  "created_at": "2026-09-27 17:36:37",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-27 17:36:37",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

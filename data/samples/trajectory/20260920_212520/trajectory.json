@@ -1,0 +1,198 @@
+{
+  "task_id": "20260920_212520",
+  "instruction": "我明天到南京的机场，大概是12点半到。帮我查一下这个点从南京机场去金融城，打车和坐地铁分别需要多长时间？",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/step_000_260920_212520.jpg",
+      "value": {
+        "raw_model_output": "<think>要查询南京禄口国际机场到南京金融城12:30出发时打车和地铁的耗时，首先需要打开高德地图应用来进行路线查询。</think>\n<action>打开高德地图应用</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"open\", \"text\": \"高德地图\"}}\n</tool_call>",
+        "rejected_model_outputs": [
+          "<think>用户需要查询2026年9月21日12:30从南京禄口国际机场到南京金融城的打车和地铁通行时长，首先需要打开导航应用来查询路线，这里选择打开高德地图执行查询操作。</think>\n<action>打开高德地图应用</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"open\", \"text\": \"高德地图\"}}}</tool_call>"
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/step_001_260920_212538.jpg",
+      "value": {
+        "raw_model_output": "<think>当前高德地图正在启动加载中，需要等待应用完全加载完成后才能进行后续的路线查询操作。</think>\n<action>等待高德地图应用加载完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/step_002_260920_212548.jpg",
+      "value": {
+        "raw_model_output": "<think>现在高德地图已经加载完成，需要先点击搜索框，来输入起点南京禄口国际机场和终点南京金融城进行路线查询。</think>\n<action>点击页面上方的搜索框，激活输入功能</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [330, 642]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 3,
+      "image": "images/step_003_260920_212558.jpg",
+      "value": {
+        "raw_model_output": "<think>当前搜索界面还在加载中，需要等待加载完成后才能输入目的地信息进行查询。</think>\n<action>等待搜索页面加载完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 4,
+      "image": "images/step_004_260920_212612.jpg",
+      "value": {
+        "raw_model_output": "<think>现在搜索页面加载完成，首先需要输入终点“南京金融城”来进行路线查询，先将搜索框内容替换为目标终点。</think>\n<action>在搜索框中输入“南京金融城”</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"type\", \"text\": \"南京金融城\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 5,
+      "image": "images/step_005_260920_212626.jpg",
+      "value": {
+        "raw_model_output": "<think>现在搜索框已经输入了“南京金融城”，需要点击右上角的搜索按钮来获取对应的地点结果，之后再设置起点为南京禄口国际机场以及出发时间查询路线耗时。</think>\n<action>点击右上角的蓝色“搜索”按钮，执行搜索操作</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [881, 110]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 6,
+      "image": "images/step_006_260920_212635.jpg",
+      "value": {
+        "raw_model_output": "<think>当前页面显示正在加载中，需要等待加载完成后才能进行后续的路线查询操作，避免操作无效。</think>\n<action>等待页面加载完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 7,
+      "image": "images/step_007_260920_212646.jpg",
+      "value": {
+        "raw_model_output": "<think>现在已经搜索到南京金融城的结果，点击第一个结果右侧的“路线”按钮，进入路线规划页面，之后可以修改起点为南京禄口国际机场，并设置出发时间查询对应耗时。</think>\n<action>点击第一个搜索结果“南京金融城”右侧的路线按钮</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [919, 152]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 8,
+      "image": "images/step_008_260920_212655.jpg",
+      "value": {
+        "raw_model_output": "<think>当前路线规划页面还在加载中，需要等待页面完全加载后，才能修改起点为南京禄口国际机场，并设置出发时间为明天12:30来查询打车和地铁的耗时。</think>\n<action>等待路线规划页面加载完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 9,
+      "image": "images/step_009_260920_212706.jpg",
+      "value": {
+        "raw_model_output": "<think>当前路线的起点默认是“我的位置”，不符合需求，需要点击起点“我的位置”输入框，将起点修改为南京禄口国际机场。</think>\n<action>点击页面顶部的“我的位置”起点输入框，修改起点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [236, 63]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 10,
+      "image": "images/step_010_260920_212717.jpg",
+      "value": {
+        "raw_model_output": "<think>现在起点输入框已选中，需要输入起点“南京禄口国际机场”来替换原来的“我的位置”，这样才能规划正确的路线。</think>\n<action>在起点输入框中输入“南京禄口国际机场”</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"type\", \"text\": \"南京禄口国际机场\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 11,
+      "image": "images/step_011_260920_212725.jpg",
+      "value": {
+        "raw_model_output": "<think>当前页面正在加载南京禄口国际机场的相关搜索结果，需要等待加载完成后才能确认起点并进行后续的路线查询、设置出发时间的操作。</think>\n<action>等待页面加载完成，获取起点搜索结果</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 12,
+      "image": "images/step_012_260920_212737.jpg",
+      "value": {
+        "raw_model_output": "<think>现在搜索结果已经显示，第一个就是南京禄口国际机场的主地址，点击它确认起点，这样就能进入路线规划页面，之后可以设置出发时间为明天12:30，查询打车和地铁的耗时。</think>\n<action>点击第一个搜索结果“南京禄口国际机场”确认起点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [226, 142]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 13,
+      "image": "images/step_013_260920_212748.jpg",
+      "value": {
+        "raw_model_output": "<think>当前路线规划页面正在加载路线数据，需要等待加载完成后，才能设置出发时间为9月21日12:30，并分别查看打车和地铁的耗时信息。</think>\n<action>等待路线规划页面加载完成</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 14,
+      "image": "images/step_014_260920_212800.jpg",
+      "value": {
+        "raw_model_output": "<think>当前显示的是当前时间的打车耗时，需要先设置出发时间为明天（9月21日）12:30，才能获取对应时间的准确耗时。点击“合理规划时间，路途更顺畅”右侧的“更多”按钮，进入时间设置页面。</think>\n<action>点击“合理规划时间，路途更顺畅”右侧的“更多”按钮，打开时间设置界面</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [871, 873]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 15,
+      "image": "images/step_015_260920_212813.jpg",
+      "value": {
+        "raw_model_output": "<think>当前页面下方的出发时间设置区域被隐藏，需要向上滑动页面，显示出时间设置相关的选项，以便将出发时间设置为9月21日12:30。</think>\n<action>向上滑动页面，显示下方的时间设置功能区域</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [500, 900], \"end_coordinate\": [500, 300]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 16,
+      "image": "images/step_016_260920_212827.jpg",
+      "value": {
+        "raw_model_output": "<think>当前显示的是今天21:30出发的用时，需要点击出发时间选择框，修改出发日期为明天9月21日，时间为12:30，才能获取对应时间的打车耗时，之后再切换到地铁选项查看地铁耗时。</think>\n<action>点击“今天21:30出发”选择框，打开时间日期设置界面</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [254, 778]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 17,
+      "image": "images/step_017_260920_212837.jpg",
+      "value": {
+        "raw_model_output": "<action>点击“明天 周一”选项，将出发日期设置为9月21日</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [277, 862]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 18,
+      "image": "images/step_018_260920_212846.jpg",
+      "value": {
+        "raw_model_output": "<think>当前出发时间的小时是21点，需要向下滑动小时选择栏，将小时调整为12点，才能设置正确的出发时间12:30。</think>\n<action>向下滑动小时选择列表，将小时从21点调整到12点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [633, 770], \"end_coordinate\": [633, 920]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 19,
+      "image": "images/step_019_260920_212857.jpg",
+      "value": {
+        "raw_model_output": "<think>当前小时是16点，还需要继续向下滑动小时选择栏，将小时调整为12点，分钟已经是30分符合要求，调整完成后就可以确认时间查询打车耗时。</think>\n<action>继续向下滑动小时选择列表，将小时从16点调整到12点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [644, 772], \"end_coordinate\": [644, 918]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 20,
+      "image": "images/step_020_260920_212910.jpg",
+      "value": {
+        "raw_model_output": "<think>当前选中的小时是11点，需要向上滑动小时选择栏，将小时调整为12点，分钟保持30分，即可设置正确的出发时间为明天12:30。</think>\n<action>向上滑动小时选择列表，将小时从11点调整为12点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [647, 871], \"end_coordinate\": [647, 829]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 21,
+      "image": "images/step_021_260920_212930.jpg",
+      "value": {
+        "raw_model_output": "<think>现在出发时间已经设置为明天12:30，点击“确定”按钮确认时间，即可查看该时间出发的打车耗时，之后再切换到地铁模式查询地铁用时。</think>\n<action>点击底部的蓝色“确定”按钮，确认出发时间设置</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [500, 953]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 22,
+      "image": "images/step_022_260920_212941.jpg",
+      "value": {
+        "raw_model_output": "<think>当前路线正在加载中，需要等待页面加载完成，才能获取明天12:30出发的打车耗时信息，之后再切换到地铁选项查询地铁用时。</think>\n<action>等待页面加载完成，获取路线耗时信息</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 23,
+      "image": "images/step_023_260920_212953.jpg",
+      "value": {
+        "raw_model_output": "<think>现在已经获取到打车的耗时是34分钟左右，接下来需要返回路线规划主页面，切换到地铁出行方式，查询明天12:30出发的地铁耗时。点击左上角的返回箭头按钮。</think>\n<action>点击页面左上角的返回箭头，回到路线规划主界面</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [71, 61]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 24,
+      "image": "images/step_024_260920_213004.jpg",
+      "value": {
+        "raw_model_output": "<think>现在需要查询地铁的耗时，点击页面顶部的“公共交通”选项，切换到公共交通（含地铁）的路线规划页面，即可查看对应时间的地铁出行时长。</think>\n<action>点击顶部的“公共交通”选项，切换到公共交通路线查询界面</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [815, 138]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 25,
+      "image": "images/step_025_260920_213013.jpg",
+      "value": {
+        "raw_model_output": "<think>当前公共交通路线页面正在加载中，需要等待加载完成才能获取地铁出行的耗时信息，之后就可以汇总两种出行方式的时长完成查询。</think>\n<action>等待公共交通路线页面加载完成，获取地铁出行耗时信息</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"wait\", \"waiting_time\": \"2s\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 26,
+      "image": "images/step_027_260920_213041.jpg",
+      "value": {
+        "raw_model_output": "<think>已经查询到明天12:30从南京禄口国际机场到南京金融城的两种出行方式耗时：打车最快33分钟，常规耗时33-40分钟；地铁出行的常规纯地铁路线耗时1小时14分钟到1小时32分钟不等，最常用的全步行接驳地铁路线耗时约1小时20分钟，信息收集完成，可以结束任务。</think>\n<action>汇总查询结果，结束任务</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"2026年9月21日12:30从南京禄口国际机场前往南京金融城的出行耗时如下：\\n1. 打车：最快需要33分钟，备选等灯较多的路线需要40分钟，整体耗时范围为33~40分钟。\\n2. 地铁：纯地铁（仅步行接驳）的路线耗时在1小时14分钟~1小时32分钟之间，最常用的路线耗时约1小时20分钟，票价8元。\", \"summary\": \"已成功查询到明天12:30从南京禄口机场到南京金融城的打车和地铁耗时，打车约33-40分钟，地铁约1小时14分至1小时32分，常规路线约1小时20分\", \"status\": \"success\"}}\n</tool_call>"
+      }
+    }
+  ]
+}

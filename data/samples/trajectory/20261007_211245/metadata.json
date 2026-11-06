@@ -1,0 +1,49 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-46dc28a33b4d28586665d7fd",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "douyin-creator-analytics-entry",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20261007_211245_在抖音找到粉丝增长和已发布作品的查看入口，停在能够看到这两个入口的页面",
+    "run_id": "20261007_211245:45e6aba037d2423daa8bb57aec51c7ae",
+    "task_id": "20261007_211245"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20261007_211245.task.json",
+    "snapshot_byte_sha256": "6d4ab52493d87ab3834e4397fef8663f747872eb3fd63cced6833c53445ce4e9",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.791494+00:00"
+  },
+  "source_task_sha256": "36c06d3d56d9a3434cdcd6c8571b2aa6dd8b0592ca92ed6b3ed68fa7fbdbd61b",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_008_261007_211402.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "抖音"
+    ]
+  },
+  "image_hashes": {
+    "images/step_002_261007_211302.jpg": "1f0648d22365e45879cff2cc665cd3c75b49ead0f8cac6a3c094bfc3fdfed43f",
+    "images/step_004_261007_211319.jpg": "201874ed3c4bd4b3bcf16dd955c81d1f005b6691374082aa0d9b5e2fa8423356",
+    "images/step_006_261007_211343.jpg": "31a016948a77cf6228e883665ca31b56dc5c9e6f9b6596742d7936796a940b01",
+    "images/step_007_261007_211351.jpg": "5d5358a69b75518c8331a0f6f5bba5ec432d9d40bab216a6b1edce5290f08b15",
+    "images/step_008_261007_211402.jpg": "5de07c0e80525a4f98da5edecd001f5e7f029f8536c1559d3569c77516e12012",
+    "images/step_000_261007_211245.jpg": "63713a6d81647c5844bf4355d1fe7ee5439632839b697bdb8e58a8b68e421ed0",
+    "images/step_003_261007_211310.jpg": "b1ddd0ad25e158b6d455786db7278126ec339e33014cd377f339d13bc56625a5",
+    "images/step_001_261007_211252.jpg": "c18ec4a0f478d774167995763ca6572a8886d1ffa7a2ed1fd5425087fcef3aa7",
+    "images/step_005_261007_211331.jpg": "c64dbc607056f8bf90111939e28500b9c9dfc1760261f57b26c3f47e1779f95b"
+  },
+  "created_at": "2026-10-07 21:14:03",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-10-07 21:14:03",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

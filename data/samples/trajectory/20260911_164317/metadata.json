@@ -1,0 +1,79 @@
+{
+  "record_id": "ea-20260911_164317",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "scholar-citation-count-login-takeover",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260911_164317",
+    "fetched_at": "2026-10-10T14:11:43.601548+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:43.601548+00:00",
+    "task_sha256": "b383259648c093390ef016f1b4040c237d87c00c470b79acefe8917c269c234a",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "apps": [
+      "Edge"
+    ],
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260911_164317_169398ff",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260911_164317_169398ff",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 16
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_12.jpg": "01e1fa0b828ea0fb23e31afeae3fa0213209a4ed76048f25d34e3631e2fb0f29",
+    "images/image_5.jpg": "0572527e9be8934787cc1e58c3ec3ab32340074f0b0f50ec9a99a39abd41085f",
+    "images/image_6.jpg": "30620c7e3f24a54d1db256375bd257d80997ef417368f6400c8331db301b67b4",
+    "images/image_8.jpg": "415df657c589e6b9e9094441414d766f5e1b05b39a24794c0d7bd8b8fb4613d1",
+    "images/image_14.jpg": "4eb1757bc21b5917f8665bfdfc304b228995bc84c7c27762944836e45a544c3e",
+    "images/image_11.jpg": "4fdd15502bbec7097442b1075ee893653de5e82c9cf50d172f6056a2fbfe8ed0",
+    "images/image_10.jpg": "5785141e6bf17ab58c72da53b218336c735d651dffc007d44a7f828f24747a45",
+    "images/image_3.jpg": "6c87bcb143653dc94332fc837b0571a3b63a02d25f2cee448df7b374bb1af0ad",
+    "images/image_7.jpg": "86c9c26fb3fb6bbc980f2a5963afcbcaff7dd0c696a5d9a116ff386866740591",
+    "images/image_15.jpg": "8b8bc15ad722f85b8e393fc7cdf0d6a3a5bd44a516d28caf6d0ede9d9e4438cf",
+    "images/image_13.jpg": "9601ec9dd86b250c9e987b2a8265b16db1f247ecb239e393cf1e64997f04c566",
+    "images/image_1.jpg": "acd2bf76060cc36defad1ebd297d5475bca1663233df10329ce775f0020bee25",
+    "images/image_9.jpg": "adfbecb40430e518cf26256604df9bcc92efe96497f81775a2f8202bf55e5cb7",
+    "images/image_2.jpg": "b12dc69bd5d7fe6a5d464438ce389801f269391e7972f36572b736dd5cae7479",
+    "images/image_4.jpg": "cc84ebe7ac22c7a7e34be7cf973544e74c07f7c8358002bf711f65b23d40fb27",
+    "images/image_0.jpg": "e69e1ec9e9dc481d65953daadc9e3e7188711e95570fd284e81db8ddb8fa785f"
+  },
+  "created_at": "2026-09-11 16:58:47",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:47",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

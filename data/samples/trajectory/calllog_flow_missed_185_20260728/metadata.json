@@ -1,0 +1,38 @@
+{
+  "record_id": "ea-calllog_flow_missed_185_20260728",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "call-log-missed-incoming-only",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "calllog_flow_missed_185_20260728",
+    "platform_tags": [
+      "call_log_direction_readonly",
+      "ea"
+    ],
+    "fetched_at": "2026-10-10T13:49:41.411180+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T13:49:41.411180+00:00",
+    "task_byte_sha256": "523bfef68467db3f681774a801d2d08a3fc102e4ffcbf97a730fbe5f97464040",
+    "evidence_projection_byte_sha256": "7d4b6b57ffb6c5f66303b68821f93ce281e313f86f6e0cf5644bb44a0ea91256",
+    "platform_version_number": 1
+  },
+  "image_profile": "jpeg98_qwen32_patch980",
+  "schema_version": "opencua-offline.v1",
+  "image_hashes": {
+    "images/image_1.jpg": "6654a275e69944242626ea4279451656c1bc4072f757083b869c3a959ca00f67",
+    "images/image_0.jpg": "cc10664385c2a5ad322ace3f910d1d4f115788e903c1850c8e87fc2064195439"
+  },
+  "created_at": "2026-07-28 10:53:22",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:49",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-55ad8e1be4f67017d6978b2d",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "douyin-creator-analytics-entry",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20261007_210852_在抖音找到粉丝增长和已发布作品的查看入口，停在能够看到这两个入口的页面",
+    "run_id": "20261007_210852:ee67d5e263304ee1ae647b042a9c5845",
+    "task_id": "20261007_210852"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20261007_210852.task.json",
+    "snapshot_byte_sha256": "34bec8cc4f2d4f7a88ed7220b09a81630b14ec168f75aee0da9196fdda975d9b",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.782760+00:00"
+  },
+  "source_task_sha256": "c617b0e93c081853c53e7b29399f588f6f2b24424115c05eac4fa79cbdbed519",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_006_261007_211005.jpg"
+  ],
+  "image_hashes": {
+    "images/step_002_261007_210924.jpg": "388da6fdcefdce3a991b1c067314a3b6a96ee8700110feb4b8108557c0f8f111",
+    "images/step_003_261007_210935.jpg": "a2c1ecd3eb99adebafbd9a5df0ab1db1ffd39bc650743762d82306453c7ae32c",
+    "images/step_004_261007_210944.jpg": "c014a7a2d7cd3a7a82cdd7d81f8ae8d2973e8fb7e2b4183e25be60df491bb9fa",
+    "images/step_001_261007_210914.jpg": "e514e48f3eac1037f37e9dbfa0a3682b02d83895692e128c56a2f96d8835950e",
+    "images/step_000_261007_210852.jpg": "e7424c729d89b31efd9a747b7d5f47f92d5f1a6a6aa85b62cd260c9da163727c",
+    "images/step_005_261007_210955.jpg": "e8596b0a87f273ecd012281289e489d7d8661ea83b72af78e29a7816999f5acf",
+    "images/step_006_261007_211005.jpg": "fe8f0537997f71b7a4322e7f8b437bee067288bef90329981dd9935a85e2feb5"
+  },
+  "created_at": "2026-10-07 21:10:06",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-10-07 21:10:06",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

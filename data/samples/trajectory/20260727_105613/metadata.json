@@ -1,0 +1,67 @@
+{
+  "record_id": "ea-20260727_105613",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "appmarket-download-already-installed",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260727_105613",
+    "platform_tags": [
+      "online_rollout",
+      "ea",
+      "ea_appmarket_state_repair"
+    ],
+    "fetched_at": "2026-10-10T13:49:41.536370+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T13:49:41.536370+00:00",
+    "task_byte_sha256": "2f8a637e595dfdf6437ba33dccadd665717b7e9dfd9c2c47ae95dcf2908cc215",
+    "evidence_projection_byte_sha256": "614756c6569e16e27c9a2262bd3db3ce28b9061a47aaeb2a95b381ea66d3e9af",
+    "platform_version_number": 1
+  },
+  "image_profile": "jpeg98_qwen32_patch980",
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260727_105613_0ce69f3e",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260727_105613_0ce69f3e",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 1
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_0.jpg": "a65988950341b60e67c30d7cb9b1215f6f4edac0cc2dae982d8803a41a2591d7"
+  },
+  "created_at": "2026-07-27T10:57:14.777182+08:00",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:50",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

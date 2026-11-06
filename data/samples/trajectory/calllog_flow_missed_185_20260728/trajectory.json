@@ -1,0 +1,57 @@
+{
+  "task_id": "calllog_flow_missed_185_20260728",
+  "instruction": "在电话应用中查看号码18520822198的全部未接来电详情，并报告未接来电次数和时间。只读查看，不要拨号、回拨、发消息、清空记录或保存联系人。",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": null,
+        "recorded_fields": {
+          "action": "点击未接来电筛选标签。",
+          "code": "tap(762,315)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              718,
+              132
+            ]
+          }
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": null,
+        "recorded_fields": {
+          "action": "点击18520822198(2)右侧的信息图标进入详情。",
+          "code": "tap(969,958)",
+          "normalized_tool_call": {
+            "action": "click",
+            "coordinate": [
+              913,
+              403
+            ]
+          }
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": null,
+        "recorded_fields": {
+          "action": "完成查看并报告两条未接来电。",
+          "code": "finish(\"18520822198共有2条未接来电，时间为3月17日17:02和16:56；17:04是用户拨出的已接通电话，不计入未接来电。\")",
+          "normalized_tool_call": {
+            "action": "terminate",
+            "status": "success"
+          }
+        }
+      }
+    }
+  ]
+}

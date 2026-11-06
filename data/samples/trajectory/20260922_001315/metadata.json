@@ -1,0 +1,61 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-3e9853d442bfdd48adbdb131",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "xiaohongshu-topic-hot-posts",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260922_xiaohongshu_tibo_reset_hot_posts",
+    "run_id": "20260922_001315:dcf7f97506c04298a8b882390bbbf109",
+    "task_id": "20260922_001315"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260922_001315.task.json",
+    "snapshot_byte_sha256": "a0b303e891e22809937758c6c775c7ba10cecba613f978c109cee1efa5546075",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.724006+00:00"
+  },
+  "source_task_sha256": "beec094f4afa91fd245b9f6cc4518cdee41dc5d674c68540139a7f4778b415c8",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_020_260922_001739.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "小红书"
+    ],
+    "relative_time_anchor": "2026-09-22 Asia/Shanghai"
+  },
+  "image_hashes": {
+    "images/step_013_260922_001530.jpg": "02574f1a5dccd1e20fea6a25c239ec8dc747e8e36bd926801eb44a10a4976bb1",
+    "images/step_014_260922_001542.jpg": "044de70fbe721bf66bdaf1dfde2f0f3ebcdcdf1fce817c27e034a6b3d0bb745b",
+    "images/step_016_260922_001607.jpg": "1bd56655416c7fc4d10b706c890514b173132a558ff249a1e564af190f7343e1",
+    "images/step_012_260922_001519.jpg": "2c4aaadeee38de1f063dd3fcf9fab6f187a92ec3cc52a7bf7c7db2382597e75b",
+    "images/step_001_260922_001324.jpg": "335fd4b1dfc90c9e3770fcda0192b1f77e4e94b685c4936b204719df563967df",
+    "images/step_009_260922_001447.jpg": "344b6da09bf6d461f1d690ccb5296be5f46c54319195ac7cac38a9132b194124",
+    "images/step_019_260922_001707.jpg": "3c7a20a892b1e0fc3a7d2008c38151d731e916e54b13a5a412f1cd5c20f7cde1",
+    "images/step_000_260922_001315.jpg": "3f14db49784c1b074dda627720c1814c4e5c54fb5904f86d750c53ff1d3c7a53",
+    "images/step_011_260922_001507.jpg": "5c9d7b4614603e088cb8c5fabe2c2b621f36416939be20575dd96609c4cf9962",
+    "images/step_003_260922_001347.jpg": "780903742400e0dc932e494e330448600e3c46ca4a2342b32c87e4673f17b8c6",
+    "images/step_018_260922_001654.jpg": "a697ed72e28d8e3a344cb5f12938f21cc27cdd09a275a63f33efd3c27a066988",
+    "images/step_020_260922_001739.jpg": "aa7b9f0ea35e5761afa607f7425eac8c291da9d59c8bdfe28d847c41dac02ebd",
+    "images/step_006_260922_001417.jpg": "b2ff4b62166c93af50b9ea8cb0e60ed098359bc6414636761c81b01b147ce495",
+    "images/step_007_260922_001426.jpg": "bfcbd0572e520c89c8bb876de3ccbac5cf56a11479e241205500d8862b1e5173",
+    "images/step_005_260922_001408.jpg": "cbbf23550d792d0e8808736941899afdac54956d6b1ee6a92d48dbcc57dec1aa",
+    "images/step_015_260922_001557.jpg": "d87746ed43647833a9c48eb08eb1cde0e0b5325bfa8fad880255c6fc194ee9f4",
+    "images/step_008_260922_001435.jpg": "d8894aebb0ea042c1d6706588528d40897e9d56a11f678e259e927c6ca478aba",
+    "images/step_010_260922_001456.jpg": "e11e46023a623c3f149174841f17402ab740260d020ea3399a081d00450e8fb7",
+    "images/step_017_260922_001620.jpg": "e8ed17ca65d106f9edaa2ca4fe5c18c47b55ac8c12a703c6f5c37fdea830d8d4",
+    "images/step_004_260922_001358.jpg": "fbbed58366963e94248ec783181aa99bd3a0ffce612fcdc5e849265fc25cecad"
+  },
+  "created_at": "2026-09-22 00:17:40",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-22 00:17:40",
+    "version_reason": "tag append (task)",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

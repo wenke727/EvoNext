@@ -1,0 +1,36 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-46c54872bbdbcf95b9bf3600",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "shenzhen-museum-cross-app-booking",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260920_234135_从微信开始，在深圳自然博物馆官方小程序预约下周三的门票，两名成人和一名5岁儿童。",
+    "run_id": "20260920_234135:a08762ce962740dbac180750f65b2bb8",
+    "task_id": "20260920_234135"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260920_234135.task.json",
+    "snapshot_byte_sha256": "2da6d74212e6787fdde1836d3fb84014373be0782a1c12e70c9a88d1656565cb",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.702616+00:00"
+  },
+  "source_task_sha256": "30a5408ecd282970d6d96fcba7ede2b5d72f56b8b4c76ffa7e82016552173e16",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "image_hashes": {
+    "images/step_006_260920_234337.jpg": "2e41132bde501a072d7c8bef47ad027a7ada6979a9085fff765b2e83c8aeb501",
+    "images/step_002_260920_234228.jpg": "57f2f9cbdc0805df2df6f441863334efeb64109db24471745ab97a0b97a5eba7",
+    "images/step_003_260920_234244.jpg": "98ba859833db847cffdb1bf030123ebab2e78972b33d6e0b7303a6cbcdbe842d",
+    "images/step_004_260920_234311.jpg": "d09772c42a9b965a6c534ef9b6191e22d257858f7505fd0582b27d2e19d69339"
+  },
+  "created_at": "2026-09-20T23:41:35+08:00",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-09-21 08:02:20",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}

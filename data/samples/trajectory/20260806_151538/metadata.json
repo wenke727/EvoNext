@@ -1,0 +1,88 @@
+{
+  "record_id": "ea-20260806_151538",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "rail-12306-ticket-availability",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260806_151538",
+    "platform_tags": [
+      "online_rollout",
+      "ea"
+    ],
+    "fetched_at": "2026-10-10T13:49:40.589162+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T13:49:40.589162+00:00",
+    "task_byte_sha256": "c9eb4bb3058fdb4b26f7b2302a4d8b9703809448aaecac22c690f7d4d6459784",
+    "evidence_projection_byte_sha256": "b244a2fffb07ef0eeaf911f470343044ebd78b7a8b5f15002f105cb8166801e3",
+    "platform_version_number": 1
+  },
+  "image_profile": "jpeg98_qwen32_patch980",
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260806_151538_ce8c8957",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260806_151538_ce8c8957",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 23
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_2.jpg": "01db28db965b97fc39bc5cdc4e0aaf4dcfca2072d85e710bccfb4a82d9970cf5",
+    "images/image_12.jpg": "0c790bcef01edb714ae6907c93c801d33c9ab62dd924620a5aa831649d3fb9bb",
+    "images/image_8.jpg": "116435bd7fab1b93e66d633ad8b3e8d8310fabc7651cf0205e38db19f7b697e8",
+    "images/image_22.jpg": "143004129ad11d3c690d1de0ceed28cb3fbf7597c1338963e491ba2cae93182c",
+    "images/image_14.jpg": "18543d2e968bf089da26e66b9d355d2a132d2ab8da17688aa78ee409f3167538",
+    "images/image_15.jpg": "1d6cf99cba96bea8d802e4cad9d3d5f52973d5ad096d12b0843e5f33bc60ef38",
+    "images/image_10.jpg": "2592ee9261b7046e7ca732aa1c7dd7eed4b10841deca1f6f19c762a1ba5d3683",
+    "images/image_18.jpg": "27e2a416826e5e87ade63bd9aed2a136ec27f0008c653d057ff2a417fc29e2dc",
+    "images/image_9.jpg": "371c29ed55c52b9a85ac6de6a9086c72e4cf8b263fe7f1ef8d56e1512a8c7621",
+    "images/image_1.jpg": "3d682c10ff21d4851e8aae8271aa427d99dd28360b23e314406057e545588ae4",
+    "images/image_7.jpg": "604c9a86b986313dbf6a5255746bd63e1eff64a1a062154895920e4b0e44c129",
+    "images/image_16.jpg": "7374efc2dd30c47b6b3131aa1131e14836c49d9bfd23c9ded6637a7adec4c2db",
+    "images/image_13.jpg": "7bcb3239aec298b6aaa109ea38e77677543e01dae0409a3b0621a1b91a74c611",
+    "images/image_11.jpg": "8b5cc03504a2a64b64937bca9288e2e16b930e3857a43566639e898b8f5fc2e3",
+    "images/image_17.jpg": "906ff844494bbd2346af7ebc1da1790125b35e29686e8490c46b75b2b99d4db2",
+    "images/image_6.jpg": "caa2b000abc6d96cef055c971bfa9e345a41020583f0f1b0da7c8ec4b6714090",
+    "images/image_0.jpg": "d7cf5b9d20adc0f0b9c7ba90831fe29ebcd999c5d96c790169378b497a597722",
+    "images/image_19.jpg": "dbde95c461d14c29f13e39a8cbd4b250233a3cf1c0a6f94f741145d3ee4f7639",
+    "images/image_21.jpg": "e0117375596762f2b1521859f04cd0087854cbdd1699673b99484f378d443177",
+    "images/image_20.jpg": "e1b1948122ad19acabd6e612510bde4165b74cd68cfeba4ac6f932d8dda2eece",
+    "images/image_3.jpg": "e9699d6f3b037e1bf75c9037ceae59170d583801cd09820dc08abdd0a96c5625",
+    "images/image_5.jpg": "f39a72150352d815d9537194d768fad3e77393553cee947f90e4317b7184ce0e",
+    "images/image_4.jpg": "fbfacc346e783cafd27b46d14d46444e83ae08f8ace445811385d9c7f31cef6e"
+  },
+  "created_at": "2026-08-06 15:20:40",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

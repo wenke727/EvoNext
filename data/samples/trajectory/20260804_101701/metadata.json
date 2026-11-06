@@ -1,0 +1,63 @@
+{
+  "record_id": "ea-20260804_101701",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "calendar-festival-rule-next-year-mothers-day",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260804_101701",
+    "fetched_at": "2026-10-10T14:11:42.080163+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T14:11:42.080163+00:00",
+    "task_sha256": "b85516bede7e2d57fd1be8a94c098268c2a72d31faf6d28a455b9406354811f7",
+    "platform_version_number": 1
+  },
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260804_101701_9d72d0ed",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260804_101701_9d72d0ed",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 3
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_1.jpg": "5a735b5f10d059dc44274d3236677b267f2deb523f97a4d4eeb3ae060ee16a01",
+    "images/image_0.jpg": "af0afc7bf1c10a93c73f1bf36ec8a4e0f9b72bccc949ef9668ba66894d5a9e77",
+    "images/image_2.jpg": "eb5c2ddbc9ac5600fab00326af33a3723e7dc6d5b6f5216801991c6b9c5bf03f"
+  },
+  "created_at": "2026-08-04 10:17:52",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:48",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

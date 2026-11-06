@@ -1,0 +1,68 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-c7f6347958189eecbdf80837",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "shenzhen-museum-cross-app-booking",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260920_225849_先去小红书搜索如何预约深圳自然博物馆，了解预约方法；然后去微信里的官方预约入口，查看2026年9月26日（周六）是否有两名成人和一名儿童的门票，如果有就帮我加购。",
+    "run_id": "20260920_225849:2f30873028e642ce8151dffcb815fc17",
+    "task_id": "20260920_225849"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260920_225849.task.json",
+    "snapshot_byte_sha256": "f21fc41023cb6b2244baa041e93b3e4ce3ee4dc954bf311d3b33b040158a0e20",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.689533+00:00",
+    "local_run_id": "20260920_225849:2f30873028e642ce8151dffcb815fc17"
+  },
+  "source_task_sha256": "3c902eac14e719f5ecaffd9335bebd43277f10f32a89179c8e06a48551444223",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "missing_raw_output_steps": [
+    26,
+    27,
+    28
+  ],
+  "source_metadata": {
+    "apps": [
+      "小红书",
+      "微信"
+    ]
+  },
+  "image_hashes": {
+    "images/step_020_260920_230251.jpg": "04b1362047b10fea7c913402293025c346d78a482ac0f9c9d23aa6b4207c918a",
+    "images/step_014_260920_230136.jpg": "117a09b2a7f943db1a34049032e6a810b1aae55022b745f80b895e5e0bdfec47",
+    "images/step_016_260920_230156.jpg": "2059d008a668d699b72c398b32277dc16cc9c055023ec4da84ac87e4ce132bbd",
+    "images/step_009_260920_230033.jpg": "485f3c9c8d89f17ae167cbb4b4cdd68bdcb04d4cf6146a2f3262a482757beb6c",
+    "images/step_004_260920_225930.jpg": "4d13f09badeb876300b483ab796b8bf530ba7bf6dcd2e50478bfc631e85d1b9c",
+    "images/step_024_260920_230331.jpg": "4f4d9864f95915d5bdb92986769debd023470041bccc2a305cad185ad8cf6bb8",
+    "images/step_003_260920_225919.jpg": "555d763808b7a45f556f763cbc6dc6cd8dfb3af8c211cdb0a2de9cdf7057f580",
+    "images/step_000_260920_225849.jpg": "7b421b6fac6f20f29af3211a52c15a89c38afe0c5deea0608b8270b2608d8588",
+    "images/step_010_260920_230045.jpg": "85d720af271d5aa9e9866453899e73088d3eadc83d691250805a76553b37134a",
+    "images/step_011_260920_230057.jpg": "891c491b8748c4d66bf732fc76240a5b733b748ff331fe1272876854a2f5477e",
+    "images/step_001_260920_225858.jpg": "8a0289b3655cb6cd75027f886595bb4b120aa44b415cd503d7a19131e783e97a",
+    "images/step_019_260920_230234.jpg": "9464e72cfd6383df849f2b424ea0d2778b1015bbc8cff921c8a8605c2b1996d5",
+    "images/step_022_260920_230308.jpg": "aa118ce765af6fe6695821bc35f75590a47b3a798ef35deadb711f7b07d7f07b",
+    "images/step_015_260920_230146.jpg": "ace04ce8d847bb940a9bf9b4d6c60358dcc89998e57c011e551041d0104688cc",
+    "images/step_026_260920_230353.jpg": "b9ccdd1481a1b12e077e847d778aae414c6f3ea67f1a5368206b3773918e442e",
+    "images/step_008_260920_230015.jpg": "c7a2981759e1a3297112e3bc28f4150a40bd6f92c38a9b830e48c756109d7d4d",
+    "images/step_023_260920_230321.jpg": "cde6acc393266290cd375004ddc62b086e3453a095d8c1bb69688a1a26d79ef2",
+    "images/step_013_260920_230118.jpg": "d04cfdf9934bc4764d88afe1a0a9e4ca27c683f16d0ba2cf6ba4e6d93c89682c",
+    "images/step_017_260920_230207.jpg": "db0f23351890ad64413a44f81e0232b86f943d40550b8555fa5ac5c620e3935e",
+    "images/step_007_260920_230004.jpg": "e19dc7d333646bf2b32c16409d293369b999c51d768577211b6d771241f2129a",
+    "images/step_018_260920_230223.jpg": "e494735c8e64ecbddccd05192f50417909e25e367254b5efd05ed3f31051f52f",
+    "images/step_021_260920_230259.jpg": "e61122aa32640a8a86ec399aed65808567bb49b07995c9f0dce17a6cc32b39d6",
+    "images/step_006_260920_225953.jpg": "fd6da53330766b1680fc556724c2e519c6626dbbb9d36d1fbac22cef58e17346",
+    "images/step_005_260920_225943.jpg": "ff9c4ef42bae5b366010ec86c60fac070ac91fd2c8d50e98b157b39bb73a0230"
+  },
+  "created_at": "2026-09-20T22:58:49+08:00",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 23:33:41",
+    "version_reason": "task overwrite",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-744980b0ffcf6f647ded91dd",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "douyin-liziqi-hottest-sort",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20260922_douyin_liziqi_hottest_sort_reroll"
+  },
+  "source_snapshot": {
+    "status": "refreshed",
+    "task_version": 1,
+    "source_outcome_label": "perfect",
+    "task_snapshot_sha256": "ea3d2012e3745f50f968c5e12c2f14972142c3a39fac137a48bd9e623cff5ff7",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20260922_232820.task.json"
+  },
+  "source_task_sha256": "fc18c18f75408922557ce935657382c5e39458b75fd532ab4938fdc11f29e780",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_022_260922_233208.jpg"
+  ],
+  "source_metadata": {
+    "apps": [
+      "抖音"
+    ]
+  },
+  "image_hashes": {
+    "images/image_11.jpg": "0bdf149896e13930c6031cbd3adc6bf7756b753464f6fa3669dec51e711c7515",
+    "images/image_5.jpg": "13a1c459ef1801efa7506a195b0bfef802b9d60353ee0945c45079b6ebd857ae",
+    "images/image_3.jpg": "21269f54b7fafd9cf69b60d808ec24436fa1a7a987bfec47c4c9e1345cc1bdbc",
+    "images/image_16.jpg": "29435896f5e544fc469c85062d8496e4d569cd092c028b2e03352010eebae711",
+    "images/image_21.jpg": "2af118e6f64bea53ffb50f3af85bb605c8496b9e5a4acdd49f3180c5e835013c",
+    "images/image_2.jpg": "33b501e7bf6f2a1686a4c479a6e07a0cdcf3105e9922db88471beba9bdae6db5",
+    "images/step_022_260922_233208.jpg": "37edf03985f51c5954d1426e4eb99afb8ce4f2693d11d1454f7ce65e98319331",
+    "images/image_18.jpg": "499f34ff1fc48ac72cad202f1f96202ce1ac8f4d3608adc67983722d43d29a77",
+    "images/image_7.jpg": "5b076098928db4bd5449e992c410ec3fd7f4a672c901d268caf9392f7e50cf33",
+    "images/image_19.jpg": "5b5e43ddeed06f5a5ab43a050e3cc1929a99a8486aa21b6ddd342e0d8c9ca376",
+    "images/image_15.jpg": "7247e859cde2c3549b587f5427c17e69713d09474af3bd91add7eda423451d0e",
+    "images/image_6.jpg": "7a816cc66cd30211a587ab680223e8dd459656886c9051c54a472c8b19eea787",
+    "images/image_17.jpg": "7d59a35bd7ab580af78332ef221969d5b6401e0e9a4dd5abee9a81f6e3de4c3b",
+    "images/image_12.jpg": "857c03a9ead8a9d24ffbf3972e9b796e6d45cff1c25f1a2015c43f6607d2338f",
+    "images/image_9.jpg": "92119a0e271346491f57c5648143e9fce02d5b6a1a6b7762de4edc9a43e97919",
+    "images/image_4.jpg": "9ae00a035a297aa5001249850412a2036181b98599913492ae0dcb2290761cde",
+    "images/image_13.jpg": "b5c9c0a18677b7d13e0d78913954544e456e2691fddad0342f1ea5d87464e77b",
+    "images/image_10.jpg": "ba707b6b2447184765cafccd8a36a4a876e3c058d336a5dec6c706486ba25851",
+    "images/image_1.jpg": "c5891cbd602109c623e3f9ac8b6fe2fecaa8f99ed8d7e479914223e04f1b4120",
+    "images/image_0.jpg": "ceeb9e64a1b1d5b03fe674cd0f4b569e564f9573a76d63dfa341bef1f88aa0d4",
+    "images/image_8.jpg": "e00457ba22a37f0947aaa91dabaf5e302cba85237dac52f9d50329684328f517",
+    "images/image_14.jpg": "f8a65d6a5c87d1fdddaadca55ecd990837ef930e11d1fe0f1fac208c3006a385",
+    "images/image_20.jpg": "fd3e40b9f2b691f75993703310b9ef7eb1223b0b6130a89baa8a6863b05b2494"
+  },
+  "created_at": "2026-09-22 23:32:10",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-22 23:52:13",
+    "version_reason": "人工 ORM 复核：最热排序知识注入后的正例",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

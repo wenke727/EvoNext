@@ -1,0 +1,132 @@
+{
+  "task_id": "20260803_101622",
+  "instruction": "在日历 App 中，帮我在明天下午三点建一个“项目同步会”，安排一个小时。",
+  "traj": [
+    {
+      "index": 0,
+      "image": "images/image_0.jpg",
+      "value": {
+        "raw_model_output": "<think>用户需要创建明天（8月4日）下午三点时长1小时的项目同步会，首先需要选中明天的日期，所以点击日历上8月4日的位置。</think>\n<action>点击日历中8月4日的日期位置</action>\n<tool_call>{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [235, 295]}}</tool_call>\n```"
+      }
+    },
+    {
+      "index": 1,
+      "image": "images/image_1.jpg",
+      "value": {
+        "raw_model_output": "<action>点击界面右下角的加号按钮以新建日程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [883, 880]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 2,
+      "image": "images/image_2.jpg",
+      "value": {
+        "raw_model_output": "<think>当前在新建日程页面，标题输入框已激活，首先需要输入会议标题“项目同步会”。</think>\n<action>在标题输入框中输入“项目同步会”</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"type\", \"text\": \"项目同步会\"}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 3,
+      "image": "images/image_3.jpg",
+      "value": {
+        "raw_model_output": "<action>点击开始时间右侧的10:30时间框以修改开始时间</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [852, 432]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 4,
+      "image": "images/image_4.jpg",
+      "value": {
+        "raw_model_output": "<action>向上滑动小时选择列表，将小时从10调整到15</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [296, 806], \"end_coordinate\": [296, 500]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 5,
+      "image": "images/image_5.jpg",
+      "value": {
+        "raw_model_output": "<think>刚才滑动时小时调到了16，现在需要向下滑动小时选择列表，将小时调整为15（下午3点）</think>\n<action>向下滑动小时选择列表，选中15点</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [303, 772], \"end_coordinate\": [303, 810]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 6,
+      "image": "images/image_6.jpg",
+      "value": {
+        "raw_model_output": "<action>向下滑动分钟选择列表，将分钟从30调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [709, 804], \"end_coordinate\": [709, 985]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 7,
+      "image": "images/image_7.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟显示为26，需要继续向下滑动分钟选择列表，直到选中00分，完成开始时间15:00的设置。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [704, 756], \"end_coordinate\": [704, 980]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 8,
+      "image": "images/image_8.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟是22，还需要继续向下滑动分钟选择列表，直至选中00分，完成开始时间15:00的设置。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [700, 754], \"end_coordinate\": [700, 978]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 9,
+      "image": "images/image_9.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟为18，仍需要继续向下滑动分钟选择列表，直到选中00分，完成15:00的开始时间设置。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [702, 755], \"end_coordinate\": [702, 979]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 10,
+      "image": "images/image_10.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟是14，还需要继续向下滑动分钟选择列表，逐步减小分钟数值直到选中00，完成开始时间15:00的设置。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [705, 757], \"end_coordinate\": [705, 980]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 11,
+      "image": "images/image_11.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟是10，还需要继续向下滑动分钟选择列表，将分钟调整到00，这样开始时间就设置为15:00了。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [708, 760], \"end_coordinate\": [708, 982]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 12,
+      "image": "images/image_12.jpg",
+      "value": {
+        "raw_model_output": "<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [702, 758], \"end_coordinate\": [702, 981]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 13,
+      "image": "images/image_13.jpg",
+      "value": {
+        "raw_model_output": "<think>当前分钟为02，继续向下滑动分钟选择列表即可选中00分，完成15:00的开始时间设置。</think>\n<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [704, 756], \"end_coordinate\": [704, 810]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 14,
+      "image": "images/image_14.jpg",
+      "value": {
+        "raw_model_output": "<action>继续向下滑动分钟选择列表，将分钟调整为00</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"drag\", \"start_coordinate\": [704, 756], \"end_coordinate\": [704, 810]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 15,
+      "image": "images/image_15.jpg",
+      "value": {
+        "raw_model_output": "<think>开始时间已设置为15:00，现在点击确定按钮保存该设置，之后需要设置结束时间为16:00，使会议时长为1小时。</think>\n<action>点击时间选择弹窗右下角的确定按钮，保存开始时间设置</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [721, 942]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 16,
+      "image": "images/image_16.jpg",
+      "value": {
+        "raw_model_output": "<think>当前日程标题是“项目同步会”，开始时间为8月4日15:00，结束时间为8月4日16:00，时长正好1小时，符合要求，现在点击右上角的对勾按钮保存该日程即可。</think>\n<action>点击页面右上角的对勾按钮，保存新建的项目同步会日程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"click\", \"coordinate\": [907, 106]}}\n</tool_call>"
+      }
+    },
+    {
+      "index": 17,
+      "image": "images/image_17.jpg",
+      "value": {
+        "raw_model_output": "<think>已成功创建明天（2026年8月4日）下午15:00到16:00、时长1小时的“项目同步会”日程，任务完成。</think>\n<action>任务完成，已成功创建符合要求的项目同步会日程</action>\n<tool_call>\n{\"name\": \"mobile_use\", \"arguments\": {\"action\": \"terminate\", \"answer\": \"已为你成功创建2026年8月4日（明天）下午15:00到16:00、时长1小时的「项目同步会」日程，任务完成。\", \"summary\": \"完成明天下午三点时长一小时的项目同步会议程创建\", \"status\": \"success\"}}\n</tool_call>"
+      }
+    }
+  ]
+}

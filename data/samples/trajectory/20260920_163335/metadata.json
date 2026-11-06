@@ -1,0 +1,90 @@
+{
+  "record_id": "ea-20260920_163335",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "amap-fuel-station-price-comparison",
+  "origin": {
+    "kind": "flywheel_ea_collection",
+    "collection_tag": "ea",
+    "task_id": "20260920_163335",
+    "platform_tags": [
+      "online_rollout",
+      "ea"
+    ],
+    "fetched_at": "2026-10-10T13:49:39.613355+00:00"
+  },
+  "source_snapshot": {
+    "authority": "flywheel_api_live_read",
+    "fetched_at": "2026-10-10T13:49:39.613355+00:00",
+    "task_byte_sha256": "085ac083bb92dc69a575f9ee2223a1a5b034e8ba61a8de0ab799e4b1b84bcf5d",
+    "evidence_projection_byte_sha256": "e21aa6354ef7b864777be0339d8bf544504c36b3de7741e5baa7ac623428b1cb",
+    "platform_version_number": 1
+  },
+  "image_profile": "jpeg98_qwen32_patch980",
+  "schema_version": "opencua-offline.v1",
+  "source_metadata": {
+    "apps": [
+      "高德地图"
+    ],
+    "lineage": {
+      "creation_method": "online_new_rollout",
+      "fork_step_index": null,
+      "online_rollout_session_id": "orl_20260920_163335_bd02f735",
+      "parent_task_id": null,
+      "prefix_review_status": "not_applicable",
+      "prefix_step_count": 0,
+      "provider_snapshot": {
+        "agent_mode": "dual",
+        "executor_model": null,
+        "executor_provider": "doubao",
+        "history_n_images": 3,
+        "planning_model": null,
+        "planning_provider": "doubao",
+        "rollout_policy": "full_auto",
+        "teacher_model": null,
+        "teacher_provider": "gpt"
+      },
+      "replaced_step_range": null,
+      "session_id": "orl_20260920_163335_bd02f735",
+      "source_task_id": null,
+      "source_version": null,
+      "state_anchor": null,
+      "step_provenance_summary": {
+        "live_executor_confirmed": 22
+      }
+    }
+  },
+  "image_hashes": {
+    "images/image_0.jpg": "086675ff06bbf700ce0e58a76ed0f3e9c68bf25c85e808b2f27b6ab8904458f7",
+    "images/image_1.jpg": "11c16c70601180897b61fec183ef648d63b1ac3b606145017b6608bd7ff22170",
+    "images/image_7.jpg": "1d9f681f074036e5f470107937aa62efe2f67268cb1663bcb1fba1daa08c04bf",
+    "images/image_19.jpg": "1f30c83a7541f4af761d282f9556f1e347fbdf9b336606c1bfc63c0227eefa6f",
+    "images/image_3.jpg": "24ba595de8f1fbd60251d507b7951f2033431eaead322dafaa9835a44d9eeed2",
+    "images/image_12.jpg": "33d0af2cbd435b7dca14d5a6632430a6925a6546372bc49b3a68e62a4ec4d53a",
+    "images/image_14.jpg": "3dac9c3359c0692e38de217c54df89ebb42eacf6e79b313a8f2d3a9016b4dd1f",
+    "images/image_2.jpg": "47ea8f74de833a4944f0f167428ffa6fe0cacee85277961946487d1787410040",
+    "images/image_6.jpg": "4c7e1499806f7fe1b990c93f395753d1388d5359a1a70dfe7f45123335889180",
+    "images/image_17.jpg": "7a6c22ff003073e045ba164a548355a44831e8fab2aea2845f8a43ffa1d05057",
+    "images/image_5.jpg": "830bf508cb9587229384d8a505f9345536dc405a869a6d5487b5988ece02d590",
+    "images/image_9.jpg": "8b55a3ab0b6d4ebc36aae7c2f4766485c3637258e517eff999a8881b5d5f55da",
+    "images/image_21.jpg": "98ed5e60cd0f8ad737ef63fa7627bfd80d900048a453309f2049a1442a3dc8ff",
+    "images/image_18.jpg": "99514800f5fa5757254249c1586ddd41efd06f9bc5b392fefc4589b8733e3d7b",
+    "images/image_15.jpg": "9c505cdb03a8658b1e8f86298626b5b0cb4d630f5049f402207e8cc23292b6f1",
+    "images/image_20.jpg": "a12b2f32e8b2e0400b5ffc977c0c32e7cd947a1e463721d255581952452360c1",
+    "images/image_10.jpg": "a5daf4aac112bde84b8e084b7814587e7dcf6ca722120966b211c6613eb69531",
+    "images/image_13.jpg": "ab7f6ada9d61320c64c67b898e43ad97ee608b6ae0b7ec78ebedbebeb2821050",
+    "images/image_8.jpg": "d7b0ed596a3d524cac1628a577ec7f6048e95f2c91ba7e8ca125a7464844e4ac",
+    "images/image_11.jpg": "d99e5154e96e2ba05b873a637f0cac1a7c9bc5ba01ff76c8b3fecabe24f8fb35",
+    "images/image_4.jpg": "e7d8321634177cc009a8a6a69700c7b74570d1e587b86e5dce41b683e93f9bfe",
+    "images/image_16.jpg": "ee9dc1ffbf7df32b9abc0f941f9cefb51acf0067dac861e3c1b911a036bce6d7"
+  },
+  "created_at": "2026-09-20 16:47:57",
+  "_version_info": {
+    "version_number": 1,
+    "version_created_at": "2026-09-20 19:48:46",
+    "version_reason": "task upload",
+    "available_versions": 1,
+    "current_version": "latest",
+    "has_saved_versions": true
+  }
+}

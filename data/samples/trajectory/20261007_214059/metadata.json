@@ -1,0 +1,44 @@
+{
+  "schema_version": "opencua-offline.v1",
+  "record_id": "local-99ccac6d3e11217c307385b9",
+  "split": "dev",
+  "do_not_train": true,
+  "family_id": "meituan-home-function-strip",
+  "origin": {
+    "kind": "local_gui_rollout",
+    "source_folder": "debug/screenshots/20261007_214059_美团首页功能区先切到骑车页，再向右滑回外卖页，点击外卖。",
+    "run_id": "20261007_214059:c35d4594ffbc4213aea81bbf1a414081",
+    "task_id": "20261007_214059"
+  },
+  "source_snapshot": {
+    "authority": "cached_snapshot_unverified_current",
+    "snapshot_path": "data/debug/local_trajectory_dev_inventory_20261007/20261007_214059.task.json",
+    "snapshot_byte_sha256": "e7dac03bc71d0ecf073ff73a6e5c4a39e811d3bedc9d35c3c3321b927121fd45",
+    "snapshot_mtime_utc": "2026-10-07T14:27:15.794757+00:00",
+    "local_run_id": "20261007_214059:c35d4594ffbc4213aea81bbf1a414081"
+  },
+  "source_task_sha256": "1ebe3555319706b2c932a48437c118f34852b570351129190b138477b52a579a",
+  "image_profile": "jpeg98_qwen32_patch980",
+  "auxiliary_images": [
+    "images/step_007_261007_214225.jpg"
+  ],
+  "image_hashes": {
+    "images/step_002_261007_214119.jpg": "035a105480d86b744a70bebdd2e05f54a21fdc7d429a9c62ac73d0d88e27541f",
+    "images/step_001_261007_214110.jpg": "0ed47e4272ca38598766c7250967cc665d5b8b6fcd152c2aa3202f88255ec5a0",
+    "images/step_007_261007_214225.jpg": "29ddde894fd21f85dfc7537949e8534c5661d8536a19771878b2fd1fa0be2eb7",
+    "images/step_005_261007_214206.jpg": "464f1ee0c67c4e1584f88be3082d7ace9ddf4dead65df3fcc33297682a083838",
+    "images/step_003_261007_214128.jpg": "5ebfb9e66bcabe679798e3bd53cea84467ffe731ff056171a299073f40037c4c",
+    "images/step_004_261007_214141.jpg": "66dce4482c05ab8615ff7a1987e272624268832047345ad4ec1d99a3a956a1a1",
+    "images/step_000_261007_214059.jpg": "e0035b49cef9881dab179797c95130a21508121540e690455e5bf1c5e73dd6df",
+    "images/step_006_261007_214214.jpg": "f7e7f566a76f3f174a87157663208a5943fe1b92c053cbc83a87f66d7867c174"
+  },
+  "created_at": "2026-10-07 21:42:27",
+  "_version_info": {
+    "version_number": 0,
+    "version_created_at": "2026-10-07 21:42:27",
+    "version_reason": "ingest_raw",
+    "available_versions": 0,
+    "current_version": "original",
+    "has_saved_versions": false
+  }
+}
