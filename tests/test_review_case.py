@@ -11,8 +11,7 @@ from evonext.app.api import create_app
 from evonext.config import Settings
 from evonext.contracts.trajectory import Snapshot, encode_json
 from evonext.evidence.store import MemoryAssets, MemorySnapshots
-from evonext.review.contracts import (CaseProposal, CaseConflict, ReviewDecision,
-                                      StaleCase, verify_proposal)
+from evonext.review.contracts import CaseProposal, StaleCase, verify_proposal
 from evonext.review.store import MemoryCases, case_heads, case_reviews
 
 
