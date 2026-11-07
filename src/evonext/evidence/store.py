@@ -6,17 +6,20 @@ from typing import Protocol
 
 from evonext.config import Settings, secret
 from evonext.contracts.trajectory import ContractError, Snapshot, sha256
+from .index import SnapshotIndex, StoredEvidenceError
 
 
-class SnapshotStore(Protocol):
+class SnapshotRepository(Protocol):
     def put(self, snapshot: Snapshot) -> str: ...
     def get(self, snapshot_id: str) -> Snapshot | None: ...
+    def get_index(self, snapshot_id: str) -> SnapshotIndex | None: ...
     def list(self, after: str = "", limit: int = 50) -> list[dict]: ...
     def ping(self) -> None: ...
     def close(self) -> None: ...
 
 
 class AssetStore(Protocol):
+    def close(self) -> None: ...
     def put(self, data: bytes) -> str: ...
     def get(self, digest: str) -> bytes: ...
     def ping(self) -> None: ...
@@ -25,16 +28,22 @@ class AssetStore(Protocol):
 class MemorySnapshots:
     def __init__(self):
         self.items = {}
+        self.indexes = {}
         self.lock = Lock()
 
     def put(self, snapshot):
         with self.lock:
             self.items.setdefault(snapshot.id, copy.deepcopy(snapshot))
+            self.indexes.setdefault(snapshot.id, SnapshotIndex.from_snapshot(snapshot))
         return snapshot.id
 
     def get(self, snapshot_id):
         with self.lock:
             return copy.deepcopy(self.items.get(snapshot_id))
+
+    def get_index(self, snapshot_id):
+        with self.lock:
+            return copy.deepcopy(self.indexes.get(snapshot_id))
 
     def list(self, after="", limit=50):
         with self.lock:
@@ -65,25 +74,41 @@ class MemoryAssets:
     def ping(self):
         return None
 
+    def close(self):
+        return None
+
 
 class MongoSnapshots:
-    def __init__(self, settings: Settings):
-        from pymongo import MongoClient
-        self.client = MongoClient(secret(settings.mongo_uri), serverSelectionTimeoutMS=3000,
-                                  connectTimeoutMS=3000, socketTimeoutMS=10000)
+    def __init__(self, settings: Settings, client=None):
+        self.owns_client = client is None
+        if client is None:
+            from pymongo import MongoClient
+            client = MongoClient(secret(settings.mongo_uri), serverSelectionTimeoutMS=3000,
+                                 connectTimeoutMS=3000, socketTimeoutMS=10000)
+        self.client = client
         self.collection = self.client[settings.mongo_database][settings.mongo_collection]
 
     def put(self, snapshot):
-        # One atomic insert: metadata and media manifest cannot become partially visible.
-        # Raw JSON stays byte-preserving; no new field is inserted into the source trajectory.
-        self.collection.update_one({"_id": snapshot.id}, {"$setOnInsert": {
-            "trajectory_json": snapshot.trajectory_json.decode("utf-8"),
-            "metadata_json": snapshot.metadata_json.decode("utf-8"),
-            "media": dict(snapshot.media), "summary": snapshot.summary(),
-        }}, upsert=True)
-        stored = self.get(snapshot.id)
-        if stored is None or stored.manifest != snapshot.manifest:
-            raise ContractError("Snapshot persistence mismatch")
+        from bson import BSON
+        row = {"_id": snapshot.id,
+               "trajectory_json": snapshot.trajectory_json.decode("utf-8"),
+               "metadata_json": snapshot.metadata_json.decode("utf-8"),
+               "media": snapshot.media, "summary": snapshot.summary(),
+               "index": SnapshotIndex.from_snapshot(snapshot).stored()}
+        # BSON includes the complete wrapper, duplicated bindings and projection overhead.
+        if len(BSON.encode(row)) > 16 * 1024 * 1024:
+            raise ContractError("Snapshot BSON exceeds the 16 MiB document limit")
+        result = self.collection.update_one({"_id": snapshot.id},
+            {"$setOnInsert": {key: value for key, value in row.items() if key != "_id"}},
+            upsert=True)
+        if not result.acknowledged:
+            raise RuntimeError("Snapshot write outcome is unconfirmed; reconcile before retry")
+        # A confirmed insertion already contains exactly these validated bytes.
+        # Existing rows still need full evidence verification, not just index comparison.
+        if result.upserted_id is None:
+            stored = self.get(snapshot.id)
+            if stored is None or stored.manifest != snapshot.manifest:
+                raise StoredEvidenceError("Snapshot persistence mismatch")
         return snapshot.id
 
     def get(self, snapshot_id):
@@ -92,11 +117,26 @@ class MongoSnapshots:
         row = self.collection.find_one({"_id": snapshot_id})
         if row is None:
             return None
-        snapshot = Snapshot.create(row["trajectory_json"].encode("utf-8"),
-                                   row["metadata_json"].encode("utf-8"), row["media"])
+        try:
+            snapshot = Snapshot.create(row["trajectory_json"].encode("utf-8"),
+                                       row["metadata_json"].encode("utf-8"), row["media"])
+        except (ContractError, KeyError, TypeError, AttributeError) as exc:
+            raise StoredEvidenceError("Stored snapshot integrity mismatch") from exc
         if snapshot.id != snapshot_id:
-            raise ContractError("Stored snapshot integrity mismatch")
+            raise StoredEvidenceError("Stored snapshot integrity mismatch")
         return snapshot
+
+    def get_index(self, snapshot_id):
+        if not isinstance(snapshot_id, str) or len(snapshot_id) != 64 or any(c not in "0123456789abcdef" for c in snapshot_id):
+            raise ContractError("Invalid snapshot identity")
+        row = self.collection.find_one({"_id": snapshot_id}, {"index": 1})
+        if row is None:
+            return None
+        if "index" in row:
+            return SnapshotIndex.from_stored(snapshot_id, row["index"])
+        # Legacy wrapper: one explicit full read, no migration or repair on GET.
+        snapshot = self.get(snapshot_id)
+        return SnapshotIndex.from_snapshot(snapshot) if snapshot is not None else None
 
     def list(self, after="", limit=50):
         rows = self.collection.find({"_id": {"$gt": after}}, {"summary": 1}).sort("_id", 1).limit(limit)
@@ -106,7 +146,8 @@ class MongoSnapshots:
         self.client.admin.command("ping")
 
     def close(self):
-        self.client.close()
+        if self.owns_client:
+            self.client.close()
 
 
 class MinioAssets:
@@ -115,10 +156,11 @@ class MinioAssets:
         import urllib3
         self.bucket = settings.minio_bucket
         self.max_bytes = settings.max_file_bytes
+        self.http_client = urllib3.PoolManager(timeout=urllib3.Timeout(connect=3, read=10),
+                                               retries=False)
         self.client = Minio(settings.minio_endpoint, access_key=secret(settings.minio_access_key),
                             secret_key=secret(settings.minio_secret_key), secure=settings.minio_secure,
-                            http_client=urllib3.PoolManager(timeout=urllib3.Timeout(connect=3, read=10),
-                                                           retries=False))
+                            http_client=self.http_client)
 
     @staticmethod
     def key(digest):
@@ -135,7 +177,13 @@ class MinioAssets:
         return digest
 
     def get(self, digest):
-        response = self.client.get_object(self.bucket, self.key(digest))
+        from minio.error import S3Error
+        try:
+            response = self.client.get_object(self.bucket, self.key(digest))
+        except S3Error as exc:
+            if exc.code in {"NoSuchKey", "NoSuchObject"}:
+                raise StoredEvidenceError("Bound media is missing") from exc
+            raise
         try:
             data = response.read(self.max_bytes + 1)
         finally:
@@ -148,6 +196,9 @@ class MinioAssets:
     def ping(self):
         if not self.client.bucket_exists(self.bucket):
             raise RuntimeError("Provision the configured bucket explicitly")
+
+    def close(self):
+        self.http_client.clear()
 
 
 def stores(settings):

@@ -13,6 +13,7 @@ from evonext.contracts.trajectory import ContractError
 from evonext.compat.legacy import BridgeUncertain, LegacyClient
 from evonext.evidence.packages import media_type
 from evonext.evidence.service import EvidenceService
+from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
 
 
@@ -29,14 +30,35 @@ def create_app(settings=None, repository=None, assets=None):
     settings = settings or Settings()
     if (repository is None) != (assets is None):
         raise ValueError("Inject both repository and assets, or neither")
+    owns_stores = repository is None
     repository, assets = (repository, assets) if repository is not None else stores(settings)
 
     service = EvidenceService(repository, assets, settings)
 
+    ledger = None
+    ledger_error = "NotInitialized"
+
     @asynccontextmanager
     async def lifespan(app):
-        yield
-        repository.close()
+        nonlocal ledger, ledger_error
+        if settings.postgres_dsn and not settings.demo:
+            try:
+                from evonext.operations.ledger import Ledger
+                ledger = Ledger(secret(settings.postgres_dsn))
+            except Exception as exc:
+                ledger_error = type(exc).__name__
+        try:
+            yield
+        finally:
+            try:
+                if ledger is not None:
+                    ledger.close()
+            finally:
+                if owns_stores:
+                    try:
+                        repository.close()
+                    finally:
+                        assets.close()
 
     app = FastAPI(title="EvoNext", version="0.1.0", lifespan=lifespan)
 
@@ -52,6 +74,14 @@ def create_app(settings=None, repository=None, assets=None):
     @app.exception_handler(ContractError)
     async def invalid_contract(request, exc):
         return JSONResponse({"error": str(exc)}, status_code=400)
+
+    @app.exception_handler(EvidenceNotFound)
+    async def missing_evidence(request, exc):
+        return JSONResponse({"error": str(exc)}, status_code=404)
+
+    @app.exception_handler(StoredEvidenceError)
+    async def corrupt_evidence(request, exc):
+        return JSONResponse({"error": "Stored evidence integrity check failed"}, status_code=500)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request, exc):
@@ -76,9 +106,12 @@ def create_app(settings=None, repository=None, assets=None):
         response.headers["Cache-Control"] = "no-store"
         return response
 
-    def snapshot_or_404(snapshot_id):
+    def check_snapshot_id(snapshot_id):
         if len(snapshot_id) != 64 or any(c not in "0123456789abcdef" for c in snapshot_id):
             raise HTTPException(404, "Snapshot not found")
+
+    def snapshot_or_404(snapshot_id):
+        check_snapshot_id(snapshot_id)
         snapshot = service.get(snapshot_id)
         if snapshot is None:
             raise HTTPException(404, "Snapshot not found")
@@ -98,16 +131,14 @@ def create_app(settings=None, repository=None, assets=None):
             except Exception as exc:
                 checks[name] = "unavailable:" + type(exc).__name__
         if settings.postgres_dsn and not settings.demo:
-            try:
-                from evonext.operations.ledger import Ledger
-                ledger = Ledger(secret(settings.postgres_dsn))
+            if ledger is None:
+                checks["postgres"] = "unavailable:" + ledger_error
+            else:
                 try:
                     ledger.ping()
                     checks["postgres"] = "ready"
-                finally:
-                    ledger.close()
-            except Exception as exc:
-                checks["postgres"] = "unavailable:" + type(exc).__name__
+                except Exception as exc:
+                    checks["postgres"] = "unavailable:" + type(exc).__name__
         else:
             checks["postgres"] = "not_configured"
         ok = not any(v.startswith("unavailable") for v in checks.values())
@@ -139,9 +170,15 @@ def create_app(settings=None, repository=None, assets=None):
     @app.get("/api/v1/snapshots/{snapshot_id}", dependencies=auth)
     def detail(snapshot_id: str):
         snapshot = snapshot_or_404(snapshot_id)
-        return {**snapshot.summary(), "instruction": snapshot.document["instruction"], "trajectory": snapshot.document, "metadata": snapshot.metadata,
+        document, media = snapshot.document, snapshot.media
+        return {**snapshot.summary(), "instruction": document["instruction"], "trajectory": document, "metadata": snapshot.metadata,
                 "manifest": snapshot.manifest,
-                "missing_media": sorted({s["image"] for s in snapshot.document["traj"] if s.get("image") and s["image"] not in snapshot.media})}
+                "missing_media": sorted({s["image"] for s in document["traj"] if s.get("image") and s["image"] not in media})}
+
+    @app.get("/api/v1/snapshots/{snapshot_id}/header", dependencies=auth)
+    def header(snapshot_id: str):
+        check_snapshot_id(snapshot_id)
+        return service.get_header(snapshot_id)
 
     @app.get("/api/v1/snapshots/{snapshot_id}/trajectory", dependencies=auth)
     def download_trajectory(snapshot_id: str):
@@ -156,10 +193,8 @@ def create_app(settings=None, repository=None, assets=None):
 
     @app.get("/api/v1/snapshots/{snapshot_id}/media", dependencies=auth)
     def image(snapshot_id: str, path: str):
-        digest = snapshot_or_404(snapshot_id).media.get(path)
-        if digest is None:
-            raise HTTPException(404, "Media is not bound to this snapshot")
-        data = assets.get(digest)
+        check_snapshot_id(snapshot_id)
+        data = service.read_media(snapshot_id, path)
         return Response(data, media_type=media_type(data),
                         headers={"Content-Security-Policy": "default-src 'none'; sandbox"})
 
