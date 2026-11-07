@@ -113,7 +113,8 @@ cancel_requested 是独立标志，不把运行任务直接改成 CANCELLED。�
 LeasedDevice 是受控动作网关，不是原始 ADB client 的别名：
 
 - 每台设备只有一个串行派发通道；不同设备的通道可以并行。
-- 每次派发都在网关内核对当前 lease_id、generation、holder、状态和有效期。
+- 每次派发在同一 per-device dispatch lock 内完成租约校验、动作发送和该动作的收束等待；不把原始 ADB 通道交给驱动。
+- begin_cleanup 先取得同一把 dispatch lock，等待当前动作结束，再提交 CLEANING 并关闭 Agent action gate；不在 PG 事务中等待 ADB。宿主保留独立的停止/清理能力，驱动拿不到该能力。
 - CLEANING 后禁止 Agent 发起新动作；只有宿主的停止、清理和恢复逻辑可继续。
 - 动作预算和截止时间由宿主/网关执行，不能只依赖驱动自觉。
 - 不允许驱动绕过句柄直接操作 ADB、shell、USB 或另一个自动化服务。

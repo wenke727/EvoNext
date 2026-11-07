@@ -108,7 +108,8 @@ finish：
 
 - 一个 Host 进程管理其配置的设备；每台手机一个 run_device_queue。设备 A/B 可并行，同设备不可并行。
 - LeasedDevice 是唯一设备操作入口。AgentDriver 不能取得原始 ADB client、shell、USB handle 或绕过网关的自动化连接。
-- 每次动作派发在设备串行通道内校验当前 Lease/generation；动作预算和截止时间由 Host/网关执行。
+- 每次动作派发在同一 per-device dispatch lock 内完成 Lease/generation 校验、动作发送和该动作的收束等待；动作预算和截止时间由 Host/网关执行。
+- begin_cleanup 先取得同一把 dispatch lock，等当前动作结束后再提交 CLEANING 并关闭 Agent action gate；不得在 PG 事务中等待 ADB。Host 保留独立的停止/清理能力，不传给 AgentDriver。
 - Host 必须在独立监督路径中完成续租和取消检查，不能同步阻塞在 AgentDriver.run 上。run 在独立执行单元中运行；stop_and_wait 由监督路径触发。
 - 收尾顺序必须是 begin_cleanup（先禁止 Agent 新动作）→ stop_and_wait → 收束在途动作 → 保存证据引用/清理 → 验证起态 → finish。
 - CLEANING 期间持续续租。租约丢失后不再派发普通动作；旧执行无法确认停止时 QUARANTINED。
