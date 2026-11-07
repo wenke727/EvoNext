@@ -1,0 +1,129 @@
+.task-sidebar-content {
+  min-width: 0;
+}
+.workbench-sidebar .task-sidebar-content :is(.task-id-caption, .task-meta-key) {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--sidebar-meta-color);
+}
+.workbench-sidebar .task-sidebar-content .sidebar-header-row {
+  margin-bottom: 8px;
+}
+.workbench-sidebar .task-sidebar-content .task-id-label {
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+}
+.workbench-sidebar .task-sidebar-content .task-created-at-label {
+  grid-column: 3;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+.workbench-sidebar .task-sidebar-content > .task-meta-rail {
+  margin: 0 0 12px;
+}
+.workbench-sidebar .task-sidebar-content .client-report-section {
+  border-top: 1px solid #dae3eb;
+}
+.workbench-sidebar .task-sidebar-content .task-id-copy-cluster {
+  min-width: 0;
+  justify-self: stretch;
+}
+.workbench-sidebar .task-sidebar-content .task-id-value {
+  flex: 0 1 auto;
+}
+.workbench-sidebar .task-sidebar-content .task-header-copy-btn {
+  flex: 0 0 20px;
+}
+.workbench-sidebar .task-sidebar-content .task-section {
+  padding-bottom: 0;
+}
+/* Retain the line height previously inherited from the task's field-content. */
+.workbench-sidebar .task-sidebar-content .evaluation-orm-review {
+  line-height: 1.45;
+}
+.workbench-sidebar .task-sidebar-content .task-comments-thread {
+  margin-top: 12px;
+  padding-top: 10px;
+}
+.workbench-sidebar
+  .task-sidebar-content
+  .task-comments-thread:not([open])
+  > summary {
+  margin-bottom: 0;
+}
+.sidebar-checked {
+  color: #28a745;
+  font-weight: 600;
+}
+.sidebar-history {
+  position: relative;
+}
+.sidebar-history-list {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 280px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid #dce4ec;
+  background: white;
+  box-shadow: 0 3px 12px #20324714;
+  z-index: 30;
+}
+.sidebar-history-list pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 11px;
+}
+.sidebar-operations {
+  margin-top: 12px;
+}
+.sidebar-operation-value {
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+.sidebar-scores {
+  margin: 12px 0;
+  font-size: 11px;
+}
+.sidebar-scores > div {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+}
+.sidebar-scores dt {
+  flex: 1;
+  color: #697788;
+}
+.sidebar-scores dd {
+  margin: 0;
+}
+.sidebar-feedback {
+  margin-top: 16px;
+  border-top: 1px solid #dae3eb;
+  padding-top: 12px;
+}
+.sidebar-feedback > summary {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sidebar-feedback > summary > span {
+  font-size: 11px;
+  color: #8290a1;
+  font-weight: 400;
+}
+.task-sidebar-content .qa-review-section {
+  margin-top: 16px;
+  border-top: 1px solid #dae3eb;
+  padding-top: 12px;
+}
+.task-sidebar-content .qa-review-section .active {
+  color: #176b76;
+  font-weight: 600;
+}

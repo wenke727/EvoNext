@@ -1,0 +1,277 @@
+/* AIHOT's warm paper, ink and teal; scoped so legacy field CSS cannot restyle tags. */
+:is(.fw-tags, .fw-tag-dialog) {
+  --tag-paper: #faf9f6;
+  --tag-ink: #202a30;
+  --tag-muted: #657078;
+  --tag-line: #e5e9e7;
+  --tag-accent: #176b75;
+  --tag-soft: #f3f5f4;
+  font-family: "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--tag-ink);
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.fw-tags {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 0;
+}
+.workbench-sidebar .task-meta-rail {
+  align-items: flex-start;
+}
+.workbench-sidebar .task-sidebar-content .task-meta-rail .task-meta-key,
+.step-fields .field-header-page-tag .field-title > .field-title-section {
+  padding-top: 0;
+  font-family: system-ui, "Microsoft YaHei", sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #8290a1;
+}
+.fw-tag-rail {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 20px;
+}
+.fw-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 20px;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1px 6px;
+  border: 1px solid var(--tag-line);
+  border-radius: 999px;
+  background: var(--tag-soft);
+  color: var(--tag-muted);
+  font: inherit;
+  font-size: 10px;
+  line-height: 14px;
+}
+.fw-tag-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.fw-tag-empty {
+  color: var(--tag-muted);
+  font-size: 10px;
+  line-height: 20px;
+}
+:is(.fw-tags, .fw-tag-dialog) button {
+  margin: 0;
+  cursor: pointer;
+}
+:is(.fw-tags, .fw-tag-dialog) button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--tag-muted);
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-icon:hover {
+  background: var(--tag-soft);
+  border-color: var(--tag-line);
+}
+.fw-tag-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.fw-tag-remove:hover {
+  color: var(--tag-ink);
+}
+.fw-tag-editor {
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid var(--tag-line);
+  border-radius: 8px;
+  background: var(--tag-paper);
+}
+.fw-tag-input-row {
+  display: flex;
+  gap: 6px;
+}
+:is(.fw-tags, .fw-tag-dialog) input {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--tag-line);
+  border-radius: 8px;
+  background: white;
+  color: var(--tag-ink);
+  font: inherit;
+}
+.fw-tag-input-row input {
+  flex: 1;
+  width: 0;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-action {
+  padding: 5px 9px;
+  border: 1px solid var(--tag-line);
+  border-radius: 8px;
+  background: white;
+  color: var(--tag-muted);
+  font: inherit;
+  white-space: nowrap;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-action:hover {
+  border-color: var(--tag-accent);
+  color: var(--tag-accent);
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-action-primary {
+  background: var(--tag-accent);
+  border-color: var(--tag-accent);
+  color: white;
+}
+.fw-tag-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px 0;
+}
+.fw-tags .fw-tag-choices {
+  max-height: 180px;
+  overflow: auto;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 9px;
+  border: 1px solid var(--tag-line);
+  border-radius: 999px;
+  background: white;
+  color: var(--tag-muted);
+  font: inherit;
+  font-size: 10px;
+}
+:is(.fw-tags, .fw-tag-dialog) .fw-tag-choice:is(:hover, [aria-pressed="true"]) {
+  background: var(--tag-soft);
+  border-color: var(--tag-accent);
+  color: var(--tag-accent);
+}
+.fw-tag-count {
+  flex-shrink: 0;
+  font:
+    9px ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+  opacity: 0.75;
+}
+.fw-tag-caption {
+  color: var(--tag-muted);
+  font-size: 11px;
+  margin: 5px 0 0;
+}
+.fw-tag-error {
+  color: #b3402a;
+  font-size: 11px;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+:is(.fw-tags, .fw-tag-dialog) :is(button, input):focus-visible {
+  outline: 2px solid var(--tag-accent);
+  outline-offset: 2px;
+}
+.fw-tag-dialog {
+  width: min(580px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid var(--tag-line);
+  border-radius: 16px;
+  background: var(--tag-paper);
+  box-shadow: 0 18px 60px #202a3026;
+}
+.fw-tag-dialog::backdrop {
+  background: #202a3040;
+}
+.fw-tag-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--tag-line);
+}
+.fw-tag-dialog-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.fw-tag-dialog-head p {
+  margin: 4px 0 0;
+  color: var(--tag-muted);
+  font-size: 11px;
+}
+.fw-tag-dialog-body {
+  padding: 14px 20px;
+  overflow: auto;
+  max-height: calc(100dvh - 240px);
+}
+.fw-tag-search {
+  width: 100%;
+  margin-bottom: 10px;
+}
+.fw-tag-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px 0 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--tag-line);
+}
+.fw-tag-dialog .fw-tag-selection .fw-tag-chip {
+  color: var(--tag-accent);
+  border-color: var(--tag-accent);
+  overflow-wrap: anywhere;
+}
+.fw-tag-dialog-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--tag-line);
+  background: white;
+}
+.fw-tag-dialog-foot .fw-tag-caption {
+  flex: 1;
+  margin: 0;
+}
+[data-step-tags-host] {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+}
