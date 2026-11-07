@@ -60,14 +60,21 @@ def sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class Snapshot:
+    """Validated once; public containers are detached views of immutable byte evidence."""
     trajectory_json: bytes
-    metadata_json: bytes = b"{}"
-    media: dict[str, str] = field(default_factory=dict)
+    metadata_json: bytes
+    _media: tuple[tuple[str, str], ...] = field(repr=False)
+    _document: dict = field(repr=False, compare=False)
+    _metadata: dict = field(repr=False, compare=False)
+    _manifest: dict = field(repr=False, compare=False)
+    _id: str = field(repr=False)
+    _summary: dict = field(repr=False, compare=False)
 
-    @classmethod
-    def create(cls, trajectory: bytes, metadata: bytes = b"{}", media=None, max_steps=10000):
+    def __init__(self, trajectory_json: bytes, metadata_json: bytes = b"{}", media=None,
+                 *, max_steps=10000):
+        trajectory, metadata = bytes(trajectory_json), bytes(metadata_json)
         document = load_json(trajectory)
         try:
             view = TrajectoryView.model_validate(document)
@@ -79,45 +86,59 @@ class Snapshot:
         encode_json(document)
         encode_json(meta)
         if len(trajectory) + len(metadata) > 12 * 1024 * 1024:
-            raise ContractError("Snapshot JSON exceeds the Mongo-safe 12 MiB limit")
-        bindings = copy.deepcopy(media or {})
+            raise ContractError("Snapshot JSON exceeds the 12 MiB input limit")
+        bindings = dict(media or {})
         if not all(isinstance(k, str) and isinstance(v, str) and len(v) == 64
                    and all(c in "0123456789abcdef" for c in v) for k, v in bindings.items()):
             raise ContractError("Invalid media digest binding")
-        return cls(bytes(trajectory), bytes(metadata), bindings)
-
-    @property
-    def document(self) -> dict:
-        return load_json(self.trajectory_json)
-
-    @property
-    def metadata(self) -> dict:
-        return load_json(self.metadata_json)
-
-    @property
-    def manifest(self) -> dict:
-        return {"profile": "evonext.snapshot-bytes.v1",
-                "trajectory_sha256": sha256(self.trajectory_json),
-                "metadata_sha256": sha256(self.metadata_json), "media": dict(self.media)}
-
-    @property
-    def id(self) -> str:
-        return sha256(encode_json(self.manifest))
-
-    def summary(self) -> dict:
-        doc = self.document
+        manifest = {"profile": "evonext.snapshot-bytes.v1",
+                    "trajectory_sha256": sha256(trajectory),
+                    "metadata_sha256": sha256(metadata), "media": bindings}
+        identity = sha256(encode_json(manifest))
         versions = []
-        for source in (doc, self.metadata):
+        for source in (document, meta):
             info = source.get("_version_info")
             if isinstance(info, dict) and type(info.get("version_number")) is int:
                 versions.append(info["version_number"])
-        origin = self.metadata.get("source_snapshot")
+        origin = meta.get("source_snapshot")
         if isinstance(origin, dict) and type(origin.get("platform_version_number")) is int:
             versions.append(origin["platform_version_number"])
         version = versions[0] if versions and len(set(versions)) == 1 else None
-        return {"snapshot_id": self.id, "task_id": doc["task_id"],
-                "instruction": doc["instruction"][:600], "step_count": len(doc["traj"]),
-                "source_version": version, "media_count": len(self.media)}
+        summary = {"snapshot_id": identity, "task_id": document["task_id"],
+                   "instruction": document["instruction"][:600], "step_count": len(view.traj),
+                   "source_version": version, "media_count": len(bindings)}
+        for name, value in (("trajectory_json", trajectory), ("metadata_json", metadata),
+                            ("_media", tuple(bindings.items())), ("_document", document),
+                            ("_metadata", meta), ("_manifest", manifest), ("_id", identity),
+                            ("_summary", summary)):
+            object.__setattr__(self, name, value)
+
+    @classmethod
+    def create(cls, trajectory: bytes, metadata: bytes = b"{}", media=None, max_steps=10000):
+        return cls(trajectory, metadata, media, max_steps=max_steps)
+
+    @property
+    def media(self) -> dict[str, str]:
+        return dict(self._media)
+
+    @property
+    def document(self) -> dict:
+        return copy.deepcopy(self._document)
+
+    @property
+    def metadata(self) -> dict:
+        return copy.deepcopy(self._metadata)
+
+    @property
+    def manifest(self) -> dict:
+        return copy.deepcopy(self._manifest)
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    def summary(self) -> dict:
+        return dict(self._summary)
 
 
 class Check(BaseModel):

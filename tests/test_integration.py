@@ -32,9 +32,17 @@ def test_real_persistence_and_receipt_roundtrip():
             encode_json({'do_not_train': True, 'source_kind': 'synthetic'}), {'images/test.png': digest})
         repository.put(snapshot)
         assert repository.get(snapshot.id).trajectory_json == snapshot.trajectory_json
+        index = repository.get_index(snapshot.id)
+        assert index.manifest == snapshot.manifest
+        assert index.raw_json_verified is False
+        assert index.header['instruction'] == 'Storage contract only'
+        from evonext.evidence.service import EvidenceService
+        service = EvidenceService(repository, assets, settings)
+        assert service.read_media(snapshot.id, 'images/test.png') == data
         result = verify_snapshot(snapshot.id, repository, assets, ledger)
         assert ledger.get(result['operation_id'])['payload']['agent_outcome'] == 'not_assessed'
         assert verify_snapshot(snapshot.id, repository, assets, ledger) == result
     finally:
         repository.close()
+        assets.close()
         ledger.close()

@@ -1,6 +1,7 @@
 """One evidence use-case owner for HTTP, CLI and later automation clients."""
 from evonext.contracts.trajectory import ContractError, Snapshot, encode_json, load_json
 from .packages import export_bundle, import_bundle
+from .index import EvidenceNotFound, StoredEvidenceError
 
 
 class EvidenceService:
@@ -26,6 +27,24 @@ class EvidenceService:
 
     def get(self, identity):
         return self.repository.get(identity)
+
+    def get_header(self, identity):
+        index = self.repository.get_index(identity)
+        if index is None:
+            raise EvidenceNotFound("Snapshot not found")
+        return {**index.header, "manifest": index.manifest}
+
+    def read_media(self, identity, locator):
+        index = self.repository.get_index(identity)
+        if index is None:
+            raise EvidenceNotFound("Snapshot not found")
+        digest = index.manifest["media"].get(locator)
+        if digest is None:
+            raise EvidenceNotFound("Media is not bound to this snapshot")
+        try:
+            return self.assets.get(digest)
+        except (KeyError, ContractError) as exc:
+            raise StoredEvidenceError("Bound media is missing or corrupt") from exc
 
     def list(self, after="", limit=50):
         return self.repository.list(after, limit)
