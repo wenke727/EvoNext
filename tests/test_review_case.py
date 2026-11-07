@@ -216,3 +216,18 @@ def test_metadata_and_source_step_id_are_not_inferred(case_app):
     assert result.json()["source_step_id"] is None
     assert result.json()["position"] == 0
     assert result.json()["source_version"] == 0
+
+def test_needs_evidence_can_be_revisited_without_second_case(case_app):
+    client, _, snapshot = case_app
+    case = client.post("/api/v1/cases", json=proposal(snapshot)).json()
+    base = f"/api/v1/cases/{case['case_id']}/review"
+    first = client.post(base, headers={"If-Match": '"0"'},
+        json={"decision": "needs_evidence", "reason": "Additional source proof is required."})
+    assert first.status_code == 200
+    assert first.json()["review_revision"] == 1
+    second = client.post(base, headers={"If-Match": '"1"'},
+        json={"decision": "confirmed", "reason": "Re-reviewed evidence with a bounded basis."})
+    assert second.status_code == 200, second.text
+    assert second.json()["review_revision"] == 2
+    assert len(second.json()["history"]) == 2
+    assert second.json()["case_id"] == case["case_id"]
