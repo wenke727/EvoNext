@@ -25,7 +25,7 @@ class AnalysisRef(BaseModel):
 class CaseProposal(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     # Client-generated stable identity permits safe retry after a lost acknowledgement.
-    case_id: UUID
+    case_id: str = Field(pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
     snapshot_id: SnapshotId = Field(pattern=r"^[0-9a-f]{64}$")
     position: int = Field(ge=0)
     source_step_id: str | None = Field(default=None, min_length=1, max_length=256)
@@ -37,6 +37,10 @@ class CaseProposal(BaseModel):
 
     @model_validator(mode="after")
     def distinct_references(self):
+        # FastAPI parses JSON into Python objects before strict Pydantic validation.
+        # A canonical UUIDv4 string avoids silently coercing strings/numbers in other fields.
+        if UUID(self.case_id).version != 4 or str(UUID(self.case_id)) != self.case_id:
+            raise ValueError("Case identity must be a canonical UUIDv4")
         if len(set(self.evidence_refs)) != len(self.evidence_refs):
             raise ValueError("Evidence references must be distinct")
         keys = [(ref.producer, ref.record_id) for ref in self.analysis_refs]
@@ -97,7 +101,7 @@ def verify_proposal(proposal: CaseProposal, snapshot) -> dict:
     if any(ref.snapshot_id != proposal.snapshot_id for ref in proposal.analysis_refs):
         raise ContractError("An external analysis reference cannot silently change source")
     return {
-        "case_id": str(proposal.case_id),
+        "case_id": proposal.case_id,
         "snapshot_id": proposal.snapshot_id,
         "position": proposal.position,
         "source_step_id": proposal.source_step_id,
