@@ -1,0 +1,57 @@
+.timeline-strip-legend-inline:has(.timeline-legend-react-root) {
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+}
+.timeline-legend-react {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.timeline-legend-react__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #555;
+  font:
+    12px/1.5 -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  white-space: nowrap;
+}
+.timeline-legend-react__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #858585;
+}
+.timeline-legend-react__icon svg {
+  width: 100%;
+  height: 100%;
+}
+.timeline-legend-react__icon[data-kind="retry"] {
+  background: currentColor;
+  -webkit-mask: url("./retry.svg") center / contain no-repeat;
+  mask: url("./retry.svg") center / contain no-repeat;
+}
+.timeline-legend-react__icon[data-kind="current"] {
+  color: var(--wb-step-current-border, #1677ff);
+}
+.timeline-legend-react__icon[data-kind="takeover"] {
+  color: var(--wb-step-takeover-border, #d4a017);
+}
+.timeline-legend-react__icon[data-kind="success"] {
+  color: var(--wb-step-success-border, #27ae60);
+}
+.timeline-legend-react__icon:is(
+  [data-kind="error"],
+  [data-kind="firstDeviation"]
+) {
+  color: var(--wb-step-error-border, #dc3545);
+}
+.timeline-legend-react__icon[data-kind="multiTerminator"] {
+  color: var(--wb-step-multi-border, #8b5cf6);
+}

@@ -1,0 +1,22 @@
+.retry-stack { min-width: 0; position: relative; }
+.retry-stack--compact { flex: 0 0 108px; height: 100%; }
+.retry-stack.is-expanded { display: contents; }
+.retry-stack-first { min-width: 0; position: relative; }
+.filmstrip .retry-stack-first { flex: 0 0 82px; height: 100%; }
+.retry-stack-first > .step-card { width: 100%; height: 100%; }
+.retry-stack-collapse { position: absolute; right: 2px; top: 20px; z-index: 3; padding: 0 5px; background: white; border: 1px solid #bbb; border-radius: 4px; line-height: 20px; }
+.retry-stack-preview { position: relative; width: 100%; height: 100%; min-height: 90px; padding: 5px; display: flex; flex-direction: column; gap: 4px; border: 2px solid var(--wb-step-default-border, #ddd); border-radius: 6px; background: var(--wb-step-default-bg, #fafafa); text-align: left; }
+.retry-stack-preview[aria-current="step"] { border-color: var(--wb-step-current-border, #0d6efd); background: var(--wb-step-current-bg, #f0f6ff); }
+.retry-stack-header { display: flex; justify-content: space-between; gap: 5px; font-size: 10px; white-space: nowrap; }
+.retry-stack-images { display: block; flex: 1; min-height: 0; position: relative; margin-right: 24px; }
+.retry-stack-layer { position: absolute; display: block; inset: 0; background: white; border: 1px solid #ddd; border-radius: 3px; overflow: hidden; }
+.retry-stack-layer .media-frame { height: 100%; }
+.retry-stack-hint { font-size: 10px; color: #777; }
+.retry-stack-badges { display: flex; flex-wrap: wrap; gap: 2px; }
+.step-grid > .retry-stack { height: 250px; }
+@media (max-width: 1040px) { .step-grid > .retry-stack { height: 220px; } }
+@media (max-width: 760px) { .step-grid > .retry-stack { height: 190px; } }
+
+.retry-stack-preview[data-source-verdict="error"] { border-color: var(--wb-step-error-border, #dc3545); }
+.retry-stack-preview[data-source-verdict="correct"] { border-color: var(--wb-step-success-border, #28a745); }
+.retry-stack-preview[aria-current="step"][data-source-verdict] { outline: 2px solid var(--wb-step-current-border, #0d6efd); outline-offset: 1px; }

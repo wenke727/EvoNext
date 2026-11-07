@@ -1,0 +1,51 @@
+/* ========== Timeline Strip - Horizontal Step Navigation ========== */
+
+:root {
+  --wb-step-default-border: #dee2e6;
+  --wb-step-default-bg: #f8f9fa;
+  --wb-step-current-border: #0d6efd;
+  --wb-step-current-bg: linear-gradient(180deg, #e8f1ff 0%, #f6fbff 100%);
+  --wb-step-current-accent-rgb: 13, 110, 253;
+  --wb-step-error-border: #dc3545;
+  --wb-step-error-bg: #fff5f5;
+  --wb-step-error-accent-rgb: 220, 53, 69;
+  --wb-step-takeover-border: #d89a18;
+  --wb-step-takeover-bg: #fffbeb;
+  --wb-step-takeover-accent-rgb: 216, 154, 24;
+  --wb-step-success-border: #28a745;
+  --wb-step-success-bg: #f0fff4;
+  --wb-step-success-accent-rgb: 40, 167, 69;
+  --wb-step-multi-border: #0ea5b7;
+  --wb-step-multi-bg: #effcff;
+  --wb-step-multi-accent-rgb: 14, 165, 183;
+  --wb-step-risk-border: #dc2626;
+  --wb-step-risk-bg: linear-gradient(180deg, #fff7f7 0%, #fffafa 100%);
+  --wb-step-risk-accent-rgb: 220, 38, 38;
+  --wb-step-risk-shadow-rgb: 185, 28, 28;
+  --wb-step-risk-standard-border: #d97706;
+  --wb-step-risk-standard-bg: linear-gradient(180deg, #fffbeb 0%, #fffdf5 100%);
+  --wb-step-risk-standard-accent-rgb: 217, 119, 6;
+  --wb-step-risk-standard-shadow-rgb: 180, 83, 9;
+  --wb-badge-neutral-color: #6c757d;
+  --wb-badge-neutral-bg: rgba(248, 249, 250, 0.9);
+  --wb-badge-neutral-border: rgba(108, 117, 125, 0.45);
+  --wb-badge-security-color: #f8fafc;
+  --wb-badge-security-bg: rgba(15, 23, 42, 0.92);
+  --wb-badge-security-border: rgba(148, 163, 184, 0.72);
+  --wb-badge-risk-color: #fff;
+  --wb-badge-risk-it-bg: rgba(220, 53, 69, 0.92);
+  --wb-badge-risk-it-border: rgba(185, 28, 28, 0.9);
+  --wb-badge-risk-intent-bg: rgba(159, 18, 57, 0.92);
+  --wb-badge-risk-intent-border: rgba(136, 19, 55, 0.9);
+  --wb-badge-risk-standard-bg: rgba(180, 83, 9, 0.92);
+  --wb-badge-risk-standard-border: rgba(146, 64, 14, 0.9);
+  --wb-badge-followup-color: #0f5132;
+  --wb-badge-followup-bg: rgba(222, 247, 236, 0.96);
+  --wb-badge-followup-border: rgba(25, 135, 84, 0.62);
+  --wb-badge-teacher-color: #8a4b0f;
+  --wb-badge-teacher-bg: rgba(255, 247, 237, 0.94);
+  --wb-badge-teacher-border: rgba(245, 158, 11, 0.65);
+  --wb-badge-deviation-color: #fff;
+  --wb-badge-deviation-bg: rgba(220, 53, 69, 0.86);
+  --wb-badge-deviation-border: rgba(220, 53, 69, 0.88);
+}

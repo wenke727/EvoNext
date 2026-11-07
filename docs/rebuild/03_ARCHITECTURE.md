@@ -56,6 +56,14 @@ OpenClaw 当前 runtime 位于 src/agents、传输位于 src/llm，Workshop 是 
 
 app → 所属业务用例 → contracts/端口；数据库和网络只在适配器中发生。contracts 不导入 app、providers、存储客户端。Runtime 只消费 SkillBundle/SkillRef，不导入 Workshop 库；Workshop 不调用设备、评分器或 Runtime。providers 不导入 app 或业务页面。前端只经 HTTP，不直连 Mongo/PG，也不获取服务端密钥。
 
+前端迁用旧 workbench 已有 React 只读视图的范围及来源见 [ADR-002](../adr/0002-workbench-ui-reuse.md)。原视图和样式放在 web/src/workbench，新快照/认证/来源适配留在 evidence；不迁旧 DOM host、旧写入路径或后端。
+
+前端由 App 负责会话/选中快照，独立工作台、评估、图例、来源上下文与证据对照组件消费纯读取投影。组件不依赖旧 DOM host 或 window 业务状态；来源评估读取 profile 不引入第二个评估事实 owner。
+
+前端 evidence/EvidenceClient 统一证据 API 调用；MediaCache 只管理会话内媒体请求和临时 Blob，不持有业务事实或解释旧来源 URL。轨迹视图只消费该客户端，后端 SnapshotRepository/AssetStore 仍是事实/字节的访问端口，不增加跨库通用 ORM/DAL。
+
+DAL 最小读取设计见 [ADR-003](../adr/0003-evidence-data-access.md)：SnapshotRepository 合并提供原文、轻量 index 与列表，AssetStore 管字节；先消除概要/图片路径的全文读取。步骤投影按测量决定，导入恢复独立后置；实施证据见 ACCEPTANCE。
+
 同一个导入用例由 EvidenceService 持有，HTTP 只做限流/认证/参数和响应。Worker 只投递和调用已注册的业务函数。CLI 不能成为绕过验证与访问控制的隐藏写路径。架构测试检查核心导入方向与读取无副作用；它不是任意运行时行为的形式证明。
 
 ## 4. 存储分工——已决，不再重新选型

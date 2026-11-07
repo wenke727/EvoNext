@@ -10,6 +10,8 @@
 
 这是 **M0/M1 工程底座**，不是已经完成生产替换的全功能平台。
 
+**只读工作台阶段完成（2026-11-07）**：真实离线数据浏览、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键与打点原文检索已验收收口。当前版本不宣称完整替代旧平台；真实 Langfuse 联通、编辑/审核、治理管道和其余低频字段留待独立工作包。范围、旧版差异与验证边界见 [验收记录](docs/ACCEPTANCE.md)。
+
 已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。新增本地 Skill 候选维护（版本/CAS/diff/Undo/固定导出）、Runtime 冻结消费与授权合同、严格策略模板、PG 收费调用恢复与请求预算。自动学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
 
 核心约束：
@@ -38,11 +40,15 @@ Windows 的环境激活命令为 `.venv\Scripts\activate`。演示只绑定 loca
 
 ```bash
 cd web
-npm install
+npm ci
 npm run dev
 ```
 
 打开本地 5173 端口，点击“连接”。演示不需要 API Key。导入 `examples/trajectory.json` 可体验缺图/缺证据的真实展示，不会伪造成功标签。
+
+轨迹详情优先迁用旧 workbench 的 React 只读组件和原样式（[ADR-002](docs/adr/0002-workbench-ui-reuse.md)）：任务信息侧栏、可调整的小图条、Grid/单步、截图动作标记与近景、Agent 字段和固定底栏。Step 使用 0-based 显示序号；方向键定位，Grid 中 Enter 打开，Alt+G 切换，H/? 查看快捷键。小图默认在上方，可切换到底部。坐标显示配置可选 0–1000 / 图片像素 / 未声明，字段解析注明来源且不回写证据。Grid 分页与有限小图窗口避免一次加载全部图片；快照/步骤/view 固定链接可刷新读回。旧平台读取入口要求固定版本，截图仍需显式绑定。
+
+左栏支持只读 ORM/grader 来源结果、统计筛选与按源步骤定位；图例、徽标和来源状态色共用证据投影。没有携带评估结果的真实离线包会明确说明缺失，不推断为未评估。可切换当前/下一步及包内已绑定媒体对照，未绑定的历史路径不会访问。当前支持范围和对照旧 React 的差异台账见 [验收记录](docs/ACCEPTANCE.md)。
 
 生成带 sidecar 的合成包：
 
@@ -99,14 +105,14 @@ pytest -q
 python -m compileall -q src migrations
 # 安装 dev 依赖后：
 ruff check .
-cd web && npm run build
+cd web && npm test && npm run build
 ```
 
 本轮离线测试和实际 CI 状态记录在 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。保留基线测试并增加分层、策略、调用恢复、Workshop 和 Runtime 合同回归。实库/设备/真实语义未测不得算通过；配置 CI 不等于本轮 CI 已通过。
 
 本地候选操作与 Runtime 准备命令见 [08](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md)。`prepare-trial` 仅产计划，不执行。模型 probe 需要显式开启 `EVONEXT_MODEL_CALLS_ENABLED`、PG 迁移和稳定 `--operation-id`；同一请求复用已收到响应，结果未知不自动重发。
 
-依赖锁文件仍未生成；可联网环境首次成功构建后应固定依赖，再进入可复现部署验收。
+前端依赖已固定在 `web/package-lock.json`，使用 `npm ci` 安装。Python 依赖仍采用版本范围；可复现部署另行验收。
 
 ## 文档入口
 
