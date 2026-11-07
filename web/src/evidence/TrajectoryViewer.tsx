@@ -445,7 +445,7 @@ export function TrajectoryViewer({
         aria-label="任务信息"
         inert={prefs.collapsed || undefined}
       >
-        <TaskSidebar detail={detail} position={position} onStep={open} display={prefs.display} />
+        <TaskSidebar detail={detail} position={position} onStep={open} display={prefs.display} client={client} />
       </aside>
       <div
         className="sidebar-separator"
@@ -786,7 +786,7 @@ export function TrajectoryViewer({
               }}
             />
           </div>
-          <span className="read-only">只读浏览</span>
+          <span className="read-only">原始证据只读</span>
           <button onClick={() => onDownload("trajectory")}>导出 JSON</button>
           <button onClick={() => onDownload("bundle")}>导出包</button>
           <button onClick={() => setHelp(true)}>⌨ 快捷键</button>
@@ -845,7 +845,7 @@ export function TrajectoryViewer({
           <dt>H / ?</dt>
           <dd>显示快捷键</dd>
         </dl>
-        <p>输入框中不接管浏览快捷键。编辑、保存与审核另行接入。</p>
+        <p>输入框中不接管浏览快捷键。原始轨迹编辑未开放；Case 单独保存与审核。</p>
       </dialog>
       <dialog
         ref={zoomDialog}

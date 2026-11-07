@@ -1,0 +1,18 @@
+/* Separate Case write boundary; do not change the migrated legacy Sidebar. */
+.case-panel {padding: 12px 10px; border-top: 1px solid var(--line);}
+.case-panel > header {display: flex; gap: 6px; align-items: center; justify-content: space-between;}
+.case-panel h2 {font-size: 12px; font-weight: 650; margin: 0 auto 0 0;}
+.case-panel button {border: 1px solid #ddd; white-space: normal; text-align: left;}
+.case-panel label {display: grid; gap: 6px; align-items: start; margin: 8px 0;}
+.case-panel select, .case-panel textarea {width: 100%; border: 1px solid #ddd; border-radius: 5px;
+ padding: 7px; background: white; color: inherit; font: inherit;}
+.case-panel textarea {resize: vertical; min-height: 55px;}
+.case-panel .case-help {font-size: 11px; color: #777; overflow-wrap: anywhere; margin: 6px 0;}
+.case-panel .case-error {color: #a51a1a; font-size: 11px; margin: 6px 0;}
+.case-panel .case-editor {margin: 10px 0; padding: 8px; border: 1px solid #e5e5e5; border-radius: 6px;}
+.case-panel .case-actions {display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;}
+.case-panel .case-item {padding: 8px 0; border-top: 1px solid #eee;}
+.case-panel .case-item-head {display: flex; align-items: center; justify-content: space-between; gap: 5px;}
+.case-panel .case-item-head > span {font-size: 10px; color: #666;}
+.case-panel .case-item > p {margin: 5px 0; overflow-wrap: anywhere;}
+.case-panel .case-item small {color: #777; font-size: 10px;}
