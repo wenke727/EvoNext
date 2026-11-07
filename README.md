@@ -6,6 +6,10 @@
 
 [docs/rebuild/README.md](docs/rebuild/README.md) 已收录完整 PRD、领域合同、架构、API/工作台、迁移、AC-001–063、实施任务书和原合成合同样例；按 Mongo/MinIO/PG、OpenCUA、Langfuse 的最新约束修订。AIHOT/OpenClaw 借鉴与取舍见 [ADR-001](docs/adr/0001-aihot-openclaw.md)。
 
+## 两仓库职责（EvoLoop / EvoNext）
+
+EvoLoop 维护现役执行、数据回流、存量评估/智能诊断和旧平台 API；EvoNext 负责从真实证据形成 Case、干预、新 Trial、独立对比与资产沉淀，不整体复制旧平台。具体约束见 [ADR-005](docs/adr/0005-evoloop-vs-evonext-case.md)。第一条新增业务切片为 [PR #3](https://github.com/wenke727/EvoNext/pull/3)（Draft；未作为当前 main 已实现范围）。
+
 ## 当前交付
 
 这是 **M0/M1 工程底座**，不是已经完成生产替换的全功能平台。

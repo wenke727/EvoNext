@@ -1,5 +1,16 @@
 # 实施状态与验收证据
 
+## 首条自进化业务入口：Case 提案与审核（PR #3 · Draft）
+
+分支 `feat/evolution-case-intake`。本节对应候选提交 `4f7e048`（后续文档提交不改变逻辑），**未合入 main，也未完成生产签署**。
+
+新增 `review` 领域：Case 绑定固定 Snapshot/Step，不修改 OpenCUA 原 JSON；外部 Outcome/Diagnosis 只保存未验证引用；operator 决策 append-only、CAS 和幂等重放；PG 新表 `case_heads` / `case_reviews`（迁移 0003），demo 独立内存存储。旧 Sidebar 不恢复写入控制器，新 Case 面板承载单独的明确写操作。机器任务成功、Case 审核、训练准入和设备操作互不自动授权。
+
+CI [42394817627](https://github.com/wenke727/EvoNext/actions/runs/42394817627) 已检查：Python 3.11/3.12、Ruff 和编译成功，Python 3.12 为 **136 passed / 2 deselected / 1 warning**；前端 npm test 与 TypeScript/Vite 构建通过。2 项 deselected 为隔离真实基础设施测试（含新 PG Case 并发），**不是通过**。本轮未执行真实 PG 迁移、真实浏览器 Case 操作、外部旧 Evaluation/Diagnosis 来源核验、多人身份授权或模型/设备调用；并无新数据发布。
+
+本轮限制：单 operator 身份由服务端配置，不代表独立 Human Gold；还没有 Case 修订纠正、归因干预、memberships、机器评估运行、旧 Case 数据迁移和新 Trial。独立真实语义与完整自进化效果仍为后续 Gate。
+
+
 ## 阶段收口：只读工作台阶段完成（2026-11-07）
 
 本阶段验收范围冻结为：真实离线数据展示、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键和打点原文检索。范围内浏览闭环已完成，不以完整替代旧平台或完成生产切换表述。提交版本固定本阶段源码与文档；后续能力不自动纳入本次收口。
