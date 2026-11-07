@@ -48,7 +48,7 @@ Diagnosis：允许首个有证据的错误区间、多因、替代解释和 unkn
 | Dataset / Governance | 训练/开发/回归用途、family/lineage 去重与污染隔离、固定成员及 manifest；do_not_train 不因导出解除 |
 | 训练信号 | SFT/DPO/步骤/恢复/安全信号保留源失败、老师纠正、可见上下文截止和独立验证；不泄漏未来证据 |
 | 模型/Prompt/Harness 实验 | 有效配置冻结、声明版本与实际响应版本分开、配对比较、改善/退化/缺失同报 |
-| 外部执行 | local 以设备为单位，云真机可按 batch；两者共享回流合同，不强塞同一种调度单位 |
+| 外部执行 | local 以设备为单位，云真机可按 batch；两者共享回流合同，不强塞同一种调度单位。Local Device Queue 控制面 MVP 见 [ADR-004](adr/0004-local-device-execution-queue.md) 与 [Codex 工作包](work-packages/local-device-queue-mvp.md)；真实 Driver 接入和设备恢复另行验收 |
 | 训练/部署协作 | 交付版本化数据包与收据，不在 Flywheel 内重建训练集群、算力调度或发布系统 |
 | 分布/需求/成本分析 | 来源、时间窗、需求分母与样本暴露明确；检索 Top-K 不是能力成功率 |
 | 专项算法接入 | 匹配、VQA、Planner/GUI 交接等保留专业输出，不把它们压成一个 pass 布尔值 |
