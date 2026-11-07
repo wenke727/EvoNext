@@ -107,7 +107,7 @@ class MemoryCases:
                     return _public(row, events)
             if row["review_revision"] != expected:
                 raise StaleCase("Review revision changed; refresh before deciding")
-            if row["review_status"] != "pending":
+            if row["review_status"] not in {"pending", "needs_evidence"}:
                 raise CaseConflict("Case review already decided; create a new revision workflow")
             event = {"revision": expected + 1, "decision": decision, "reason": reason,
                      "actor": actor, "created_at": _utc_now()}
@@ -176,7 +176,7 @@ class PostgresCases:
             if not replay:
                 if row["review_revision"] != expected:
                     raise StaleCase("Review revision changed; refresh before deciding")
-                if row["review_status"] != "pending":
+                if row["review_status"] not in {"pending", "needs_evidence"}:
                     raise CaseConflict("Case review already decided; create a new revision workflow")
                 db.execute(insert(case_reviews).values(
                     case_id=case_id, revision=expected + 1, decision=decision,

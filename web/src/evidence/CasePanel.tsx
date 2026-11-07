@@ -142,7 +142,7 @@ export function CasePanel({
           <small>{item.issue_kind} · r{item.review_revision} · {item.case_id.slice(0, 8)}</small>
           {item.analysis_refs.length > 0 &&
             <p className="case-help">外部评估/诊断引用：未验证，不自动作为人审结论</p>}
-          {item.review_status === "pending" &&
+          {(item.review_status === "pending" || item.review_status === "needs_evidence") &&
             (decisionFor === item.case_id ?
               <div className="case-editor">
                 <label>审核理由
