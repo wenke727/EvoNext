@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 
 from evonext.config import Settings, secret
 from evonext.review.contracts import StaleCase
@@ -23,7 +24,7 @@ def test_real_postgres_case_identity_and_concurrent_review():
     settings = Settings()
     assert settings.postgres_dsn
     dsn = secret(settings.postgres_dsn)
-    assert "test" in dsn.lower(), "Never run case tests against production PostgreSQL"
+    assert "test" in (make_url(dsn).database or "").lower(), ("Use a dedicated test PostgreSQL database")
     engine = create_engine(dsn, pool_size=4, max_overflow=2)
     store = PostgresCases(engine)
     case_id = str(uuid4())
