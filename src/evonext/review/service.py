@@ -33,7 +33,9 @@ class CaseService:
         snapshot = self.evidence.get(case["snapshot_id"])
         if snapshot is None:
             raise CaseNotFound("Source snapshot not found")
-        verify_draft(command.draft, snapshot, self.evidence.assets)
+        verify_draft(command.draft, snapshot, self.evidence.assets,
+                     case_position=case["position"],
+                     case_source_step_id=case["source_step_id"])
         return self.store.save_draft(case_id, command.expected_draft_revision,
             command.draft.model_dump(mode="json"),
             command_id=command.command_id, actor=actor)
