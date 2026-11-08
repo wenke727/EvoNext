@@ -73,4 +73,4 @@ Diagnosis：允许首个有证据的错误区间、多因、替代解释和 unkn
 
 ## 下一个业务工作包：A0–A3（在人在环工作台中确认决策后执行）
 
-已确认 [09 人在环失败审阅与步骤纠正](rebuild/09_REVIEW_CORRECTION_WORKBENCH.md)：先核 PR #3 Case 基线，再做 task/step 范围、后续步骤 CorrectionItem、人工 0–1000 坐标、共享草稿 CAS、冻结审核和用途资格预览。首错仅是可选 Diagnosis 判断，不阻塞修正后续动作。真实 Outcome/Agentic Diagnosis、Local Runtime 和 DAL 二期继续后置，不因 A0–A3 实施而自动启动。
+已确认 [09 人在环失败审阅与步骤纠正](rebuild/09_REVIEW_CORRECTION_WORKBENCH.md)：先核 PR #3 Case 基线，保留 Case 单 Step 定位；后续步骤各自建 Case，同一步允许多个候选纠正；再实现人工 0–1000 坐标、共享草稿 CAS、冻结审核与用途资格预览。首错仅是可选 Diagnosis 判断，不阻塞修正后续动作。真实 Outcome/Agentic Diagnosis、Local Runtime 和 DAL 二期继续后置，不因 A0–A3 实施而自动启动。
