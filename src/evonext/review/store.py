@@ -19,8 +19,7 @@ case_heads = Table("case_heads", metadata,
     Column("case_id", String(36), primary_key=True),
     Column("proposal_hash", String(64), nullable=False),
     Column("snapshot_id", String(64), nullable=False, index=True),
-    Column("scope", String(12), nullable=False),
-    Column("position", Integer, nullable=True),
+    Column("position", Integer, nullable=False),
     Column("source_step_id", String(256)),
     Column("source_version", Integer),
     Column("issue_kind", String(40), nullable=False),
@@ -85,7 +84,7 @@ def _review_dict(event):
 
 def _public(row, history=()):
     result = {key: copy.deepcopy(row[key]) for key in
-        ("case_id", "snapshot_id", "scope", "position", "source_step_id", "source_version",
+        ("case_id", "snapshot_id", "position", "source_step_id", "source_version",
          "issue_kind", "summary", "evidence_refs", "analysis_refs", "created_by",
          "review_revision", "review_status")}
     result["created_at"] = row["created_at"].isoformat()

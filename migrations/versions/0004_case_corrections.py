@@ -1,4 +1,4 @@
-"""A0-A3: task scope, shared Case correction draft, immutable frozen reviews.
+"""A0-A3: shared per-Step Case correction draft and immutable frozen reviews.
 
 The earlier 0003 migration belongs to PR #3; do not edit its historical content.
 Local device queue (PR #2) must use the next unused Alembic revision on merge.
@@ -14,15 +14,6 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("case_heads",
-                  sa.Column("scope", sa.String(12), nullable=False,
-                            server_default="step"), schema="evonext")
-    op.alter_column("case_heads", "position", nullable=True,
-                    existing_type=sa.Integer(), schema="evonext")
-    op.create_check_constraint("case_scope", "case_heads",
-        "((scope='step' AND position IS NOT NULL AND position>=0) OR "
-        "(scope='task' AND position IS NULL AND source_step_id IS NULL))", schema="evonext")
-
     op.add_column("case_reviews", sa.Column("draft_revision", sa.Integer()),
                   schema="evonext")
     op.add_column("case_reviews", sa.Column("draft_hash", sa.String(64)),
