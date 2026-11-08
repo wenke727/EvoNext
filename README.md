@@ -123,3 +123,17 @@ cd web && npm test && npm run build
 [架构](docs/ARCHITECTURE.md) · [兼容与互通](docs/COMPATIBILITY.md) · [完整能力路线](docs/ROADMAP.md) · [运维](docs/OPERATIONS.md) · [验收](docs/ACCEPTANCE.md)
 
 这是公开仓库：不提交生产轨迹、截图、真实配置、密钥、内部主机信息或旧私有实现。项目许可证由仓库所有者另行决定；本次没有替所有者选择开源许可证。
+
+### 步骤纠正操作
+
+在轨迹侧栏标记当前步骤并保存 Case，打开“纠正与审核”。可分别绘制原目标和建议目标框，单独指定点击，为同一步添加多个候选后逐项判断。保存草稿后提交冻结审核，历史和用途预览按所选审核版本读回。设置 `EVONEXT_REVIEW_OPERATOR_ID` 及完成 PG 迁移后可进行非演示审核。
+
+CLI 与页面共用 HTTP 用例，凭据从 `EVONEXT_API_KEY` 读取。保存/审核的 JSON 文件分别遵循 OpenAPI 的 DraftCommand/FrozenReviewCommand；同一请求重试复用文件里的 command_id。
+
+```bash
+evonext case show <case-id>
+evonext case draft <case-id>
+evonext case save <case-id> --file <draft-command.json>
+evonext case review <case-id> --file <frozen-review-command.json>
+evonext case preview <case-id> --revision 1 --purpose localization
+```

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { CaseView, EvidenceClient, Detail, IssueKind, CaseDecision } from "./client";
+import type { CaseView, EvidenceClient, Detail, IssueKind } from "./client";
 import "./case-panel.css";
+import { CorrectionEditor } from "./CorrectionEditor";
 
 /** A separate review write boundary. The migrated legacy Sidebar stays read-only. */
 export function CasePanel({
@@ -11,13 +12,12 @@ export function CasePanel({
   onStep: (position: number) => void;
   client: EvidenceClient;
 }) {
+  const [editing, setEditing] = useState<CaseView | null>(null);
   const [cases, setCases] = useState<CaseView[]>([]);
   const [draft, setDraft] = useState(false);
   const [anchor, setAnchor] = useState(position);
   const [kind, setKind] = useState<IssueKind>("unknown");
   const [summary, setSummary] = useState("");
-  const [decisionFor, setDecisionFor] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -75,27 +75,10 @@ export function CasePanel({
     } finally { setBusy(false); }
   }
 
-  async function decide(item: CaseView, decision: CaseDecision) {
-    if (reason.trim().length < 8) {
-      setError("审核理由至少需要 8 个字符");
-      return;
-    }
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const result = await client.decideCase(item.case_id, item.review_revision, {
-        decision, reason: reason.trim(),
-      });
-      setCases(current => current.map(other => other.case_id === result.case_id ? result : other));
-      setDecisionFor(null); setReason("");
-      setNotice("已保存操作员决策；不等于任务成功或训练准入");
-    } catch (e) {
-      setError(String(e) + "；如版本已变更，请刷新后重审");
-      await reload();
-    } finally { setBusy(false); }
-  }
-
   return (
     <section className="case-panel task-section" aria-label="问题与审核">
+      {editing && <CorrectionEditor key={editing.case_id} item={editing} detail={detail} client={client}
+        onClose={() => setEditing(null)} onReviewed={result => setCases(current => current.map(value => value.case_id === result.case_id ? result : value))} />}
       <header>
         <h2>问题 / Case</h2>
         <button disabled={busy} onClick={beginDraft}>标记当前步骤</button>
@@ -142,21 +125,7 @@ export function CasePanel({
           <small>{item.issue_kind} · r{item.review_revision} · {item.case_id.slice(0, 8)}</small>
           {item.analysis_refs.length > 0 &&
             <p className="case-help">外部评估/诊断引用：未验证，不自动作为人审结论</p>}
-          {(item.review_status === "pending" || item.review_status === "needs_evidence") &&
-            (decisionFor === item.case_id ?
-              <div className="case-editor">
-                <label>审核理由
-                  <textarea rows={2} maxLength={2000} value={reason}
-                    onChange={e => setReason(e.target.value)}/>
-                </label>
-                <div className="case-actions">
-                  <button disabled={busy} onClick={() => void decide(item, "confirmed")}>确认问题</button>
-                  <button disabled={busy} onClick={() => void decide(item, "needs_evidence")}>待补证</button>
-                  <button disabled={busy} onClick={() => void decide(item, "rejected")}>驳回</button>
-                  <button disabled={busy} onClick={() => setDecisionFor(null)}>取消</button>
-                </div>
-              </div>
-              : <button disabled={busy} onClick={() => {setDecisionFor(item.case_id); setReason("");}}>审核</button>)}
+          <button onClick={() => setEditing(item)}>纠正与审核</button>
           {item.history.length > 0 && <details>
             <summary>决策记录</summary>
             {item.history.map(event => <p key={event.revision} className="case-help">

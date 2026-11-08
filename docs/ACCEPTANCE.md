@@ -199,3 +199,13 @@ Playwright 使用真实 Chromium 访问 localhost，完成连接、文件选择�
 下一步：真实脱敏 OpenCUA 往返 → 浏览器/持久化与兼容验收 → Review/Case → 一个独立 Outcome grader → 受控 Skill/Runtime 新 trial。Runtime prepare、签名/关联核验和文件 Undo 都不证明手机恢复成功。
 
 本轮没有改变旧平台、写入生产数据库、执行付费模型/真机、训练或生产发布。PG 新迁移未在目标环境执行。原始模型响应将持久存于授权 PG，必须补访问与保留策略后才能生产启用。
+
+## 步骤纠正编辑器与冻结审核（2026-11-08，PR #4 后续切片）
+
+在 PR #4 的 `13d8348` 上补充浏览器写路径。Case 仍固定 Snapshot 的单一步骤；新增原图标注对话框，原目标/建议目标 bbox、显式点击、坐标数值调整、同一步多个候选的独立 verdict/reason、共享草稿 CAS、冻结审核历史和四种用途预览。提交使用稳定 command_id，失败后保留同一请求供核对；冲突可比较远端草稿并保留本地编辑后重新提交。读取列表后另取单 Case 详情，确保刷新后能查看历史审核。对话框使用页面顶层 portal，窄屏侧栏收起时仍可操作。新增 `evonext case show/draft/save/review/preview` HTTP 客户端，写入从精确命令 JSON 文件读取。
+
+本轮验收使用明确合成的设置截图、两步轨迹和 `do_not_train=true`。证据仓库与媒体为注入的内存测试源，审核控制记录使用独立 PostgreSQL 16 测试库。已执行 Alembic 0001–0004；两个真实 PG 测试通过，覆盖 Case 并发、草稿 CAS、命令重放、冻结审核、后续草稿更改和连接重建。API 进程重启后，浏览器与 CLI 可读回同一 Case、最新草稿与原审核。该结果只证明 PG 控制记录持久化。
+
+Playwright 实际操作通过创建步骤 Case、拖拽两类 bbox、添加同一步第二个候选、指定点击、逐项认可、保存与冻结、DPO 缺项预览、并发写入冲突后比较重提、刷新与服务重启读回。1280px 桌面及 390px 手机宽度检查通过，手机对话框无横向溢出。截图位于该工作树 `output/playwright/correction-desktop.png` 和 `correction-mobile.png`，均为合成内容。常规 Python 测试 151 passed、2 skipped（本机缺 Langfuse/Celery）、3 integration deselected；另行显式运行两个真实 PG 测试，均通过。前端 44 项测试、TypeScript/Vite 构建、Ruff、compileall 和 diff check 通过。另一个通用基础设施联通测试未运行。
+
+边界为单步点击与区域纠正。尚待真实 Mongo/MinIO 的端到端重启、多角色身份与权限隔离、200/2000 步编辑场景性能、实际训练输入资格及真实 Runtime 修复收益验收。用途预览保留缺证和禁止训练原因。普通测试与本轮浏览器验收未调用模型、设备或训练。

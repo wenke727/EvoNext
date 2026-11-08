@@ -1,3 +1,4 @@
+import type { CorrectionDraft, SavedDraft, FrozenReview, UsePreview } from "./correction";
 import { MediaCache } from "./media";
 
 export type Summary = {
@@ -72,6 +73,7 @@ export class EvidenceClient {
       throw new Error(
         typeof reason === "string"
           ? reason
+          : Array.isArray(reason) ? reason.map(item => `${item.loc?.join(".")}: ${item.msg}`).join("\n")
           : `请求失败（HTTP ${response.status}）`,
       );
     }
@@ -113,6 +115,39 @@ export class EvidenceClient {
       headers: {"Content-Type": "application/json", "If-Match": `"${revision}"`},
       body: JSON.stringify(body),
     })).json();
+  }
+
+  async correctionDraft(id: string, signal?: AbortSignal): Promise<SavedDraft> {
+    return (await this.request(`/api/v1/cases/${id}/draft`, {signal})).json();
+  }
+
+  async saveCorrections(id: string, command: {
+    command_id: string; expected_draft_revision: number; draft: CorrectionDraft;
+  }): Promise<SavedDraft> {
+    return (await this.request(`/api/v1/cases/${id}/draft`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json", "If-Match": `"${command.expected_draft_revision}"`},
+      body: JSON.stringify(command),
+    })).json();
+  }
+
+  async reviewCorrections(id: string, command: {
+    command_id: string; expected_review_revision: number; draft_revision: number;
+    draft_hash: string; decision: CaseDecision; reason: string;
+  }): Promise<CaseView> {
+    return (await this.request(`/api/v1/cases/${id}/review`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "If-Match": `"${command.expected_review_revision}"`},
+      body: JSON.stringify(command),
+    })).json();
+  }
+
+  async frozenReview(id: string, revision: number): Promise<FrozenReview> {
+    return (await this.request(`/api/v1/cases/${id}/reviews/${revision}`)).json();
+  }
+
+  async correctionPreview(id: string, revision: number, purpose: string): Promise<UsePreview> {
+    return (await this.request(`/api/v1/cases/${id}/reviews/${revision}/previews/${purpose}`)).json();
   }
 
   async importFile(file: File): Promise<Summary> {
