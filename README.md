@@ -60,6 +60,14 @@ cd ..
 evonext validate-bundle .local/synthetic.zip
 ```
 
+## 默认读取旧库与 ID 定位
+
+配置 `EVONEXT_LEGACY_ENV_FILE=/absolute/local/path/to/EvoLoop/src/.env` 后，工作台默认显示旧 Mongo 任务列表，顶部可按 Task ID 打开；版本留空读取当前版本，填写 0 可定位版本零。Mongo/MinIO 仅只读访问，不运行旧 DAL 初始化或写入；完整读取结果由新 Evidence owner 固定。该 profile 与边界见 [ADR-004](docs/adr/0004-legacy-source-navigation.md) 和 [兼容合同](docs/COMPATIBILITY.md)。不要把旧配置文件或真实数据加入仓库。
+
+本地只读预览可以继续使用 `evonext serve --demo`（新捕获仅存内存），前端 `npm run dev`。需要隔离端口时，后端指定 `--port 8001`，前端设置 `EVONEXT_API_PROXY=http://127.0.0.1:8001 npm run dev -- --port 5174`。顶部导入/本地快照仍作为次级入口保留。
+
+CLI 使用 `evonext inspect-source --env-file /absolute/local/path/to/source.env --limit 10` 查看来源列表；增加 `--task-id TASK_ID --version 0` 可检查固定任务和截图读取，结果明确为临时内存检查，不持久化。需要安装声明的 infra 依赖。来源 URL 保持原样，当前只提供 JSON 导出；完整可移植 ZIP 的 locator 投影另行实现。
+
 ## 接入现有基础设施
 
 ```bash

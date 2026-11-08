@@ -1362,3 +1362,23 @@ dd {
 .filmstrip .action-badge { display: none; }
 .display-settings select { max-width: 150px; font-size: 12px; }
 .filmstrip .step-card-index { justify-content: center; }
+
+.task-id-search { display: flex; align-items: center; gap: 7px; width: min(520px, 42vw); padding: 3px 4px 3px 10px; border: 1px solid #e6e6e6; border-radius: 7px; background: #f7f7f7; }
+.task-id-search svg { flex: 0 0 auto; fill: none; stroke: #888; stroke-width: 1.5; }
+.task-id-search input { min-width: 0; flex: 1; border: 0; background: transparent; padding: 4px 0; font-size: 12px; outline-offset: 2px; }
+.task-id-search .task-search-version { flex: 0 0 66px; width: 66px; border-left: 1px solid #ddd; padding-left: 8px; font-size: 10px; }
+.task-id-search button { flex: 0 0 auto; white-space: nowrap; background: white; font-size: 11px; padding: 4px 9px; }
+.source-mode-label { color: #8b8b8b; font-size: 10px; white-space: nowrap; }
+.source-task-list { display: grid; gap: 0; text-align: left; width: min(720px, 90vw); margin: 24px auto; max-height: 65vh; overflow: auto; }
+.source-task-list > button { display: flex; flex-direction: column; align-items: stretch; gap: 7px; text-align: left; background: white; padding: 14px 8px; border: 0; border-bottom: 1px solid #eee; border-radius: 0; }
+.source-task-list > button:hover { background: #fafafa; }
+.source-task-list > button > span:last-child { color: #777; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-task-identity { display: flex; justify-content: space-between; gap: 14px; font: 11px var(--mono); }
+.source-task-identity small { color: #999; font-size: 10px; white-space: nowrap; }
+.library-home:has(.source-task-list) { align-items: start; padding-top: 45px; overflow: auto; }
+@media (max-width: 760px) { .app-title, .source-mode-label { display: none; } .task-id-search { width: auto; flex: 1; } .task-id-search .task-search-version { flex-basis: 45px; width: 45px; } .header-menu > summary { white-space: nowrap; } }
+.task-id-search { min-width: 0; }
+.task-id-search input:first-of-type { width: 0; }
+@media (max-width: 760px) { .app-header > .header-spacer { display: none; } }
+.library-home .empty:has(.source-task-list) { width: min(900px, 100%); max-width: none; margin: 0 auto; padding: 0; border: 0; border-radius: 0; }
+.library-home .source-task-list { width: 100%; max-height: none; overflow: visible; margin: 24px 0; }

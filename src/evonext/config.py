@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     postgres_dsn: SecretStr | None = None
     broker_url: SecretStr = SecretStr("redis://127.0.0.1:6379/0")
+    legacy_env_file: str = ""
     legacy_base_url: str = ""
     legacy_api_key: SecretStr | None = None
     legacy_writes: bool = False

@@ -12,6 +12,11 @@ def main():
     serve.add_argument("--demo", action="store_true")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
+    inspect_source = commands.add_parser("inspect-source", help="Read old source without persisting it")
+    inspect_source.add_argument("--env-file", type=Path, required=True)
+    inspect_source.add_argument("--task-id")
+    inspect_source.add_argument("--version", type=int)
+    inspect_source.add_argument("--limit", type=int, default=30)
     validate = commands.add_parser("validate-bundle")
     validate.add_argument("path", type=Path)
     enqueue = commands.add_parser("enqueue-integrity")
@@ -45,6 +50,25 @@ def main():
         if settings.demo and args.host not in {"127.0.0.1", "::1", "localhost"}:
             parser.error("Demo mode must listen on localhost")
         uvicorn.run(create_app(settings), host=args.host, port=args.port)
+    elif args.command == "inspect-source":
+        from evonext.compat.mongo_source import LegacyMongoSource
+        from evonext.evidence.service import EvidenceService
+        from evonext.evidence.store import MemoryAssets, MemorySnapshots
+        if not 1 <= args.limit <= 100:
+            parser.error("limit must be between 1 and 100")
+        settings = Settings(demo=True, legacy_env_file=str(args.env_file), _env_file=None)
+        reader = LegacyMongoSource(settings)
+        try:
+            if args.task_id:
+                service = EvidenceService(MemorySnapshots(), MemoryAssets(), settings)
+                snapshot = reader.capture(args.task_id, args.version, service)
+                result = {"snapshot": snapshot.summary(), "persisted": False,
+                          "profile": reader.profile, "meaning": "read-only inspection; memory discarded on exit"}
+            else:
+                result = {"items": reader.list(limit=args.limit), "profile": reader.profile}
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        finally:
+            reader.close()
     elif args.command == "validate-bundle":
         from evonext.evidence.packages import import_bundle
         from evonext.evidence.store import MemoryAssets

@@ -749,7 +749,7 @@ export function TrajectoryViewer({
           </div>
           <span className="read-only">只读浏览</span>
           <button onClick={() => onDownload("trajectory")}>导出 JSON</button>
-          <button onClick={() => onDownload("bundle")}>导出包</button>
+          <button disabled={detail.metadata.portable_bundle === false} title={detail.metadata.portable_bundle === false ? "来源图片地址保持原样，当前支持 JSON 导出；可移植包需显式地址投影" : undefined} onClick={() => onDownload("bundle")}>导出包</button>
           <button onClick={() => setHelp(true)}>⌨ 快捷键</button>
         </div>
       </footer>

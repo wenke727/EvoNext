@@ -1,5 +1,6 @@
 """A small working vertical slice: import -> inspect -> lossless export."""
 import hmac
+from threading import Lock
 from contextlib import asynccontextmanager
 
 import httpx
@@ -11,6 +12,7 @@ from starlette.concurrency import run_in_threadpool
 from evonext.config import Settings, secret
 from evonext.contracts.trajectory import ContractError
 from evonext.compat.legacy import BridgeUncertain, LegacyClient
+from evonext.compat.mongo_source import LegacyMongoSource, SourceUnavailable
 from evonext.evidence.packages import media_type
 from evonext.evidence.service import EvidenceService
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
@@ -26,7 +28,7 @@ async def limited_body(request, maximum):
     return bytes(body)
 
 
-def create_app(settings=None, repository=None, assets=None):
+def create_app(settings=None, repository=None, assets=None, source=None):
     settings = settings or Settings()
     if (repository is None) != (assets is None):
         raise ValueError("Inject both repository and assets, or neither")
@@ -34,6 +36,18 @@ def create_app(settings=None, repository=None, assets=None):
     repository, assets = (repository, assets) if repository is not None else stores(settings)
 
     service = EvidenceService(repository, assets, settings)
+
+    owns_source = source is None
+    source_lock = Lock()
+
+    def source_reader():
+        nonlocal source
+        with source_lock:
+            if source is None:
+                if not settings.legacy_env_file:
+                    raise HTTPException(503, "旧数据源尚未配置")
+                source = LegacyMongoSource(settings)
+        return source
 
     ledger = None
     ledger_error = "NotInitialized"
@@ -51,6 +65,8 @@ def create_app(settings=None, repository=None, assets=None):
             yield
         finally:
             try:
+                if owns_source and source is not None:
+                    source.close()
                 if ledger is not None:
                     ledger.close()
             finally:
@@ -94,6 +110,10 @@ def create_app(settings=None, repository=None, assets=None):
     @app.exception_handler(BridgeUncertain)
     async def uncertain(request, exc):
         return JSONResponse({"error": str(exc), "retry_safe": False}, status_code=502)
+
+    @app.exception_handler(SourceUnavailable)
+    async def unavailable_source(request, exc):
+        return JSONResponse({"error": str(exc)}, status_code=503)
 
     @app.exception_handler(httpx.HTTPError)
     async def upstream_failed(request, exc):
@@ -143,7 +163,29 @@ def create_app(settings=None, repository=None, assets=None):
             checks["postgres"] = "not_configured"
         ok = not any(v.startswith("unavailable") for v in checks.values())
         return JSONResponse({"ready": ok, "demo": settings.demo, "checks": checks,
+                             "source_mode": "legacy_mongo" if settings.legacy_env_file else "snapshots",
                              "production_accepted": False}, status_code=200 if ok else 503)
+
+    @app.get("/api/v1/source/tasks", dependencies=auth)
+    def source_tasks(after: str = "", limit: int = Query(30, ge=1, le=100)):
+        try:
+            items = source_reader().list(after, limit)
+            return {"items": items, "next_cursor": items[-1]["task_id"] if len(items) == limit else None}
+        except (ContractError, EvidenceNotFound, SourceUnavailable, HTTPException):
+            raise
+        except Exception as exc:
+            raise HTTPException(502, "旧数据源读取失败，请检查连接配置") from exc
+
+    @app.post("/api/v1/source/open/{task_id}", dependencies=auth, status_code=201)
+    def open_source_task(task_id: str, version: int | None = Query(None, ge=0)):
+        try:
+            snapshot = source_reader().capture(task_id, version, service)
+            return {**snapshot.summary(), "profile": LegacyMongoSource.profile,
+                    "portable_bundle": False}
+        except (ContractError, EvidenceNotFound, SourceUnavailable, HTTPException):
+            raise
+        except Exception as exc:
+            raise HTTPException(502, "旧数据源读取失败；未修改旧库") from exc
 
     @app.get("/api/v1/snapshots", dependencies=auth)
     def list_snapshots(after: str = "", limit: int = Query(50, ge=1, le=100)):

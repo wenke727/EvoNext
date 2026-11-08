@@ -23,6 +23,8 @@ export type Detail = Summary & {
   missing_media: string[];
   manifest?: { media: Record<string, string>; [key: string]: unknown };
 };
+export type SourceTask = Omit<Summary, "snapshot_id" | "media_count">;
+export type SourcePage = { items: SourceTask[]; next_cursor: string | null };
 export type Page = { items: Summary[]; next_cursor: string | null };
 
 // A client belongs to one in-memory credential session. Never persist credentials or evidence.
@@ -55,8 +57,17 @@ export class EvidenceClient {
     return response;
   }
 
-  async ready(signal?: AbortSignal): Promise<{ demo: boolean }> {
+  async ready(signal?: AbortSignal): Promise<{ demo: boolean; source_mode?: "legacy_mongo" | "snapshots" }> {
     return (await this.request("/health/ready", { signal })).json();
+  }
+
+  async listSource(after: string | null, signal?: AbortSignal): Promise<SourcePage> {
+    return (await this.request(`/api/v1/source/tasks?limit=30${after ? `&after=${encodeURIComponent(after)}` : ""}`, {signal})).json();
+  }
+
+  async openSource(task: string, version: string): Promise<Summary> {
+    if (!task.trim() || (version && !/^\d+$/.test(version))) throw new Error("请填写 Task ID；版本留空读取当前版本，0 有效");
+    return (await this.request(`/api/v1/source/open/${encodeURIComponent(task.trim())}${version ? `?version=${encodeURIComponent(version)}` : ""}`, {method:"POST"})).json();
   }
 
   async list(after: string | null, signal?: AbortSignal): Promise<Page> {
