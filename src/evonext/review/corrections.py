@@ -176,11 +176,13 @@ def verify_draft(draft: CorrectionDraft, snapshot, assets, *, case_position: int
                     with Image.open(io.BytesIO(original)) as decoded:
                         if decoded.format not in {"JPEG", "PNG", "WEBP"}:
                             raise ContractError("Unsupported region image format")
-                        if decoded.getexif().get(274, 1) != 1:
-                            raise ContractError("Image orientation must be explicitly normalized")
                         width, height = decoded.size
+                        # PNG verification must occur before getexif/load consumes the file pointer.
                         decoded.verify()
-                        size_cache[locator] = (width, height)
+                    with Image.open(io.BytesIO(original)) as oriented:
+                        if oriented.getexif().get(274, 1) != 1:
+                            raise ContractError("Image orientation must be explicitly normalized")
+                    size_cache[locator] = (width, height)
                 except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
                     raise ContractError("Correction media cannot be decoded") from exc
             if size_cache[locator] != (region.image_width, region.image_height):
