@@ -248,7 +248,7 @@ def test_bbox_normalization_invalid_values_are_rejected(rig, bbox):
 @pytest.mark.parametrize("mutation", [
     lambda i: i["regions"][0].update(media_sha256="0" * 64),
     lambda i: i["regions"][0].update(image_width=900),
-    lambda i: i["regions"][0].update(media_locator="images/two.png"),
+    lambda i: i["regions"][0].update(media_locator="images/one.png"),
     lambda i: i.update(source_step_id="first"),
 ])
 def test_wrong_media_or_source_binding_rejected(rig, mutation):
