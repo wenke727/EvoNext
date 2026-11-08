@@ -31,3 +31,35 @@ def verify(snapshot_id: str):
     finally:
         repository.close()
         ledger.close()
+
+
+@app.task(name="evonext.outcome", acks_late=True)
+def outcome(run_id: str):
+    from evonext.evidence.service import EvidenceService
+    from evonext.evaluation.service import OutcomeService
+    from evonext.evaluation.store import PostgresOutcomes
+    from evonext.providers.gateway import ModelGateway
+    if not settings.postgres_dsn or not settings.model_calls_enabled:
+        raise RuntimeError("Outcome requires PostgreSQL and explicit model-call enablement")
+    repository, assets = stores(settings)
+    ledger = Ledger(secret(settings.postgres_dsn))
+    gateway = None
+    store = PostgresOutcomes(ledger.engine)
+    try:
+        try:
+            gateway = ModelGateway(settings)
+        except Exception as exc:
+            from evonext.evaluation.outcome import result_record
+            row = store.get(run_id)
+            if row and store.claim(run_id):
+                store.finish(run_id, result_record(row["frozen"], execution="error",
+                                                   error=type(exc).__name__))
+            raise
+        service = OutcomeService(EvidenceService(repository, assets, settings), store, settings)
+        return service.execute(run_id, gateway)["status"]
+    finally:
+        if gateway:
+            gateway.close()
+        ledger.close()
+        repository.close()
+        assets.close()

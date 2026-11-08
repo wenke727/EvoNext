@@ -137,3 +137,18 @@ evonext case save <case-id> --file <draft-command.json>
 evonext case review <case-id> --file <frozen-review-command.json>
 evonext case preview <case-id> --revision 1 --purpose localization
 ```
+
+### 独立 Outcome
+
+工作台的“独立 Outcome”先逐行填写必需义务，选取最多四张快照原图，并确认仅使用初始指令范围，然后冻结输入。新评估另存；已有来源 ORM 保留原来源展示。初版只接动作前截图，合计最多 512 KiB；无法证实的过程或终态保持缺证。用户改令/会话输入需要后续支持的 profile。每项判断可点击回到原证据。
+
+配置真实模型、PG 迁移、Celery Worker 和显式调用开关后，才可单独派发冻结版本。启用模型本身不会自动运行评估。相同 run_id 重放复用已有请求，running 或已结束的请求不自动再执行；Worker 丢失时人工核对回执。真实模型准确率仍待独立标注集验收。
+
+```bash
+evonext outcome freeze --file outcome-request.json
+evonext outcome show --run-id <run-id>
+# 本命令显式请求收费模型操作，需已获调用授权并开启配置
+evonext outcome dispatch --run-id <run-id>
+```
+
+outcome-request.json 包含 UUIDv4 run_id、snapshot_id、scope="initial_instruction_only"、obligations（check_id/requirement）、evidence_positions 和 repetition_id。独立重复评分使用新的 run_id 和明确 repetition_id。CLI 凭据继续从环境读取。

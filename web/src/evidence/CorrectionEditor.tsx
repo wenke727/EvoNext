@@ -28,6 +28,7 @@ export function CorrectionEditor({ item, detail, client, onClose, onReviewed }: 
   const saveCommand = useRef<Parameters<EvidenceClient["saveCorrections"]>[1] | null>(null);
   const reviewCommand = useRef<Parameters<EvidenceClient["reviewCorrections"]>[1] | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const reviewControls = useRef<HTMLDivElement>(null);
   const step = detail.trajectory.traj[item.position];
   const path = step?.image;
   const hash = path ? detail.manifest?.media[path] : undefined;
@@ -179,6 +180,7 @@ export function CorrectionEditor({ item, detail, client, onClose, onReviewed }: 
           {(["original_target", "suggested_target", "point"] as const).map((value, index) =>
             <button key={value} aria-pressed={tool === value} disabled={busy}
               onClick={() => setTool(value)}>{["框原目标", "框建议目标", "指定点击"][index]}</button>)}
+          <button onClick={() => reviewControls.current?.scrollIntoView({block: "start"})}>前往审核</button>
         </div>
         <p>选择候选后在动作前原图绘制。点击位置需单独指定。坐标范围 0–1000。</p>
         {url ? <div className="correction-image">
@@ -229,7 +231,7 @@ export function CorrectionEditor({ item, detail, client, onClose, onReviewed }: 
             {current.regions.map((region, index) => <div className="correction-region" key={index}>
               <strong>{region.role === "original_target" ? "原目标" : "建议目标"} {index + 1}</strong>
               <div>{region.xyxy.map((coordinate, axis) => <label key={axis}>{["x1", "y1", "x2", "y2"][axis]}
-                <input type="number" min="0" max="1000" step="any" value={coordinate}
+                <input type="number" min="0" max="1000" step="any" value={Number(coordinate.toFixed(3))}
                   onChange={event => update({regions: current.regions.map((box, i) => i === index ?
                     {...box, xyxy: box.xyxy.map((v, j) => j === axis ? Number(event.target.value) : v)} : box)})}/></label>)}</div>
               <button onClick={() => {
@@ -239,7 +241,7 @@ export function CorrectionEditor({ item, detail, client, onClose, onReviewed }: 
             </div>)}
             {current.suggested_action && <div className="correction-region"><strong>建议点击</strong>
               {current.suggested_action.point.map((value, axis) => <label key={axis}>{axis ? "y" : "x"}
-                <input type="number" min="0" max="1000" step="any" value={value}
+                <input type="number" min="0" max="1000" step="any" value={Number(value.toFixed(3))}
                   onChange={event => update({suggested_action: {...current.suggested_action!,
                     point: current.suggested_action!.point.map((v, i) => i === axis ? Number(event.target.value) : v)}})}/></label>)}
               <button onClick={() => update({suggested_action: null, kind: current.regions.length ? "region_only" : "no_action"})}>清除点击</button>
@@ -269,6 +271,7 @@ export function CorrectionEditor({ item, detail, client, onClose, onReviewed }: 
             saveCommand.current = null; reviewCommand.current = null;
           }}>采用服务端草稿</button>
         </div>}
+        <div ref={reviewControls} tabIndex={-1}/>
         <label>整体审核理由<textarea value={reason} maxLength={2000} disabled={busy || !!reviewCommand.current}
           onChange={event => setReason(event.target.value)}/></label>
         <div className="case-actions">{(["confirmed", "needs_evidence", "rejected"] as CaseDecision[]).map((decision, index) =>
