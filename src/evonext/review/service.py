@@ -1,6 +1,6 @@
 """Case/Review use-case boundary; Evidence remains the only source of facts."""
 from .contracts import (CaseNotFound, CaseProposal, ReviewDecision, verify_proposal)
-from .corrections import CorrectionDraft, DraftCommand, FrozenReviewCommand, verify_draft
+from .corrections import DraftCommand, FrozenReviewCommand, verify_draft
 from .previews import preview_case_use
 
 

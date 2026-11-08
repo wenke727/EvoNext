@@ -8,10 +8,9 @@ from PIL import Image
 
 from evonext.app.api import create_app
 from evonext.config import Settings
-from evonext.contracts.trajectory import ContractError, Snapshot, encode_json, sha256
+from evonext.contracts.trajectory import Snapshot, encode_json
 from evonext.evidence.store import MemoryAssets, MemorySnapshots
-from evonext.review.corrections import CorrectionDraft, verify_draft
-from evonext.review.store import MemoryCases
+from evonext.review.corrections import CorrectionDraft
 
 
 def image(color):
