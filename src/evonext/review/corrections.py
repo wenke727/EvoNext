@@ -122,17 +122,24 @@ class FrozenReviewCommand(BaseModel):
         return self
 
 
-def verify_draft(draft: CorrectionDraft, snapshot, assets):
-    """Check each correction's independent anchor and bound, upright source image.
+def verify_draft(draft: CorrectionDraft, snapshot, assets, *, case_position: int,
+                 case_source_step_id: str | None = None):
+    """Correct only the Step owned by this Case; first error is not required.
 
-    Source index, the Case detection anchor, and the first-error hypothesis are
-    not equivalent to a correction target position.
+    Other steps may be cited as supporting evidence but require a separate Case
+    for a separately corrected action.
     """
     if snapshot is None:
         raise ContractError("Frozen source is unavailable")
     steps = snapshot.document["traj"]
+    if case_position < 0 or case_position >= len(steps):
+        raise ContractError("Case step does not exist in frozen source")
+    if case_source_step_id is not None and steps[case_position].get("step_id") != case_source_step_id:
+        raise ContractError("Case source step identity mismatch")
     size_cache = {}
     for item in draft.items:
+        if item.position != case_position:
+            raise ContractError("Correction must target its Case's single source step")
         if item.position >= len(steps):
             raise ContractError("Correction references a non-existent source position")
         step = steps[item.position]

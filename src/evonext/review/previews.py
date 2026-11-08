@@ -79,7 +79,7 @@ def preview_case_use(case: dict, review: dict, snapshot, purpose: str):
         "missing": list(dict.fromkeys(missing)),
         "blocked": list(dict.fromkeys(blocked)),
         "candidate": {
-            "case_scope": case["scope"],
+            "case_scope": "step",
             "issue_kind": case["issue_kind"],
             "operator_note": note,
             "accepted_items": candidates,
