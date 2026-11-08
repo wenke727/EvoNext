@@ -28,6 +28,11 @@ def main():
     workshop.add_argument("--revision")
     workshop.add_argument("--source", action="append", default=[])
     workshop.add_argument("--reason", default="manual candidate revision")
+    available = commands.add_parser("list-available", help="Filter a resource owner inventory JSON file")
+    available.add_argument("--inventory", required=True, type=Path)
+    available.add_argument("--driver", choices=["external_agent", "builtin_agent", "cloud_query"])
+    available.add_argument("--capability", action="append", default=[])
+    available.add_argument("--resource-id")
     prepare = commands.add_parser("prepare-trial")
     prepare.add_argument("--request", type=Path, required=True)
     prepare.add_argument("--bundle", type=Path, required=True)
@@ -92,6 +97,16 @@ def main():
                 parser.error("export requires an exact --revision")
             result = library.export(args.skill_id, args.revision).model_dump(mode="json")
         print(json.dumps(result, ensure_ascii=False, indent=2))
+    elif args.command == "list-available":
+        from evonext.runtime.resources import Inventory, ResourceRequirements, get_resource_pool
+        try:
+            inventory = Inventory.model_validate_json(args.inventory.read_bytes())
+            pool = get_resource_pool(inventory.kind, lambda: inventory)
+            requirements = ResourceRequirements(driver=args.driver, resource_id=args.resource_id,
+                                                capabilities=frozenset(args.capability))
+            print(pool.list_available(requirements).model_dump_json(indent=2))
+        except (ValueError, OSError) as exc:
+            parser.error(str(exc))
     elif args.command == "prepare-trial":
         from evonext.contracts.runtime import RuntimeRequest
         from evonext.runtime.context import prepare_trial
