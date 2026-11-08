@@ -16,7 +16,7 @@ class NormalizedBox(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     role: Literal["original_target", "suggested_target"]
     space: Literal["normalized_1000"] = "normalized_1000"
-    xyxy: tuple[FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat]
+    xyxy: list[FiniteFloat] = Field(min_length=4, max_length=4)
     media_locator: str = Field(min_length=1, max_length=512)
     media_sha256: str = Field(pattern=HASH)
     image_width: int = Field(gt=0, le=20000)
@@ -35,7 +35,7 @@ class SuggestedClick(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     action: Literal["click"]
     space: Literal["normalized_1000"] = "normalized_1000"
-    point: tuple[FiniteFloat, FiniteFloat]
+    point: list[FiniteFloat] = Field(min_length=2, max_length=2)
 
     @model_validator(mode="after")
     def bounds(self):
