@@ -22,6 +22,7 @@ Mongo + MinIO + PostgreSQL 保留；不再推荐把 Task 全量迁 PG。OpenCUA-
 | [05_CLEANROOM_MIGRATION](05_CLEANROOM_MIGRATION.md) | 独立实现、隔离验证、单写切换和回退 |
 | [06_ACCEPTANCE](06_ACCEPTANCE.md) | AC-001–063 与 SEC-01–06，保留原验收范围 |
 | [07_IMPLEMENTATION_PROMPT](07_IMPLEMENTATION_PROMPT.md) | 交给后续 Codex 的实施任务书 |
+| [09_REVIEW_CORRECTION_WORKBENCH](09_REVIEW_CORRECTION_WORKBENCH.md) | 人在环纠正、0–1000 标注、共享草稿、审核冻结及用途预览 |
 | [08_SKILLS_RUNTIME_AND_PIPELINE](08_SKILLS_RUNTIME_AND_PIPELINE.md) | AIHOT/OpenClaw 适配、Workshop/Runtime 合同和新增 Gate |
 | [examples](examples/README.md) | 9 份合成业务对象、独立 oracle、哈希/身份校验 |
 
