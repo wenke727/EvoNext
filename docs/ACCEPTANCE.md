@@ -1,5 +1,35 @@
 # 实施状态与验收证据
 
+## 本轮提交前审查（2026-11-08）
+
+离线复验：pytest 129 passed / 4 skipped；前端 42 passed；Ruff、compileall、TypeScript/Vite 构建通过。4 项跳过不计为实库验收。本轮未重新访问真实服务或执行模型/设备操作。修复连接切换时旧请求覆盖状态的竞态；缺少 infra SDK 时旧源明确返回不可用；BSON 小整数 Int64 也保留 `$numberLong` 类型信息，新增合成回归。EvaluationPanel 的未提交外观改动已按要求撤回，来源评估说明保留。以下真实服务和浏览器记录为此前验收记录，本轮未复验。
+
+## 默认旧库入口与顶部 ID 导航（2026-11-08）
+
+按用户新增要求，顶部迁为主 Task ID 搜索、可选来源版本和次级快照/导入菜单；任务查询用新 React / EvidenceClient，不迁旧全局控制器。配置受信 EVONEXT_LEGACY_ENV_FILE 后，页面默认从旧 Mongo 列表读取，无需先导入离线包；未配置时保留原快照模式。支持 ID 精确读取、版本 0、留空读取当前版本，以及 ?task=...&version=0 直接链接。搜索失败保留当前已打开证据；打开后固定版本及字节输入，不把刷新视图当跟随 latest。
+
+独立 compat 只读适配使用官方 PyMongo/MinIO SDK，只读 Latest/History 和已配置 origin 下的图片/VLM 桶，不加载旧 DAL、不创建索引/桶、不执行迁移或旧源写入。新 Evidence owner 接收固定输入；本轮独立 localhost 8001/5174 预览显式采用 demo，因此新记录与媒体只存内存，重启清空。配置与真实任务信息只保存在忽略的本地文件；原 src/.env 不复制入公共配置。
+
+验证：前端 **42 passed**，后端 **128 passed / 4 skipped**；TypeScript/Vite 构建、compileall、Ruff、diff 检查通过。7 项合成旧源回归覆盖版本零/不存在版本、BSON 与安全整数、原字段/字符串 ID 保留、受信媒体定位、凭据/query locator 拒绝、旧 VLM 桶、非 demo 认证和现有快照读取链。普通 pytest 未读取真实旧服务；4 项跳过继续是可选依赖/隔离实库未验，不计为通过。
+
+经用户明确授权进行了有界真实只读验收：默认列表返回 30 条旧任务，浏览器按顶部 ID/版本零读取 15 步/15 个绑定图片的旧记录，验证留空版本、缺失 ID、窄屏搜索和 Grid；另一条移动端旧记录经 Task ID 直接链接读取 15 步/15 个绑定图片，无缺图，截图来自旧 vlm-api 桶。CLI inspect-source 也读取 15 步/15 图并明确 persisted=false。执行路径没有旧库或旧 MinIO 写操作；未调用模型、设备或训练，未向新生产库写入。真实截图放在忽略的 output/playwright/legacy-source-home.png、legacy-source-detail.png、legacy-source-grid.png、legacy-source-mobile-task.png。
+
+边界：profile evoloop.mongo-read.v1 的 BSON→Extended JSON 及不安全整数表示转换会声明，不冒称 Mongo 文档具有原始 JSON 文件字节；源媒体 URL 保持不变，因此当前仅提供 JSON 导出，可移植 ZIP 的显式地址投影另行接入。不是完整旧 DAL/API 仿真，也没有验收生产持久化、多用户来源权限、全量旧格式和大轨迹吞吐。已有旧 BBox 治理仍后置。本次仅完成用户新增的只读旧源和导航入口，不启动审阅写入。
+
+## Runtime 资源池只读清单（2026-11-07）
+
+本地多机与云测容量均可通过 Python 资源池接口或 `evonext list-available --inventory <文件>` 筛选。离线回归覆盖双驱动共享设备身份、占用状态更新、过期清单、云池排队与未知容量、无效清单和 CLI。pytest 121 passed / 4 skipped；compileall、Ruff 与前端构建通过。设备发现、云供应方联通、原子租约与真实派发待独立接入和验收。
+
+## 收口后视觉回归：左栏与时间缩略图（2026-11-07）
+
+按用户确认恢复旧 workbench 的阅读层级：任务 ID/复制、标签、任务与来源评估继续常驻；来源版本以紧凑标记保留，来源类型、split、do_not_train、快照与原始 JSON 收进默认折叠的“来源信息”，没有删除源数据或治理标志。去掉重复的只读说明常驻段落，必要的评估缺失/来源状态仍保留。
+
+小图条恢复旧版的底部居中编号、卡片框线、间距与留白，动作标记和事件角标继续显示；重复动作文字不常驻，悬停可读详情，Grid 保持完整语义说明。动作标记开关、坐标空间及小图上下停靠统一进入“显示选项”，支持跨任务/刷新保留；恢复默认显示同时恢复这些显示选择，不改变原始证据。此轮属于已收口只读工作台的视觉调整，不启动后续功能工作包。
+
+验证：前端 42 passed、后端 117 passed / 4 skipped，TypeScript/Vite 构建、compileall、Ruff 通过。Chromium 针对元信息默认折叠/可展开、来源版本、小图编号位置、重复标签隐藏、设置迁移/刷新读回/恢复默认及 390px 设置边界检查通过；既有 Sidebar/ORM/grader/Controls、重试与 BBox/批量标注浏览器回归通过，无新增写请求或页面异常。4 项跳过继续保留为未验边界。
+
+效果图使用同一真实离线轨迹，保留在忽略的 output/playwright/workbench-restored-detail.png 与 workbench-restored-grid.png。真实来源数据未由本轮修改，未运行模型、设备或生产写入；尚未与运行中的旧站做逐像素比对。
+
 ## 阶段收口：只读工作台阶段完成（2026-11-07）
 
 本阶段验收范围冻结为：真实离线数据展示、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键和打点原文检索。范围内浏览闭环已完成，不以完整替代旧平台或完成生产切换表述。提交版本固定本阶段源码与文档；后续能力不自动纳入本次收口。
