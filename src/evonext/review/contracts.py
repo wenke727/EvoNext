@@ -27,8 +27,7 @@ class CaseProposal(BaseModel):
     # Client-generated stable identity permits safe retry after a lost acknowledgement.
     case_id: str = Field(pattern=r"^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")
     snapshot_id: SnapshotId = Field(pattern=r"^[0-9a-f]{64}$")
-    scope: Literal["task", "step"] = "step"
-    position: int | None = Field(default=None, ge=0)
+    position: int = Field(ge=0)
     source_step_id: str | None = Field(default=None, min_length=1, max_length=256)
     issue_kind: Literal["task_outcome", "step_action", "tool_execution", "environment",
                         "safety", "data_or_label", "unknown"]
@@ -42,10 +41,6 @@ class CaseProposal(BaseModel):
         # A canonical UUIDv4 string avoids silently coercing strings/numbers in other fields.
         if UUID(self.case_id).version != 4 or str(UUID(self.case_id)) != self.case_id:
             raise ValueError("Case identity must be a canonical UUIDv4")
-        if self.scope == "task" and (self.position is not None or self.source_step_id is not None):
-            raise ValueError("Task-level cases cannot invent a step anchor")
-        if self.scope == "step" and self.position is None:
-            raise ValueError("Step-level cases require an explicit snapshot position")
         if len(set(self.evidence_refs)) != len(self.evidence_refs):
             raise ValueError("Evidence references must be distinct")
         keys = [(ref.producer, ref.record_id) for ref in self.analysis_refs]
@@ -82,13 +77,12 @@ def verify_proposal(proposal: CaseProposal, snapshot) -> dict:
     if snapshot is None or snapshot.id != proposal.snapshot_id:
         raise CaseNotFound("Frozen snapshot not found")
     steps = snapshot.document["traj"]
-    if proposal.scope == "step":
-        if proposal.position is None or proposal.position >= len(steps):
-            raise ContractError("Source step position is outside the frozen trajectory")
-        step = steps[proposal.position]
-        raw_id = step.get("step_id")
-        if proposal.source_step_id is not None and raw_id != proposal.source_step_id:
-            raise ContractError("Source step identity does not match the frozen trajectory")
+    if proposal.position >= len(steps):
+        raise ContractError("Source step position is outside the frozen trajectory")
+    step = steps[proposal.position]
+    raw_id = step.get("step_id")
+    if proposal.source_step_id is not None and raw_id != proposal.source_step_id:
+        raise ContractError("Source step identity does not match the frozen trajectory")
     # A missing source step ID remains unknown. Position is explicitly snapshot-scoped.
     media = snapshot.media
     for ref in proposal.evidence_refs:
@@ -102,14 +96,13 @@ def verify_proposal(proposal: CaseProposal, snapshot) -> dict:
                 raise ContractError("Evidence media is not bound to the frozen snapshot")
         else:
             raise ContractError("Evidence references must use step: or media: locators")
-    if proposal.scope == "step" and f"step:{proposal.position}" not in proposal.evidence_refs:
+    if f"step:{proposal.position}" not in proposal.evidence_refs:
         raise ContractError("Step-level Case must cite its own frozen anchor step")
     if any(ref.snapshot_id != proposal.snapshot_id for ref in proposal.analysis_refs):
         raise ContractError("An external analysis reference cannot silently change source")
     return {
         "case_id": proposal.case_id,
         "snapshot_id": proposal.snapshot_id,
-        "scope": proposal.scope,
         "position": proposal.position,
         "source_step_id": proposal.source_step_id,
         "source_version": snapshot.summary()["source_version"],
