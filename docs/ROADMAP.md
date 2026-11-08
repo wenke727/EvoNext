@@ -70,3 +70,7 @@ Diagnosis：允许首个有证据的错误区间、多因、替代解释和 unkn
 已完成本地真实离线包经 API 的读取展示，以及按旧 workbench 浏览合同重建的只读界面验证；当前范围和未验边界见 ACCEPTANCE.md。编辑/审核仍按独立切片接入。
 
 真实 Langfuse 联通、编辑/审核、治理管道与其余低频字段均不阻塞本阶段；下一工作包的顺位、范围和验收另行明确。本次只固定验收版本、保留差异清单并整理提交，不自动启动后续开发或生产切换。
+
+## 下一个业务工作包：A0–A3（在人在环工作台中确认决策后执行）
+
+已确认 [09 人在环失败审阅与步骤纠正](rebuild/09_REVIEW_CORRECTION_WORKBENCH.md)：先核 PR #3 Case 基线，再做 task/step 范围、后续步骤 CorrectionItem、人工 0–1000 坐标、共享草稿 CAS、冻结审核和用途资格预览。首错仅是可选 Diagnosis 判断，不阻塞修正后续动作。真实 Outcome/Agentic Diagnosis、Local Runtime 和 DAL 二期继续后置，不因 A0–A3 实施而自动启动。
