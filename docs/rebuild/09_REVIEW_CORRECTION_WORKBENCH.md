@@ -1,12 +1,12 @@
 # 09 · 人在环的失败审阅、后续步骤纠正与修复验证工作台
 
-**开发规格 v0.2 · 已确认设计约束 · 2026-11-08**
+**开发规格 v0.3 · Case 严格步骤级 · 2026-11-08**
 
 > 目标规格，不是实施完成声明。当前证据只在 [ACCEPTANCE](../ACCEPTANCE.md)；跨领域顺位在 [ROADMAP](../ROADMAP.md)。以 PR #3（\`30bc51f\`）的 Case/Review 合同为 A0 基线，保留旧 API 语义。实际业务写入仍需隔离实库验收。
 >
 > 本版裁决：**首轮 A0–A3；人工框统一存 0–1000；每 Case 一份共享草稿且单独 CAS；用途只预览资格、缺项、候选内容；智能诊断及真实 Runtime 后接。**
 >
-> **重要修订：纠正的位置不要求是首错。** 同一失败可有多个错误/恢复尝试，操作员可以纠正任意有来源的决策，尤其是错误发生后的恢复、重试、后续动作或答复。是否首次偏离属于 Diagnosis 的另一项假设，不能成为纠正的硬门槛。
+> **确认：Case 严格步骤级，不要求是首错。** 一个 Case 固定一个 Snapshot/Step；同一步可以有多个独立 Case，同一 Case 可以有多个针对该步的纠正候选。错误后的任意恢复、重试或回答步骤可以各自创建 Case。任务整体失败或首错未知属于 Evaluation/Diagnosis，不使用 `position=null` 伪造任务级 Case。
 
 ## 1. 产品定位和权威边界
 
@@ -23,21 +23,22 @@ EvoLoop 是现役平台的稳定维护方，仍是其历史执行/评估与回�
 → 按 Diagnosis/Localization/SFT/DPO 用途查看资格和缺项
 \`\`\`
 
-**纠正的对象是决策或动作，不是“整个失败事件”**。某项纠正审核成立，不代表第一次错误已找到、全程任务已修好、Actor 训练样本合格、Runtime 已实际执行。
+**Case 是某一步的一个问题，不是整个失败事件。** 后续另一步的纠正应另建 Case，并可通过诊断/实验引用关联。某项纠正审核成立，不代表首错已找到、全程任务已修好、Actor 训练样本合格或 Runtime 已实际执行。
 
 ## 2. Case 发现、锚点及证据
 
-一个 Case 是同一逻辑问题的唯一 ID；同一步可以提出两个不同 Case；一次请求丢失响应使用原 case_id 重发。一个 Case 可以包含多个 CorrectionItem：各自的 step 位置、源动作对象、原/建议框、人工建议动作与独立 verdict。多个 CorrectionItem 可引用首错之后任意不同步骤，**不能因其 position 不等于 Case 提案位置而被拒绝**。
+一个 Case 只代表固定 Snapshot 的一个 Step 上的一个逻辑问题；同一步可以有多个不同 Case。一个 Case 中可以有多个**同一步**的 CorrectionItem（多个合理目标区域、候选动作或子动作），各有独立 verdict。**所有 CorrectionItem.position 必须等于 Case.position**；要纠正另一个步骤就创建该步骤自己的 Case。重复请求仍用原 case_id 幂等重发。
 
 三种位置绝不复用字段：
 
 | 概念 | 语义 | 是否必填 |
 |---|---|---|
-| detection_anchor | 实际观察到偏离或终态的证据，支持任务级 | 必须有证据引用，不要求知道哪个动作先错 |
-| correction_target | 每个 CorrectionItem 的实际待纠正步骤/动作 | 有具体纠正时必填，可晚于失败 |
-| recovery_checkpoint | 新 Trial 可以安全恢复/重置的状态目标 | A0–A3 不要求，由 Runtime 另外验证 |
+| task_failure_observation | 整体任务失败的观察与终态 | Evaluation/Diagnosis 持有，不作为 Case locator |
+| case_step_anchor | 本 Case 的固定步骤，允许晚于第一次偏离 | Case 必填：snapshot_id、position 和可选 source_step_id |
+| correction_target | 同一步的具体动作或批量子动作 | CorrectionItem 可以指定子动作，不可以改指其他步骤 |
+| recovery_checkpoint | 新 Trial 可能恢复/重置的状态目标 | Runtime 独立验证；不等于 Case 的定位 |
 
-Case 提案明确 \`scope=task/step\`。步骤级保存 \`snapshot_id + position + nullable source_step_id\`；任务级 \`position=null\`，以终态/实际现象的 \`evidence_refs\` 定位，不伪造第 0 步。来源 \`task_id\` 是字符串，版本 0 合法；step_id、显示数组位置、源 index 和批量子动作编号不同。智能诊断可提供首错候选，但不得自动把候选写成 confirmed。
+Case 提案只允许步骤级 `snapshot_id + position + nullable source_step_id`，并须引用本步骤证据。版本 0 合法，源 step_id、显示 position、源 index 和子动作序号各自独立。**如果只知道任务失败但没有可靠步骤锚点，应先留在 Outcome/Diagnosis 待定位，不虚构第 0 步 Case。** 智能诊断可提出首错候选，但不得自动变成 reviewed Case。
 
 审核工作区仍要同时显示原指令、有效改令、时间线、动作前图、可信后态、模型提议、解析、实际 dispatch、回执、机器解释和缺证。下一步截图不能仅凭数组相邻推定“操作成功”。切步不改变本地草稿锚点；过期请求不覆盖新任务/图片。
 
@@ -50,7 +51,7 @@ Case 提案明确 \`scope=task/step\`。步骤级保存 \`snapshot_id + position
 | 字段 | 行为 |
 |---|---|
 | \`item_id\` | 在 Case 内稳定、唯一，保存草稿及审核后不换 |
-| \`position\`、\`source_step_id?\` | 绑定原 Snapshot 内该步骤，**可位于最初检测错误之后**，不等于 source index |
+| \`position\`、\`source_step_id?\` | 必须绑定本 Case 的同一步，可为首错之后的恢复/重试步骤；不等于 source index |
 | \`source_action_stage\`、\`source_action_ref?\` | \`model_proposal / resolved_action / runtime_dispatch / unknown\`；必须区分模型选错与执行器点错。未知保留未知，不补造原动作 |
 | \`kind\` | \`region_only / action_correction / no_action\`；区域与动作不是同义词 |
 | \`regions[]\` | 可有原目标/建议目标多个标注，每个都有独立 role、media、rect 和 provenance |
@@ -99,7 +100,7 @@ Region 示例：
 
 ## 4. 一份共享草稿、两条版本链与回执
 
-Case 有 \`case_id\`、源 locator、\`review_revision\`；每个 Case 仅一个持久共享草稿，拥有独立的 \`draft_revision\` 与 \`draft_hash\`。没有草稿时作为 revision 0/空内容读取，保存草稿不改变已审结论。审核修订永远是不可变的 ReviewRevision，包含当时**实际所见**草稿内容、证据引用、每项 verdict、操作员身份/授权强度、判定和 hash。
+Case 有 \`case_id\`、单个 Step locator、\`review_revision\`；每个 Case 仅一个持久共享草稿，拥有独立的 \`draft_revision\` 与 \`draft_hash\`。没有草稿时作为 revision 0/空内容读取，保存草稿不改变已审结论。审核修订永远是不可变的 ReviewRevision，包含当时**实际所见**草稿内容、证据引用、每项 verdict、操作员身份/授权强度、判定和 hash。
 
 \`\`\`text
 Case(case_id)
@@ -143,7 +144,7 @@ Intervention 选择原因与修复路线（Tool/Rule/Skill/Weight/Env/Data 等�
 
 | 切片 | 要求 | 停点 |
 |---|---|---|
-| A0 · 继承 PR #3 | PG Case/Review 的隔离并发/持久验收、浏览器提案/审核/刷新，任务级 anchor 与跨快照待审基本读取 | 保持旧创建/查询/审核兼容，无第二 Case 系统 |
+| A0 · 继承 PR #3 | PG Case/Review 隔离并发/持久验收、浏览器提案/审核/刷新、跨快照待审读取；Case 仅步骤级 | 保持旧创建/查询/审核兼容，无第二 Case 系统 |
 | A1 · 纠正草稿 | normalized_1000 原目标/建议目标框、手动点、不同步骤 CorrectionItem；CAS 草稿保存、刷新恢复、错误/越界/错图拒绝 | 不做训练/设备/旧 Canvas |
 | A2 · 审核冻结 | 按项 verdict、所见快照与内容 hash，固定 ReviewRevision、同命令幂等、历史精确读取、冲突保留本地编辑 | 不构建多人 Gold 审批 |
 | A3 · 用途预览 | 诊断/定位/回归/SFT/DPO 统一状态、缺项和候选只读报告 | 不发训练文件、不发设备操作 |
@@ -158,7 +159,7 @@ Intervention 选择原因与修复路线（Tool/Rule/Skill/Weight/Env/Data 等�
 2. 人工区域和点统一存 \`normalized_1000\`；来源旧坐标保持原格式，映射/方向必须验证。
 3. 每 Case 一个持久共享草稿，CAS/version 独立；正式审核含冻结草稿和回执。之后如需真正独立盲审，才引入个人草稿及独立身份。
 4. 用途只提供资格/缺项/内容预览，不正式发布、不转训练数据；SFT/DPO 的 Actor 输入来源必须可复验。
-5. 失败发现、纠正目标、首错假设、恢复检查点四者分离；Case 内可以纠正错误发生后的任意步骤。
+5. Case 固定一个 Step，CorrectionItem 只能修正同一步的动作；该步骤本身可以是首错之后的任意恢复、重试或回答步骤。首错/任务 Outcome 不由 Case 决定。
 6. 不恢复旧独立 Case、Prelabel 双写、旧多套评分器、全量设备 Runtime、通用 DAL 或第二个队列。
 7. 不因为 Case confirmed 就自动确认候选动作、训练资格、设备恢复或任务成功。
 
