@@ -45,17 +45,17 @@ def rig():
         yield client, repo, assets, source, sha1, sha2
 
 
-def new_case(source, *, scope="step", position=0):
-    data = {
+def new_case(source, *, position=2):
+    # Position 2 is a valid later recovery Step, not necessarily the first error.
+    return {
         "case_id": str(uuid4()), "snapshot_id": source.id,
-        "scope": scope, "position": position if scope == "step" else None,
-        "source_step_id": "first" if scope == "step" else None,
+        "position": position,
+        "source_step_id": ("first", "recovery-1", "recovery-2")[position],
         "issue_kind": "step_action",
-        "summary": "Later recovery steps need correction, not first-error assignment.",
-        "evidence_refs": [f"step:{position}"] if scope == "step" else ["step:2"],
+        "summary": "This specific recovery step needs a documented correction.",
+        "evidence_refs": [f"step:{position}"],
         "analysis_refs": [],
     }
-    return data
 
 
 def region(pos, sha, *, role="original_target", locator=None):
@@ -80,11 +80,13 @@ def item(pos, sha, *, verdict="accepted"):
 
 
 def saved(rig, body=None):
-    client, _, _, source, sha1, sha2 = rig
+    client, _, _, source, _, sha2 = rig
     case = client.post("/api/v1/cases", json=new_case(source)).json()
     assert case["review_status"] == "pending"
-    draft = body or {"note": "Review both later recovery decisions", "items": [
-        item(1, sha1), item(2, sha2)]}
+    first, alternative = item(2, sha2), item(2, sha2)
+    alternative["regions"][0]["role"] = "suggested_target"
+    draft = body or {"note": "Review two alternatives on the same recovery Step",
+                     "items": [first, alternative]}
     command = {"command_id": str(uuid4()), "expected_draft_revision": 0, "draft": draft}
     response = client.put(f"/api/v1/cases/{case['case_id']}/draft", json=command,
                           headers={"If-Match": '"0"'})
@@ -92,22 +94,43 @@ def saved(rig, body=None):
     return case, response.json(), command
 
 
-def test_task_level_source_has_no_fabricated_first_error(rig):
+def test_case_is_always_one_step_but_may_be_later_than_first_error(rig):
     client, _, _, source, _, _ = rig
-    case = client.post("/api/v1/cases", json=new_case(source, scope="task"))
-    assert case.status_code == 201, case.text
-    assert case.json()["scope"] == "task" and case.json()["position"] is None
-    assert case.json()["source_version"] == 0
-    assert client.get("/api/v1/cases?status=pending").json()["items"][0]["case_id"] == case.json()["case_id"]
-    invalid = new_case(source, scope="task")
-    invalid["position"] = 0
+    late = client.post("/api/v1/cases", json=new_case(source, position=2))
+    assert late.status_code == 201, late.text
+    assert late.json()["position"] == 2
+    assert late.json()["source_step_id"] == "recovery-2"
+    assert late.json()["source_version"] == 0
+    earlier = client.post("/api/v1/cases", json=new_case(source, position=1))
+    assert earlier.status_code == 201
+    assert earlier.json()["case_id"] != late.json()["case_id"]
+    assert earlier.json()["position"] == 1
+    assert len(client.get("/api/v1/cases?status=pending").json()["items"]) == 2
+    invalid = new_case(source, position=2)
+    invalid["scope"] = "task"
+    invalid["position"] = None
     assert client.post("/api/v1/cases", json=invalid).status_code == 422
+
+
+def test_correction_for_other_step_requires_a_separate_case(rig):
+    client, _, _, source, sha1, _ = rig
+    case = client.post("/api/v1/cases", json=new_case(source, position=2)).json()
+    cross_step = item(1, sha1)
+    response = client.put(
+        f"/api/v1/cases/{case['case_id']}/draft",
+        json={"command_id": str(uuid4()), "expected_draft_revision": 0,
+              "draft": {"items": [cross_step]}},
+        headers={"If-Match": '"0"'},
+    )
+    assert response.status_code == 400
+    assert "single source step" in response.json()["error"]
+
 
 
 def test_different_later_corrections_share_case_but_have_independent_verdicts(rig):
     case, draft, _ = saved(rig)
-    assert case["position"] == 0  # Initial detection is NOT a constraint on corrections.
-    assert [x["position"] for x in draft["draft"]["items"]] == [1, 2]
+    assert case["position"] == 2
+    assert [x["position"] for x in draft["draft"]["items"]] == [2, 2]
     assert [x["verdict"] for x in draft["draft"]["items"]] == ["accepted", "accepted"]
     assert draft["draft_revision"] == 1
     assert draft["draft_hash"]
@@ -147,7 +170,7 @@ def test_review_freezes_seen_draft_and_replay_even_after_newer_reviews(rig):
     result = response.json()
     assert result["review_status"] == "operator_confirmed"
     old_review = client.get(f"/api/v1/cases/{case['case_id']}/reviews/1").json()
-    assert [item["position"] for item in old_review["frozen_draft"]["items"]] == [1, 2]
+    assert [item["position"] for item in old_review["frozen_draft"]["items"]] == [2, 2]
     assert old_review["draft_hash"] == draft["draft_hash"]
     assert old_review["review_input_hash"]
     assert client.post(path, json=request, headers={"If-Match": '"0"'}).json() == result
@@ -212,9 +235,9 @@ def test_preview_is_readonly_and_training_remains_blocked(rig):
     [-1, 20, 50, 80], [0, 20, 1001, 40], [50, 20, 10, 40], [0, 0, 0, 10],
 ])
 def test_bbox_normalization_invalid_values_are_rejected(rig, bbox):
-    client, _, _, source, sha1, _ = rig
+    client, _, _, source, _, sha2 = rig
     case = client.post("/api/v1/cases", json=new_case(source)).json()
-    current = item(1, sha1)
+    current = item(2, sha2)
     current["regions"][0]["xyxy"] = bbox
     command = {"command_id": str(uuid4()), "expected_draft_revision": 0,
                "draft": {"items": [current]}}
@@ -229,9 +252,9 @@ def test_bbox_normalization_invalid_values_are_rejected(rig, bbox):
     lambda i: i.update(source_step_id="first"),
 ])
 def test_wrong_media_or_source_binding_rejected(rig, mutation):
-    client, _, _, source, sha1, _ = rig
+    client, _, _, source, _, sha2 = rig
     case = client.post("/api/v1/cases", json=new_case(source)).json()
-    current = item(1, sha1)
+    current = item(2, sha2)
     mutation(current)
     response = client.put(f"/api/v1/cases/{case['case_id']}/draft",
         json={"command_id": str(uuid4()), "expected_draft_revision": 0,
@@ -240,10 +263,10 @@ def test_wrong_media_or_source_binding_rejected(rig, mutation):
 
 
 def test_only_bbox_is_not_click_and_two_valid_actions_need_no_dpo_negative(rig):
-    client, _, _, source, sha1, _ = rig
+    client, _, _, source, _, sha2 = rig
     case = client.post("/api/v1/cases", json=new_case(source)).json()
-    first = item(1, sha1)
-    second = item(1, sha1)
+    first = item(2, sha2)
+    second = item(2, sha2)
     second["regions"][0]["role"] = "suggested_target"
     draft = {"items": [first, second]}
     data = client.put(f"/api/v1/cases/{case['case_id']}/draft",
@@ -261,9 +284,9 @@ def test_only_bbox_is_not_click_and_two_valid_actions_need_no_dpo_negative(rig):
 
 
 def test_click_requires_explicit_point_and_matching_source_image(rig):
-    client, _, _, source, sha1, _ = rig
+    client, _, _, source, _, sha2 = rig
     case = client.post("/api/v1/cases", json=new_case(source)).json()
-    current = item(1, sha1)
+    current = item(2, sha2)
     current.update(kind="action_correction", suggested_action={
         "action": "click", "space": "normalized_1000", "point": [1000, 999.5]})
     good = {"command_id": str(uuid4()), "expected_draft_revision": 0,
