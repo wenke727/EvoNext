@@ -54,6 +54,7 @@ export function TaskSidebar({
     <>
       <Sidebar
         task={detail.trajectory}
+        sourceVersion={detail.source_version}
         disabled={true}
         evaluation={
           <EvaluationPanel
@@ -97,11 +98,11 @@ export function TaskSidebar({
         onTags={rejectWrite}
         onAudit={rejectWrite}
       />
-      <p className="sidebar-note" role="status">
-        {notice || "固定快照 · 只读来源证据"}
-      </p>
+      {notice && <p className="sidebar-note" role="status">{notice}</p>}
+      <details className="sidebar-provenance">
+        <summary>来源信息</summary>
+        <p className="sidebar-note">固定快照 · 只读来源证据</p>
       <section className="task-section">
-        <h2>来源与版本</h2>
         <dl>
           <dt>来源版本</dt>
           <dd>{detail.source_version ?? "未知"}</dd>
@@ -136,6 +137,7 @@ export function TaskSidebar({
           trajectory: detail.trajectory,
         }}
       />
+      </details>
     </>
   );
 }
