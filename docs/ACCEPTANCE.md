@@ -209,3 +209,15 @@ Playwright 使用真实 Chromium 访问 localhost，完成连接、文件选择�
 Playwright 实际操作通过创建步骤 Case、拖拽两类 bbox、添加同一步第二个候选、指定点击、逐项认可、保存与冻结、DPO 缺项预览、并发写入冲突后比较重提、刷新与服务重启读回。1280px 桌面及 390px 手机宽度检查通过，手机对话框无横向溢出。截图位于该工作树 `output/playwright/correction-desktop.png` 和 `correction-mobile.png`，均为合成内容。常规 Python 测试 151 passed、2 skipped（本机缺 Langfuse/Celery）、3 integration deselected；另行显式运行两个真实 PG 测试，均通过。前端 44 项测试、TypeScript/Vite 构建、Ruff、compileall 和 diff check 通过。另一个通用基础设施联通测试未运行。
 
 边界为单步点击与区域纠正。尚待真实 Mongo/MinIO 的端到端重启、多角色身份与权限隔离、200/2000 步编辑场景性能、实际训练输入资格及真实 Runtime 修复收益验收。用途预览保留缺证和禁止训练原因。普通测试与本轮浏览器验收未调用模型、设备或训练。
+
+## 独立 Outcome 首条链路（2026-11-08，纠正编辑器之后的切片）
+
+新增 evaluation 领域，API/CLI/工作台共用固定快照、逐项任务义务与证据位置的冻结请求。PG 0005 保存输入摘要、冻结策略正文/版本、配置模型、状态和一次选定结果。POST admission 仅冻结；另行显式 POST dispatch 才经已有 Celery 队列提交，Worker 通过 providers.gateway 和既有 PG 收费回执调用。相同 run_id/正文复用已冻结版本，异内容冲突；并发只领取一次。技术错误、任务结果、检查判断分别表示。旧来源评分继续显示在原来源面板，独立结果保存到自己的表。
+
+首版 profile 为 initial_instruction_only，由操作者显式声明，只投影源初始指令、任务义务和选中的原图，不投影 metadata、人审、旧机器判词或 Agent 原输出。最多四张 PNG/JPEG/WebP，原字节合计 512 KiB，保留 before_action 时间关系、固定媒体 hash。发现可识别的用户改令/会话字段时保留未评状态；缺图为 unknown，非法引用/覆盖/模型返回为技术错误。所有义务必需；pass/fail 需要实际交付图像引用。字段白名单及提示词无法保证自由文本/图像中的全部隐藏答案均被排除。本轮保留原始响应与未提供 usage 为 null，不声称评分质量已校准。
+
+本轮使用显式合成证据与合成模型返回验证了普通评估协议，包含真实 gateway + MockTransport 的原响应回执保存。真实隔离 PostgreSQL 16 已验 0001–0005 升级、0005 降级再升级、并发领取、冲突/幂等、结果追加一次及连接重建读回。Playwright 通过填写义务、选截图、冻结、派发关闭提示、已有合成结果读回和证据跳转。CLI show 读取同一 PG 结果。新版纠正对话框通过坐标最多三位小数、390px 手机端“前往审核”和桌面重截检查，截图未再次出现重复画面。
+
+验收边界：浏览器的证据源为合成内存仓库，结果为明示的合成响应。Redis/Celery 跨进程派发、真实 Mongo/MinIO 全链路、真实模型语义准确率、中途改令的完整输入 profile、过程/后态评估均待后续独立验收。Worker 崩溃后 running 保留待人工核对；本轮没有提供自动重新领取或未知调用重发。完整批次、取消、人工修订及训练准入继续按现有路线推进。未调用付费模型、设备或训练。
+
+本切片最终检查为 Python 169 passed、2 skipped（本机缺 Langfuse/Celery）、4 integration deselected；另行实库 Outcome 测试 1 passed。前端 44 项、TypeScript/Vite、Ruff、compileall 和 diff check 通过。首版评估列表显示最近 50 条，不承诺完整批次管理。

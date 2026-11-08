@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DisplayPreferences } from "./display-preferences";
 import type { Detail, EvidenceClient } from "./client";
+import { OutcomePanel } from "./OutcomePanel";
 import { CasePanel } from "./CasePanel";
 import { record } from "./evaluation";
 import { Sidebar } from "../workbench/sidebar/Sidebar";
@@ -103,6 +104,7 @@ export function TaskSidebar({
       <p className="sidebar-note" role="status">
         {notice || "来源证据只读 · 问题另存到 Case"}
       </p>
+      <OutcomePanel detail={detail} position={position} onStep={onStep} client={client} />
       <CasePanel detail={detail} position={position} onStep={onStep} client={client} />
       <section className="task-section">
         <h2>来源与版本</h2>

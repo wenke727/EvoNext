@@ -16,6 +16,8 @@ from evonext.evidence.service import EvidenceService
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
 from evonext.review.store import MemoryCases, PostgresCases
+from evonext.app.outcome_api import attach_outcome_routes
+from evonext.evaluation.store import MemoryOutcomes, PostgresOutcomes
 from evonext.app.case_api import attach_case_routes
 
 
@@ -39,15 +41,17 @@ def create_app(settings=None, repository=None, assets=None, case_store=None):
 
     ledger = None
     ledger_error = "NotInitialized"
+    active_outcomes = MemoryOutcomes() if settings.demo else None
     active_case_store = case_store if case_store is not None else (MemoryCases() if settings.demo else None)
 
     @asynccontextmanager
     async def lifespan(app):
-        nonlocal ledger, ledger_error, active_case_store
+        nonlocal ledger, ledger_error, active_case_store, active_outcomes
         if settings.postgres_dsn and not settings.demo:
             try:
                 from evonext.operations.ledger import Ledger
                 ledger = Ledger(secret(settings.postgres_dsn))
+                active_outcomes = PostgresOutcomes(ledger.engine)
                 if active_case_store is None and hasattr(ledger, "engine"):
                     active_case_store = PostgresCases(ledger.engine)
             except Exception as exc:
@@ -225,4 +229,6 @@ def create_app(settings=None, repository=None, assets=None, case_store=None):
 
     attach_case_routes(app, evidence=service, get_store=lambda: active_case_store,
                        auth=auth, settings=settings)
+    attach_outcome_routes(app, evidence=service, get_store=lambda: active_outcomes,
+                          settings=settings, auth=auth)
     return app

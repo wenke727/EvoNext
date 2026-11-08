@@ -50,3 +50,9 @@
 .correction-dialog .case-actions {display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;}
 .correction-dialog .case-error {color: #a51a1a; white-space: pre-wrap;}
 .correction-dialog > header > button {flex-shrink: 0; align-self: flex-start; white-space: nowrap;}
+.outcome-panel {border-top: 1px solid #dde3ec; margin-top: 12px; padding: 12px 0; font-size: 12px;}
+.outcome-panel label {display: grid; gap: 6px; margin: 8px 0;}
+.outcome-panel textarea, .outcome-panel select {width: 100%; box-sizing: border-box;}
+.outcome-panel button {margin: 4px 4px 4px 0;}
+.outcome-panel pre {white-space: pre-wrap; overflow-wrap: anywhere; max-height: 250px; overflow: auto;}
+.outcome-panel .case-error {color: #a51a1a;}

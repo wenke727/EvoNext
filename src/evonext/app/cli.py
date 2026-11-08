@@ -39,8 +39,39 @@ def main():
     case.add_argument("--file", type=Path, help="Exact DraftCommand or FrozenReviewCommand JSON")
     case.add_argument("--revision", type=int)
     case.add_argument("--purpose", choices=["diagnosis", "localization", "sft", "dpo"])
+    outcome = commands.add_parser("outcome")
+    outcome.add_argument("action", choices=["freeze", "show", "dispatch"])
+    outcome.add_argument("--file", type=Path, help="Exact OutcomeRequest JSON with a stable run_id")
+    outcome.add_argument("--run-id")
+    outcome.add_argument("--url", default="http://127.0.0.1:8000")
     args = parser.parse_args()
-    if args.command == "case":
+    if args.command == "outcome":
+        import httpx
+        from uuid import UUID
+        from evonext.config import secret
+        from evonext.evaluation.outcome import OutcomeRequest
+        settings = Settings()
+        payload = None
+        if args.action == "freeze":
+            if not args.file:
+                parser.error("--file is required")
+            payload = OutcomeRequest.model_validate_json(args.file.read_text()).model_dump()
+            method, path = "POST", "/api/v1/outcome-runs"
+        else:
+            if not args.run_id:
+                parser.error("--run-id is required")
+            key = str(UUID(args.run_id))
+            path = f"/api/v1/outcome-runs/{key}"
+            method = "GET"
+            if args.action == "dispatch":
+                method, path = "POST", path + "/dispatch"
+        with httpx.Client(base_url=args.url, headers={"X-API-Key": secret(settings.api_key)},
+                          timeout=30) as client:
+            response = client.request(method, path, json=payload)
+            if response.is_error:
+                parser.exit(1, f"HTTP {response.status_code}: {response.text}\n")
+            print(json.dumps(response.json(), ensure_ascii=False, indent=2))
+    elif args.command == "case":
         import httpx
         from uuid import UUID
         from evonext.config import secret

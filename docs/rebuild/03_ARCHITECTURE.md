@@ -34,6 +34,7 @@ src/evonext/
   contracts/                轨迹/Skill/Runtime/结果传输合同
   app/                      HTTP、CLI、Worker 入口与装配
   evidence/                 导入、不可变快照、媒体与共享应用用例
+  evaluation/               冻结 Outcome 请求、逐义务结果及单次执行
   operations/               操作回执与纯完整性验证
   providers/                模型传输、策略渲染、收费回执、Langfuse
   compat/                   旧平台和协议边界
