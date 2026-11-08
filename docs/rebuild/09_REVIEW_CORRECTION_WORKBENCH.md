@@ -58,7 +58,7 @@ Case 提案只允许步骤级 `snapshot_id + position + nullable source_step_id`
 | \`suggested_action?\` | MVP 只支持明确指定的 \`click\` 与点；只有框时绝不取中心点造点击 |
 | \`verdict\`、\`reason\` | 每个候选分别 \`accepted/rejected/unknown/not_reviewed\`；两个合理候选可都 accepted，未确认者不能默认通过 |
 
-草稿可以同时含不同步骤的纠正项或没有纠正动作的纯问题判断。修正 source_action_stage 并不改变实际 recorded dispatch。待审/缺图/错图/非法坐标不会导致源轨迹重新序列化。
+草稿可以同时含同一步的多个纠正候选或没有纠正动作的纯问题判断。修正 source_action_stage 并不改变实际 recorded dispatch。待审/缺图/错图/非法坐标不会导致源轨迹重新序列化。
 
 ### 3.2 确认采用的 0–1000 归一化坐标
 
@@ -145,7 +145,7 @@ Intervention 选择原因与修复路线（Tool/Rule/Skill/Weight/Env/Data 等�
 | 切片 | 要求 | 停点 |
 |---|---|---|
 | A0 · 继承 PR #3 | PG Case/Review 隔离并发/持久验收、浏览器提案/审核/刷新、跨快照待审读取；Case 仅步骤级 | 保持旧创建/查询/审核兼容，无第二 Case 系统 |
-| A1 · 纠正草稿 | normalized_1000 原目标/建议目标框、手动点、不同步骤 CorrectionItem；CAS 草稿保存、刷新恢复、错误/越界/错图拒绝 | 不做训练/设备/旧 Canvas |
+| A1 · 纠正草稿 | normalized_1000 原目标/建议目标框、手动点、同一步多个 CorrectionItem，跨步提交拒绝；CAS 草稿保存、刷新恢复、错误/越界/错图拒绝 | 不做训练/设备/旧 Canvas |
 | A2 · 审核冻结 | 按项 verdict、所见快照与内容 hash，固定 ReviewRevision、同命令幂等、历史精确读取、冲突保留本地编辑 | 不构建多人 Gold 审批 |
 | A3 · 用途预览 | 诊断/定位/回归/SFT/DPO 统一状态、缺项和候选只读报告 | 不发训练文件、不发设备操作 |
 | B · 机器回流 | 读取真实旧 Outcome/Diagnosis 并核来源，独立 grader/诊断后接 | 不复制旧 kernel |
