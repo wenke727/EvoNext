@@ -82,3 +82,13 @@ Workbench 支持 `trajectory.evaluation.prediction` 与 `trajectory.evaluation.g
 新快照的 header/media 只读取轻量 Mongo wrapper；缺 index 的已有快照全量核验后生成临时视图，不回写。media 仍用 snapshot_id + path 校验绑定后读取原 bytes，不能以 digest 绕过绑定。不存在/未绑定为 404；已有 index 损坏或绑定媒体缺失/损坏为 500，保留 error 字符串形状，不泄漏存储地址。不将损坏当客户端输入错误或自动更换来源版本。
 
 现役列表继续按 snapshot_id/hash 游标返回资产，不改变排序或新增来源时间筛选。页面选中轨迹目前仍调用完整 detail；本后端切片不等于页面已消除整轨迹传输。
+
+## 9. 默认旧 Mongo 来源 profile
+
+`evoloop.mongo-read.v1` 通过显式受信的本地 dotenv 引用读取配置，使用官方 Mongo/MinIO SDK；只读 `{collection}_latest / {collection}_history`，不导入旧 DAL 或执行索引、迁移、修复及写入。前端自动读取列表；`POST /api/v1/source/open/{task_id}` 表示操作者打开并在新 Evidence owner 中固定输入，不是向旧平台发布。`GET /api/v1/source/tasks` 为有界列表，游标按字符串 Task ID 降序；不是全文检索或完整旧查询 API。CLI inspect-source 复用同一读取逻辑，在临时内存中检查而不持久化。
+
+版本留空时读取一次 Latest 的完整文档并保留其明确版本；固定版本只读取匹配的 History 或同版本 Latest。未找到、未声明版本或版本不匹配均报错，0 不当成空值。BSON 文档以 Extended JSON 读取投影，保留 `_id`、未知字段、原始输出与字符串 ID；非 JSON 原生类型和不安全整数的表示转换在 metadata 中声明，不能声称 Mongo 原文是未经转换的 JSON 文件。
+
+只绑定已配置 MinIO origin 下的图片桶及旧 VLM 桶（VLM_MINIO_BUCKET，旧约定默认 vlm-api） 中无 URL 内联凭据、query 或 fragment 的来源对象；不重写源 image 字段、不访问任意来源 URL。缺对象或不支持的 locator 明确未绑定；字节/步骤上限及读取错误不转为假成功。图片字节仍由新 AssetStore 拥有。保留原 URL 的读取 profile 当前可导出 JSON；可移植 ZIP 需要显式路径投影，当前页面禁用该入口。这不是改动既有离线 ZIP profile。
+
+旧源是配置后的默认页面入口，配置错误不静默回退。未配置仍可使用显式本地快照/离线包；本轮 localhost demo 的新捕获仅在内存中，不证明持久化、访问隔离或生产替换已验收。

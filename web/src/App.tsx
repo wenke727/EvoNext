@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TaskSearch } from "./workbench/navigation/TaskSearch";
 import { EvidenceClient } from "./evidence/client";
-import type { Detail, Summary } from "./evidence/client";
+import type { Detail, Summary, SourceTask } from "./evidence/client";
 import { TrajectoryViewer } from "./evidence/TrajectoryViewer";
 
 export default function App() {
@@ -9,6 +10,9 @@ export default function App() {
   const session = useRef(client);
   session.current = client;
   const [items, setItems] = useState<Summary[]>([]);
+  const [sourceItems, setSourceItems] = useState<SourceTask[]>([]);
+  const [sourceMode, setSourceMode] = useState(false);
+  const [sourceCursor, setSourceCursor] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [selected, setSelected] = useState(() => {
     const id =
@@ -21,8 +25,9 @@ export default function App() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [legacyTask, setLegacyTask] = useState("");
-  const [legacyVersion, setLegacyVersion] = useState("");
+  const [legacyTask, setLegacyTask] = useState(() => new URLSearchParams(location.search).get("task") ?? "");
+  const [legacyVersion, setLegacyVersion] = useState(() => new URLSearchParams(location.search).get("version") ?? "");
+  const sourceRouteOpened = useRef(false);
   const listRequest = useRef<AbortController | null>(null);
 
   useEffect(
@@ -40,9 +45,18 @@ export default function App() {
     setError("");
     try {
       const health = await client.ready(controller.signal);
-      const page = await client.list(append ? cursor : null, controller.signal);
       if (controller.signal.aborted || session.current !== client) return;
-      setStatus(health.demo ? "演示模式 · 重启后数据清空" : "服务已连接");
+      const legacy = health.source_mode === "legacy_mongo";
+      setSourceMode(legacy);
+      const page = await client.list(append ? cursor : null, controller.signal);
+      if (legacy) {
+        const sourcePage = await client.listSource(append ? sourceCursor : null, controller.signal);
+        if (controller.signal.aborted || session.current !== client) return;
+        setSourceItems(previous => append ? [...previous, ...sourcePage.items.filter(item => !previous.some(old => old.task_id === item.task_id))] : sourcePage.items);
+        setSourceCursor(sourcePage.next_cursor);
+      }
+      if (controller.signal.aborted || session.current !== client) return;
+      setStatus(legacy ? (health.demo ? "旧库只读 · 预览快照重启清空" : "旧库只读 · 按打开结果固定版本") : health.demo ? "演示模式 · 重启后数据清空" : "服务已连接");
       setItems((previous) =>
         append
           ? [
@@ -81,14 +95,22 @@ export default function App() {
     return () => controller.abort();
   }, [selected, client, revision]);
 
-  async function importEvidence(operation: () => Promise<Summary>) {
+  async function importEvidence(operation: () => Promise<Summary>, sourceCapture = false) {
     setBusy(true);
     setError("");
     try {
       const result = await operation();
       if (session.current !== client) return;
       await load();
+      if (session.current !== client) return;
       selectSnapshot(result.snapshot_id);
+      if (sourceCapture) {
+        setLegacyTask(result.task_id);
+        setLegacyVersion(result.source_version == null ? "" : String(result.source_version));
+        const route = new URL(location.href);
+        route.search = new URLSearchParams({task: result.task_id, ...(result.source_version == null ? {} : {version: String(result.source_version)})}).toString();
+        history.replaceState(null, "", route);
+      }
     } catch (e) {
       if (session.current === client) setError(String(e));
     } finally {
@@ -102,6 +124,9 @@ export default function App() {
     setToken(value);
     setDetail(null);
     setItems([]);
+    setSourceItems([]);
+    setSourceCursor(null);
+    setSourceMode(false);
     setCursor(null);
     setLoading(false);
     setBusy(false);
@@ -110,7 +135,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (selected) void load();
+    void load();
   }, [client]);
 
   useEffect(() => {
@@ -124,14 +149,41 @@ export default function App() {
   }, []);
 
   function selectSnapshot(id: string) {
-    history.replaceState(null, "", `#snapshot=${id}`);
+    history.replaceState(null, "", `${location.pathname}#snapshot=${id}`);
     setSelected(id);
   }
-  function navigateTask(direction: number) {
-    const index = items.findIndex((item) => item.snapshot_id === selected);
-    if (index >= 0 && items[index + direction])
-      selectSnapshot(items[index + direction].snapshot_id);
+  async function searchTask(task = legacyTask, version = legacyVersion) {
+    const identifier = task.trim();
+    if (busy || !identifier) return;
+    if (sourceMode) {
+      setLegacyTask(identifier);
+      await importEvidence(() => client.openSource(identifier, version.trim()), true);
+      return;
+    }
+    const matches = items.filter(item => item.task_id === identifier && (!version || String(item.source_version) === version));
+    if (matches.length === 1) selectSnapshot(matches[0].snapshot_id);
+    else setError(matches.length ? "该 Task ID 对应多个快照，请在轨迹菜单中选择固定版本。" : "已加载快照中未找到该 ID；旧库数据源尚未配置。");
   }
+  function navigateTask(direction: number) {
+    if (busy) return;
+    if (sourceMode) {
+      const index = sourceItems.findIndex(item => item.task_id === detail?.task_id);
+      const next = sourceItems[index + direction];
+      if (index >= 0 && next) void searchTask(next.task_id, next.source_version == null ? "" : String(next.source_version));
+    } else {
+      const index = items.findIndex(item => item.snapshot_id === selected);
+      if (index >= 0 && items[index + direction]) selectSnapshot(items[index + direction].snapshot_id);
+    }
+  }
+
+  useEffect(() => {
+    const route = new URLSearchParams(location.search);
+    const task = route.get("task");
+    if (sourceMode && !selected && task && !sourceRouteOpened.current) {
+      sourceRouteOpened.current = true;
+      void searchTask(task, route.get("version") ?? "");
+    }
+  }, [sourceMode, selected]);
 
   const current = detail && detail.snapshot_id === selected ? detail : null;
   return (
@@ -151,6 +203,17 @@ export default function App() {
         </a>
         <span className="app-divider" />
         <span className="app-title">轨迹工作台</span>
+        <TaskSearch task={legacyTask} version={legacyVersion} busy={busy}
+          onTask={value => { setLegacyTask(value); setLegacyVersion(""); }} onVersion={setLegacyVersion} onSearch={() => void searchTask()} />
+        <span className="source-mode-label">{sourceMode ? "旧库 · 只读" : "本地快照"}</span>
+        <div className="header-spacer" />
+        <details className="header-menu library-menu">
+          <summary>轨迹 / 导入</summary>
+          <div className="menu-panel">
+            <div className="menu-title">
+              <strong>快照与导入</strong>
+              <span>{items.length} 条已加载</span>
+            </div>
         <label className="task-picker">
           <select
             aria-label="轨迹选择"
@@ -168,14 +231,6 @@ export default function App() {
             ))}
           </select>
         </label>
-        <div className="header-spacer" />
-        <details className="header-menu library-menu">
-          <summary>轨迹 / 导入</summary>
-          <div className="menu-panel">
-            <div className="menu-title">
-              <strong>轨迹资产</strong>
-              <span>{items.length} 条已加载</span>
-            </div>
             <label className="import">
               {busy ? "正在导入…" : "导入 JSON / ZIP"}
               <input
@@ -280,8 +335,8 @@ export default function App() {
           client={client}
           detail={current}
           status={status}
-          taskIndex={items.findIndex((item) => item.snapshot_id === selected)}
-          taskCount={items.length}
+          taskIndex={sourceMode ? sourceItems.findIndex(item => item.task_id === current.task_id) : items.findIndex(item => item.snapshot_id === selected)}
+          taskCount={sourceMode ? sourceItems.length : items.length}
           onTaskNavigate={navigateTask}
           onReload={() => setRevision((value) => value + 1)}
           onJson={() =>
@@ -302,10 +357,17 @@ export default function App() {
             <p>
               {loading
                 ? "读取固定快照和媒体绑定。"
-                : "连接服务后选择一条轨迹，或导入 JSON / 完整 ZIP 包。"}
+                : sourceMode ? "直接输入 Task ID，或从旧库任务列表打开轨迹。" : "输入已加载轨迹的 Task ID，或导入 JSON / ZIP 包。"}
             </p>
-            <p>原始证据只读 · Grid / 单步浏览</p>
-            {!loading && (
+            <p>{sourceMode ? "旧 Mongo / MinIO 只读接入" : "原始证据只读 · Grid / 单步浏览"}</p>
+            {sourceMode && <div className="source-task-list">
+              {sourceItems.map(item => <button key={item.task_id} disabled={busy} onClick={() => void searchTask(item.task_id, item.source_version == null ? "" : String(item.source_version))}>
+                <span className="source-task-identity">{item.task_id}<small>v{item.source_version ?? "?"} · {item.step_count} 步</small></span>
+                <span>{item.instruction || "未记录任务指令"}</span>
+              </button>)}
+              {sourceCursor && <button disabled={busy} onClick={() => void load(true)}>加载更多旧库任务</button>}
+            </div>}
+            {!loading && !sourceMode && (
               <button onClick={() => void load()}>连接并读取轨迹列表</button>
             )}
           </section>
