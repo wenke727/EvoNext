@@ -23,7 +23,7 @@ Mongo + MinIO + PostgreSQL 保留；不再推荐把 Task 全量迁 PG。OpenCUA-
 | [06_ACCEPTANCE](06_ACCEPTANCE.md) | AC-001–063 与 SEC-01–06，保留原验收范围 |
 | [07_IMPLEMENTATION_PROMPT](07_IMPLEMENTATION_PROMPT.md) | 交给后续 Codex 的实施任务书 |
 | [08_SKILLS_RUNTIME_AND_PIPELINE](08_SKILLS_RUNTIME_AND_PIPELINE.md) | AIHOT/OpenClaw 适配、Workshop/Runtime 合同和新增 Gate |
-| [09_REVIEW_CORRECTION_WORKBENCH v0.3](https://github.com/wenke727/EvoNext/blob/13d834807e1a858c265dffc75fed415799d92d45/docs/rebuild/09_REVIEW_CORRECTION_WORKBENCH.md) | 步骤级 Case、同一步纠正候选与逐项审核（PR #4 评审稿） |
+| [09_REVIEW_CORRECTION_WORKBENCH v0.3](09_REVIEW_CORRECTION_WORKBENCH.md) | 步骤级 Case、同一步纠正候选与逐项审核（PR #7 统一规格） |
 | [examples](examples/README.md) | 9 份合成业务对象、独立 oracle、哈希/身份校验 |
 
 实现 Agent 按 README → 01 → 02 → 03 → 08 → 当前工作包 → 06 阅读。不要求为了改一个模块读取所有历史讨论。最新明确用户约束高于旧草稿，但不能改写历史运行的真实证据。
