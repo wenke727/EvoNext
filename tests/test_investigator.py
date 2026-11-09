@@ -70,6 +70,41 @@ def test_success_can_trigger_independent_process_investigation():
     assert result["native_result"]["findings"][0]["check_id"] == "recovered-error"
 
 
+@pytest.mark.parametrize("judgment", ["unknown", "fail"])
+def test_localization_review_investigates_unsettled_process_despite_success(judgment):
+    snapshot, evidence, prompt = setup()
+    finding = {"check_id": "possible-initial-error", "judgment": judgment,
+               "reason": "Synthetic process issue needs its original observation",
+               "evidence_refs": [f"{snapshot.id}/steps/0"], "position": None}
+    initial = assessment(snapshot, "pass", 11, [finding])
+    final_finding = dict(finding, judgment="fail", position=0,
+                         evidence_refs=[f"{snapshot.id}/steps/0/image"])
+    gateway = ScriptedGateway([initial, {"read_evidence": [0]},
+                               assessment(snapshot, "pass", 11, [final_finding])])
+    request = EvalRequest(operation_id="synthetic", review_localization=True)
+    result = evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
+    assert result["outcome"] == "success"
+    assert result["native_result"]["findings"][0]["position"] == 0
+    assert result["native_result"]["initial_assessment"] == initial
+    assert f"{snapshot.id}/steps/0/image" in result["native_result"]["delivered_evidence_refs"]
+    assert len(gateway.calls) == 3
+
+
+@pytest.mark.parametrize(("review", "mode", "has_issue"), [
+    (False, "auto", True), (True, "off", True), (True, "auto", False),
+])
+def test_process_review_preserves_opt_out_and_clean_success_fast_path(review, mode, has_issue):
+    snapshot, evidence, prompt = setup()
+    findings = [{"check_id": "possible-error", "judgment": "unknown",
+                 "reason": "Synthetic uncertainty", "evidence_refs": []}] if has_issue else []
+    gateway = ScriptedGateway([assessment(snapshot, "pass", 11, findings)])
+    request = EvalRequest(operation_id="synthetic", review_localization=review, investigation=mode)
+    result = evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
+    assert result["outcome"] == "success"
+    assert result["native_result"]["stop_reason"] == "fast_judge_completed"
+    assert len(gateway.calls) == 1
+
+
 @pytest.mark.parametrize(("positions", "budget", "reason"), [
     ([11], 10, "investigation_no_new_evidence"),
     ([0], 3, "investigation_no_new_evidence"),
@@ -149,6 +184,117 @@ def test_located_failure_stops_after_fast_judge():
     result = evaluate(snapshot, EvalRequest(operation_id="early-stop"), evidence, gateway, prompt, "synthetic")
     assert result["native_result"]["stop_reason"] == "fast_judge_completed"
     assert len(gateway.calls) == 1
+
+
+def test_opt_in_location_review_can_check_an_earlier_wrong_action():
+    snapshot, evidence, prompt = setup()
+    late = {"position": 9, "judgment": "fail", "check_id": "late-error",
+            "reason": "synthetic late error", "evidence_refs": [f"{snapshot.id}/steps/9"]}
+    early = {"position": 4, "judgment": "fail", "check_id": "early-error",
+             "reason": "synthetic earlier error", "evidence_refs": [f"{snapshot.id}/steps/4/image"]}
+    gateway = ScriptedGateway([
+        assessment(snapshot, "fail", 11, [late]),
+        {"read_evidence": [4]},
+        assessment(snapshot, "fail", 11, [early, late]),
+    ])
+    request = EvalRequest(operation_id="synthetic-review", review_localization=True)
+    result = evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
+    assert result["native_result"]["findings"] == [early, late]
+    assert len(gateway.calls) == 3
+    assert result["native_result"]["initial_assessment"]["findings"] == [late]
+
+
+def test_opt_in_review_can_repair_an_invalid_reference_after_explicit_feedback():
+    snapshot, evidence, prompt = setup()
+    invalid = assessment(snapshot, "fail", 11)
+    invalid["checks"][0]["evidence_refs"] = ["wrong-snapshot/steps/11"]
+    gateway = ScriptedGateway([invalid, assessment(snapshot, "fail", 11)])
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-invalid",
+                                           review_localization=True),
+                      evidence, gateway, prompt, "synthetic")
+    assert result["native_result"]["initial_assessment"] == invalid
+    assert "outside" in result["native_result"]["initial_validation_error"]
+    assert result["outcome"] == "failure"
+    assert len(gateway.calls) == 2
+
+
+def test_failed_review_keeps_an_invalid_response_unaccepted():
+    snapshot, evidence, prompt = setup()
+    invalid = assessment(snapshot, "fail", 11)
+    invalid["checks"][0]["evidence_refs"] = ["wrong-snapshot/steps/11"]
+    gateway = ScriptedGateway([invalid, invalid])
+    with pytest.raises(ContractError, match="outside"):
+        evaluate(snapshot, EvalRequest(operation_id="synthetic-unrepaired",
+                                       review_localization=True),
+                 evidence, gateway, prompt, "synthetic")
+
+
+def test_decision_binding_rejects_another_steps_delivered_action():
+    from evonext.evaluation.core import validate_assessment
+    snapshot, _, _ = setup()
+    step = f"{snapshot.id}/steps/9"
+    other = f"{snapshot.id}/steps/10/facts/value/tool_call"
+    finding = {"position": 9, "judgment": "fail", "check_id": "synthetic",
+               "decision_ref": other, "evidence_refs": [step, other]}
+    with pytest.raises(ContractError, match="Decision reference"):
+        validate_assessment({"checks": [], "findings": [finding]}, {}, {step, other}, True)
+
+
+def test_bound_investigator_can_fix_unlocated_reference_without_inventing_a_position():
+    snapshot, evidence, prompt = setup()
+    decision = f"{snapshot.id}/steps/9/facts/value/tool_call"
+    valid = {"position": 9, "judgment": "fail", "check_id": "bound",
+             "decision_ref": decision, "evidence_refs": [decision]}
+    unlocated = {"position": None, "judgment": "unknown", "check_id": "uncertain",
+                 "decision_ref": decision, "evidence_refs": [decision]}
+    fixed = dict(unlocated)
+    del fixed["decision_ref"]
+    gateway = ScriptedGateway([
+        assessment(snapshot, "fail", 11, [valid]),
+        assessment(snapshot, "fail", 11, [valid, unlocated]),
+        assessment(snapshot, "fail", 11, [valid, fixed]),
+    ])
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-bound-repair", bind_decisions=True,
+                                           investigation="always"), evidence, gateway, prompt, "synthetic")
+    assert result["native_result"]["findings"][1]["position"] is None
+    assert "decision_ref" not in result["native_result"]["findings"][1]
+    assert result["native_result"]["investigation_events"][0]["status"] == "assessment_validation_error"
+    assert len(gateway.calls) == 3
+
+def test_bound_decision_is_kept_with_its_source_field_and_effective_policy_hash():
+    from evonext.contracts.trajectory import sha256
+    snapshot, evidence, prompt = setup()
+    decision = f"{snapshot.id}/steps/9/facts/value/tool_call"
+    finding = {"position": 9, "judgment": "fail", "check_id": "synthetic",
+               "decision_ref": decision, "evidence_refs": [decision]}
+    gateway = ScriptedGateway([assessment(snapshot, "fail", 11, [finding])])
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-bound", bind_decisions=True,
+                                           investigation="off"),
+                      evidence, gateway, prompt, "synthetic")
+    assert result["native_result"]["findings"][0]["decision_ref"] == decision
+    assert decision in result["native_result"]["delivered_evidence_refs"]
+    effective_prompt = gateway.calls[0][0][0]["content"]
+    assert result["grader_version"] == sha256(effective_prompt.encode())
+    assert result["grader_version"] != sha256(prompt.encode())
+
+
+def test_fraction_marker_needs_explicit_profile_and_preserves_declared_pixel_space():
+    from io import BytesIO
+    from PIL import Image
+    from evonext.evaluation.images import marked_image
+    stream = BytesIO()
+    Image.new("RGB", (100, 100), "white").save(stream, format="PNG")
+    raw = stream.getvalue()
+    step = {"runtime": {"dispatched_action": {"action": "click", "coordinate": [0.5, 0.5]}}}
+    assert marked_image(raw, step) == (raw, None)
+    view, _ = marked_image(raw, step, "evoloop_fraction_v1")
+    color = Image.open(BytesIO(view)).getpixel((50, 46))
+    assert color[0] > 220 and color[1] < 40 and color[2] < 40
+    assert Image.open(BytesIO(raw)).getpixel((50, 46)) == (255, 255, 255)
+    step["runtime"]["dispatched_action"].update(coordinate_space="pixel", coordinate=[80, 80])
+    view, _ = marked_image(raw, step, "evoloop_fraction_v1")
+    color = Image.open(BytesIO(view)).getpixel((80, 76))
+    assert color[0] > 220 and color[1] < 40 and color[2] < 40
 
 
 def test_distinct_steps_create_distinct_cases_with_machine_provenance():

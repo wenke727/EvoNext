@@ -15,6 +15,9 @@ class EvalRequest(BaseModel):
     investigation: Literal["off", "auto", "always"] = "auto"
     max_investigation_calls: int = Field(default=3, ge=0, le=10)
     max_total_images: int = Field(default=10, ge=0, le=100)
+    max_request_bytes: int = Field(default=950 * 1024, ge=1024, le=16 * 1024 * 1024)
+    review_localization: bool = False
+    bind_decisions: bool = False
     focus_positions: list[int] = Field(default_factory=list, max_length=30)
     obligations: dict[str, str] = Field(default_factory=dict, max_length=30)
 

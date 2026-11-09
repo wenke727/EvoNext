@@ -20,6 +20,27 @@ images/<原文件名>
 
 ## 2. 快照和版本
 
+评估输入投影 `evonext.evaluation-input.v3` 增加原步骤的 `user_interrupt`、角色、
+步骤时钟、布尔 effective 标记和一个可引用的 source context。只从原始输入读取
+created_at 与首个 backflow input endpoint 的 localTime/timeZone；元信息的判决、
+原始模型响应及设备身份不因此进入模型。创建日期与已声明时区下的输入本地日期一致
+才给出 corroborated_local_date，不用评测当天替换历史日期。effective 不代表动作执行。
+原轨迹字节和现有快照身份不变。
+
+评估请求的 `review_localization` 默认 false。显式启用后，已给出错误位置而该位置或
+更早原图未交付时，auto 可继续调查；合法但引用无效的初始 JSON 可在现有调查预算内
+收到明确反馈。保留原始判定和校验错误，只有新响应通过完整校验才接受；网络不确定
+不据此重发。预算停止时无效判定仍不能成为已验收结果。
+
+v3 为交付的事实字段提供 `fact_refs`，保留提案、思考、runtime dispatch 的不同引用。
+`bind_decisions` 默认 false；启用后，定位错误须引用本步骤实际交付的决策字段，
+不能借用后一步的字段或仅引用时钟/状态标记。原图邻接关系不是动作效果或执行者证明。
+`runtime_coordinate_profile=evoloop_fraction_v1` 是调用者显式声明的来源坐标格式，
+仅在 runtime 未声明单位时允许用 0–1 画派遣标记；source 默认不猜单位，
+原声明单位优先，原图字节不变。派遣标记不代表该动作成功。
+未定位的 finding 不填 decision_ref；观察引用仍保留在 evidence_refs。绑定模式的调查
+响应无效时，可在剩余调用预算内收到校验反馈并重新提交，预算耗尽仍报错；不自动改引用。
+
 `Snapshot.id` 使用 `evonext.snapshot-bytes.v1`：trajectory 文件 byte SHA-256、metadata 文件 byte SHA-256、图片路径到 byte hash 的映射，按规范 JSON 编码后再哈希。输入 JSON 的纯格式变化也可能得到新 snapshot_id；这不是“任务语义变化”的判断。移动整个包所在目录不会改变 ID。
 
 旧 `task_id` 和来源 `version_number` 保留。版本 0 有效，未知版本保持未知，版本不代表审核状态。快照同名内容不可覆盖；没有按照 hash 排序推断 latest 的规则。未来审阅需独立 revision/CAS，不能覆写已有 snapshot 或复用它伪造历史。

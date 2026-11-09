@@ -89,6 +89,24 @@ def test_received_response_reused_and_repeats_distinct():
     model.close()
 
 
+def test_generation_options_are_explicit_bounded_and_part_of_receipt_identity():
+    calls = []
+    model = gateway(lambda r: calls.append(json.loads(r.content)) or httpx.Response(200, json={}))
+    with pytest.raises(ContractError):
+        model.complete([], operation_id="large", max_tokens=16384)
+    assert not calls and not model.receipts.rows
+    model.close()
+    model = gateway(lambda r: calls.append(json.loads(r.content)) or httpx.Response(200, json={}),
+                    model_max_output_tokens=16384)
+    a = model.complete([], operation_id="same")
+    b = model.complete([], operation_id="same", max_tokens=16384, temperature=1, reasoning_effort="high")
+    assert a["call_key"] != b["call_key"]
+    assert "temperature" not in calls[0] and "reasoning_effort" not in calls[0]
+    assert calls[1]["max_tokens"] == 16384 and calls[1]["reasoning_effort"] == "high"
+    with pytest.raises(ContractError):
+        model.complete([], operation_id="invalid", temperature=float("nan"))
+    model.close()
+
 def test_unknown_response_never_automatically_resent():
     calls = []
     def timeout(request):

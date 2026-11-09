@@ -28,10 +28,14 @@ def main():
     evaluate.add_argument("snapshot_id")
     evaluate.add_argument("--operation-id", required=True)
     evaluate.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
+    evaluate.add_argument("--review-localization", action="store_true")
+    evaluate.add_argument("--bind-decisions", action="store_true")
     replay = commands.add_parser("replay-evaluation", help="Offline synthetic judge response replay")
     replay.add_argument("path", type=Path)
     replay.add_argument("--responses", type=Path, required=True)
     replay.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
+    replay.add_argument("--review-localization", action="store_true")
+    replay.add_argument("--bind-decisions", action="store_true")
     enqueue = commands.add_parser("enqueue-integrity")
     enqueue.add_argument("snapshot_id")
     probe = commands.add_parser("model-probe")
@@ -147,7 +151,8 @@ def main():
         service = EvidenceService(MemorySnapshots(), assets, settings)
         service.accept(snapshot)
         responses = load_json(args.responses.read_bytes())["responses"]
-        request = EvalRequest(operation_id="synthetic-replay", investigation=args.investigation)
+        request = EvalRequest(operation_id="synthetic-replay", investigation=args.investigation,
+                              review_localization=args.review_localization, bind_decisions=args.bind_decisions)
         prompt = Path(__file__).parents[1].joinpath("evaluation/outcome.md").read_text(encoding="utf-8")
         result = evaluate(snapshot, request, service, ReplayGateway(responses), prompt, "synthetic-replay")
         result["native_result"]["synthetic_replay"] = True
@@ -170,7 +175,9 @@ def main():
             snapshot = service.get(args.snapshot_id)
             if snapshot is None:
                 parser.error("Snapshot not found")
-            submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation), ledger)
+            submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation,
+                                         review_localization=args.review_localization,
+                                         bind_decisions=args.bind_decisions), ledger)
             gateway = ModelGateway(settings)
             print(json.dumps(run(args.operation_id, service, ledger, gateway), ensure_ascii=False, indent=2))
         finally:
