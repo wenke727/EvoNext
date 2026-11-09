@@ -1,5 +1,35 @@
 # 实施状态与验收证据
 
+## 本轮提交前审查（2026-11-08）
+
+离线复验：pytest 129 passed / 4 skipped；前端 42 passed；Ruff、compileall、TypeScript/Vite 构建通过。4 项跳过不计为实库验收。本轮未重新访问真实服务或执行模型/设备操作。修复连接切换时旧请求覆盖状态的竞态；缺少 infra SDK 时旧源明确返回不可用；BSON 小整数 Int64 也保留 `$numberLong` 类型信息，新增合成回归。EvaluationPanel 的未提交外观改动已按要求撤回，来源评估说明保留。以下真实服务和浏览器记录为此前验收记录，本轮未复验。
+
+## 默认旧库入口与顶部 ID 导航（2026-11-08）
+
+按用户新增要求，顶部迁为主 Task ID 搜索、可选来源版本和次级快照/导入菜单；任务查询用新 React / EvidenceClient，不迁旧全局控制器。配置受信 EVONEXT_LEGACY_ENV_FILE 后，页面默认从旧 Mongo 列表读取，无需先导入离线包；未配置时保留原快照模式。支持 ID 精确读取、版本 0、留空读取当前版本，以及 ?task=...&version=0 直接链接。搜索失败保留当前已打开证据；打开后固定版本及字节输入，不把刷新视图当跟随 latest。
+
+独立 compat 只读适配使用官方 PyMongo/MinIO SDK，只读 Latest/History 和已配置 origin 下的图片/VLM 桶，不加载旧 DAL、不创建索引/桶、不执行迁移或旧源写入。新 Evidence owner 接收固定输入；本轮独立 localhost 8001/5174 预览显式采用 demo，因此新记录与媒体只存内存，重启清空。配置与真实任务信息只保存在忽略的本地文件；原 src/.env 不复制入公共配置。
+
+验证：前端 **42 passed**，后端 **128 passed / 4 skipped**；TypeScript/Vite 构建、compileall、Ruff、diff 检查通过。7 项合成旧源回归覆盖版本零/不存在版本、BSON 与安全整数、原字段/字符串 ID 保留、受信媒体定位、凭据/query locator 拒绝、旧 VLM 桶、非 demo 认证和现有快照读取链。普通 pytest 未读取真实旧服务；4 项跳过继续是可选依赖/隔离实库未验，不计为通过。
+
+经用户明确授权进行了有界真实只读验收：默认列表返回 30 条旧任务，浏览器按顶部 ID/版本零读取 15 步/15 个绑定图片的旧记录，验证留空版本、缺失 ID、窄屏搜索和 Grid；另一条移动端旧记录经 Task ID 直接链接读取 15 步/15 个绑定图片，无缺图，截图来自旧 vlm-api 桶。CLI inspect-source 也读取 15 步/15 图并明确 persisted=false。执行路径没有旧库或旧 MinIO 写操作；未调用模型、设备或训练，未向新生产库写入。真实截图放在忽略的 output/playwright/legacy-source-home.png、legacy-source-detail.png、legacy-source-grid.png、legacy-source-mobile-task.png。
+
+边界：profile evoloop.mongo-read.v1 的 BSON→Extended JSON 及不安全整数表示转换会声明，不冒称 Mongo 文档具有原始 JSON 文件字节；源媒体 URL 保持不变，因此当前仅提供 JSON 导出，可移植 ZIP 的显式地址投影另行接入。不是完整旧 DAL/API 仿真，也没有验收生产持久化、多用户来源权限、全量旧格式和大轨迹吞吐。已有旧 BBox 治理仍后置。本次仅完成用户新增的只读旧源和导航入口，不启动审阅写入。
+
+## Runtime 资源池只读清单（2026-11-07）
+
+本地多机与云测容量均可通过 Python 资源池接口或 `evonext list-available --inventory <文件>` 筛选。离线回归覆盖双驱动共享设备身份、占用状态更新、过期清单、云池排队与未知容量、无效清单和 CLI。pytest 121 passed / 4 skipped；compileall、Ruff 与前端构建通过。设备发现、云供应方联通、原子租约与真实派发待独立接入和验收。
+
+## 收口后视觉回归：左栏与时间缩略图（2026-11-07）
+
+按用户确认恢复旧 workbench 的阅读层级：任务 ID/复制、标签、任务与来源评估继续常驻；来源版本以紧凑标记保留，来源类型、split、do_not_train、快照与原始 JSON 收进默认折叠的“来源信息”，没有删除源数据或治理标志。去掉重复的只读说明常驻段落，必要的评估缺失/来源状态仍保留。
+
+小图条恢复旧版的底部居中编号、卡片框线、间距与留白，动作标记和事件角标继续显示；重复动作文字不常驻，悬停可读详情，Grid 保持完整语义说明。动作标记开关、坐标空间及小图上下停靠统一进入“显示选项”，支持跨任务/刷新保留；恢复默认显示同时恢复这些显示选择，不改变原始证据。此轮属于已收口只读工作台的视觉调整，不启动后续功能工作包。
+
+验证：前端 42 passed、后端 117 passed / 4 skipped，TypeScript/Vite 构建、compileall、Ruff 通过。Chromium 针对元信息默认折叠/可展开、来源版本、小图编号位置、重复标签隐藏、设置迁移/刷新读回/恢复默认及 390px 设置边界检查通过；既有 Sidebar/ORM/grader/Controls、重试与 BBox/批量标注浏览器回归通过，无新增写请求或页面异常。4 项跳过继续保留为未验边界。
+
+效果图使用同一真实离线轨迹，保留在忽略的 output/playwright/workbench-restored-detail.png 与 workbench-restored-grid.png。真实来源数据未由本轮修改，未运行模型、设备或生产写入；尚未与运行中的旧站做逐像素比对。
+
 ## 阶段收口：只读工作台阶段完成（2026-11-07）
 
 本阶段验收范围冻结为：真实离线数据展示、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键和打点原文检索。范围内浏览闭环已完成，不以完整替代旧平台或完成生产切换表述。提交版本固定本阶段源码与文档；后续能力不自动纳入本次收口。
@@ -188,3 +218,46 @@ Playwright 使用真实 Chromium 访问 localhost，完成连接、文件选择�
 下一步：真实脱敏 OpenCUA 往返 → 浏览器/持久化与兼容验收 → Review/Case → 一个独立 Outcome grader → 受控 Skill/Runtime 新 trial。Runtime prepare、签名/关联核验和文件 Undo 都不证明手机恢复成功。
 
 本轮没有改变旧平台、写入生产数据库、执行付费模型/真机、训练或生产发布。PG 新迁移未在目标环境执行。原始模型响应将持久存于授权 PG，必须补访问与保留策略后才能生产启用。
+# 2026-11-08 · 完整轨迹评估输入首片
+
+新增 evaluation 输入准备用例，默认消费完整平台轨迹。API `POST /api/v1/snapshots/{snapshot_id}/evaluation-input`、CLI `prepare-evaluation`（JSON/ZIP）和工作台底栏“评估输入预览”共用投影。所有步骤保留，短轨迹全图、长轨迹尾三图仅影响首次选图；图片数量及文本字节预算明确。绑定未核验、缺图、未绑定、策略/预算跳过逐项报告。超预算返回完整文本和标志，不截断。源 JSON 字节、未知字段、版本零、长字符串 ID 与 dispatch/results 保留。
+
+初始事实白名单读取 step/value/runtime，默认排除 think、原始模型输出、来源判决和 metadata。未映射字段列入报告，仍可从固定源 JSON 读回。白名单不能证明自由文本或嵌套内容无标签泄漏；新增来源字段需要明确适配。预览不会产生模型送达回执或评估结果。Fast Judge、实际图片读取核验与 Marker、PG 评估运行/结果持久化、有界 Investigator 和独立人工语义校准仍待实现。
+
+验证结果为 pytest **134 passed / 4 skipped**，新增 5 项合成回归覆盖完整步骤、尾三图、超预算保留、源字节、未知字段/身份、版本零、runtime 实际回执、缺图、空轨迹、API 参数和 CLI 原轨迹入口。compileall、Ruff、diff 检查、前端 **42 passed** 与 TypeScript/Vite 构建通过。最终输入投影调整后 5 项针对性回归再次通过。4 项既有可选依赖/隔离实库检查仍未运行。
+
+Playwright 使用本机演示内存服务及明确合成的一步缺图轨迹验证入口、完整步数、缺图说明、Esc 关闭及焦点恢复。此浏览器检查尚未覆盖选中图片导航和移动视口；页面有既存 favicon 404。未运行真实模型、设备或生产写入。
+
+## 2026-11-08 · Fast Judge 运行与读回切片
+
+新增完整轨迹 Fast Judge 服务。已绑定图片经字节读取与 hash 核验后，以带 evidence_ref 的多模态请求送 providers.gateway。完整文本与图片合并预算在发送前检查。任务义务逐项覆盖校验，pass/fail 要求引用本次交付证据；模型结果经校验后复用 EvaluationRecord。Outcome 从任务 checks 推导，过程 findings 单列，成功可同时保留过程错误。引用校验仅证明证据已交付，语义支持程度仍需人工校准。
+
+请求、首次模型输入 hash/模型路由及不可变结果复用 PG operation_receipts。模型原响应仍由 gateway 独立先保存后解析，已收到响应可复用，sending/unknown 保持待核对。调用或解析异常由 Worker 记录 needs_attention，不自动重试。API 提交经现有 Celery 的 evonext.bulk 执行，读取结果走独立 GET；CLI evaluate 可对已注册快照执行同一用例。相同操作身份发生输入/模型变化时产生冲突。当前复用已有操作表，无新增迁移。
+
+工作台输入弹窗提供显式“运行 Fast Judge（模型调用）”、状态轮询、任务判定与步骤证据入口。运行 ID 写入固定页面 hash，重开弹窗可只读查询。部署必须显式启用模型调用、配置 PG/模型/队列并启动 Worker。
+
+验证为 pytest **135 passed / 4 skipped**，前端 **42 passed**，compileall、Ruff 和 TypeScript/Vite 构建通过。最终图片送达回归增补后六项输入/评分测试再次通过。真实 ModelGateway 配合合成 HTTP 响应验证原响应复用、非法引用被拒、缺后态 unknown、成功与过程错误并存，以及合成图片字节送达与 hash 回执。测试 ledger 为明确的合成替身，未据此宣称真实 PG/Celery 故障与并发验收通过。
+
+保留未验项包括真实服务运行、Fast Judge 浏览器交互回归、模型语义质量与独立人工盲评。Marker、Investigator、Run/Attempt 专用查询/列表和取消仍为后续工作。当前模型输入白名单对自由文本与嵌套标签泄漏的限制沿用前片说明。
+
+## 2026-11-08 · 核心评分与有界 Investigator
+
+按用户调整，优先核心能力，业务 PG 结果存储暂缓扩展。`evaluation.core.evaluate` 可直接消费完整冻结轨迹、Evidence reader 和模型网关，核心不依赖业务 ledger。既有持久化服务仅包装核心调用，真实收费网关仍保留原有 PG 计费回执要求。
+
+新增 auto/off/always 调查模式。auto 在 Outcome unknown 或失败且没有已定位的错误时调查；always 可指定步骤调查成功轨迹的中途错误。Investigator 通过 JSON read_evidence 请求同一完整轨迹中任意步骤的已绑定图片。所有步骤文本已在首轮交付。默认最多追加 3 次模型调用、总计 10 张图，各请求限制 950 KiB，调查阶段 180 秒后停止发起新调用。图片读回核验后进入后续多模态请求，收到响应后才记录已送达引用。重复取证、缺图、图片预算、调用预算、字节预算、时间预算均保留停止原因及原始判定。新增判定继续校验义务覆盖和引用，原 Fast Judge 结论与逐次调用信息保留。
+
+工作台增加未知时追加取证／调查当前步骤／仅 Fast Judge 选择。CLI evaluate 增加 --investigation。离线 `replay-evaluation` 可输入完整 JSON/ZIP 和显式合成响应，不使用业务存储或付费模型，输出标记 synthetic_replay。示例命令为 `evonext replay-evaluation examples/trajectory.json --responses examples/synthetic-evaluation-responses.json`，例子缺图后停止并保留 unknown。
+
+验证 pytest **142 passed / 4 skipped**。新增 7 项合成回归覆盖尾三图外取证、unknown 更新、成功轨迹上的过程错误、重复取证、图像与调用预算、引用未读取图片被拒，以及预算停止时未发送图片不能冒充已送达。前端既有 **42 passed**、构建、compileall、Ruff 通过。CLI 合成重放实际运行，结果为 unknown／investigation_no_new_evidence。最终界面选择项仍需浏览器交互验收。
+
+当前完成的是可执行的取证与判定流程。脚本响应不能证明真实模型的完成判断、首错定位或因果诊断质量。独立人工标注集、真实模型盲评、Marker、结构化多因/替代解释合同、跨来源证据字段适配与更深入诊断仍待后续工作。自由文本中的已有结论泄漏限制沿用前片说明。
+
+### Agentic findings → step Case integration · 2026-11-09
+
+The current workbench uses the full-trajectory Evaluation entry point for Fast Judge and bounded investigation. Case intake, correction drafts and frozen reviews from the review branches are integrated into the same application. The older fixed-image Outcome PR remains a separate draft and is not installed as a second scoring entry point here.
+
+Auto investigation also runs when failure is established and no error step is located. Findings may carry a validated snapshot-scoped position with evidence for their owning step. Budget exhaustion preserves the existing outcome and records undetermined localization. Explicit source coordinate declarations permit derived click/swipe markers, with original and view hashes and proposed/dispatched provenance. Unknown coordinates keep the source image.
+
+The authenticated confirmation API reads a saved EvaluationRecord, checks the selected finding and requires explicit operator confirmation. It creates one step Case with a diagnosis reference and a stable caller-generated Case ID. Creation leaves the Case pending for subsequent review. Workbench links open the corresponding step, and creation refreshes its Case list.
+
+Verification on the integrated working tree: pytest 181 passed, 5 skipped; frontend 44 passed; build, Ruff, compileall and diff check passed. Skipped tests include unavailable integrations and optional dependencies. Playwright on explicitly synthetic, in-memory source/control stores confirmed two findings at positions 4 and 5 create different Case IDs and read back the frozen evaluation reference. API replay returns the original Case. Browser navigation preserves the evaluation URL parameter. No paid model was used. Real PostgreSQL confirmation concurrency and real-model diagnostic accuracy remain unverified in this integration.
