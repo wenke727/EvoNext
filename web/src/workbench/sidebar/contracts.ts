@@ -24,6 +24,7 @@ export interface SidebarPreferences {
   };
 }
 export interface SidebarProps {
+  sourceVersion?: number | null;
   task: Task;
   disabled: boolean;
   preferences: SidebarPreferences;

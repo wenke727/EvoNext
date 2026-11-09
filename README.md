@@ -60,6 +60,14 @@ cd ..
 evonext validate-bundle .local/synthetic.zip
 ```
 
+## 默认读取旧库与 ID 定位
+
+配置 `EVONEXT_LEGACY_ENV_FILE=/absolute/local/path/to/EvoLoop/src/.env` 后，工作台默认显示旧 Mongo 任务列表，顶部可按 Task ID 打开；版本留空读取当前版本，填写 0 可定位版本零。Mongo/MinIO 仅只读访问，不运行旧 DAL 初始化或写入；完整读取结果由新 Evidence owner 固定。该 profile 与边界见 [ADR-004](docs/adr/0004-legacy-source-navigation.md) 和 [兼容合同](docs/COMPATIBILITY.md)。不要把旧配置文件或真实数据加入仓库。
+
+本地只读预览可以继续使用 `evonext serve --demo`（新捕获仅存内存），前端 `npm run dev`。需要隔离端口时，后端指定 `--port 8001`，前端设置 `EVONEXT_API_PROXY=http://127.0.0.1:8001 npm run dev -- --port 5174`。顶部导入/本地快照仍作为次级入口保留。
+
+CLI 使用 `evonext inspect-source --env-file /absolute/local/path/to/source.env --limit 10` 查看来源列表；增加 `--task-id TASK_ID --version 0` 可检查固定任务和截图读取，结果明确为临时内存检查，不持久化。需要安装声明的 infra 依赖。来源 URL 保持原样，当前只提供 JSON 导出；完整可移植 ZIP 的 locator 投影另行实现。
+
 ## 接入现有基础设施
 
 ```bash
@@ -98,6 +106,8 @@ docs/            架构、兼容协议、交付路线、运维与验收边界
 
 API 由 FastAPI 生成 `/openapi.json` 和 `/docs`。JSON 导入只保证结构不丢字段；需要原文件字节保真及图片可携带时，使用 ZIP 包。
 
+工作台底栏“评估输入预览”可核对完整轨迹步数、首轮图片选择与缺证。API 使用 `POST /api/v1/snapshots/{snapshot_id}/evaluation-input`，请求体 `{}` 使用默认策略；可配置 `images`（auto/all/last_three）、`include_think`、`max_images` 和 `max_text_bytes`。CLI 使用 `evonext prepare-evaluation examples/trajectory.json` 或传入可移植 ZIP。预览负责输入准备，Fast Judge 的实际运行入口见下文，有界 Investigator 的模式与离线验证入口见文末。
+
 ## 测试与实现状态
 
 ```bash
@@ -119,3 +129,7 @@ cd web && npm test && npm run build
 [架构](docs/ARCHITECTURE.md) · [兼容与互通](docs/COMPATIBILITY.md) · [完整能力路线](docs/ROADMAP.md) · [运维](docs/OPERATIONS.md) · [验收](docs/ACCEPTANCE.md)
 
 这是公开仓库：不提交生产轨迹、截图、真实配置、密钥、内部主机信息或旧私有实现。项目许可证由仓库所有者另行决定；本次没有替所有者选择开源许可证。
+
+Fast Judge 首片可通过 `evonext evaluate <snapshot_id> --operation-id <stable-id>` 执行。HTTP 使用 `POST /api/v1/snapshots/{snapshot_id}/evaluations`，请求体包含 `operation_id`，可附 `options` 和 `obligations`（检查 ID 到完成标准的映射）。默认以原任务指令作为一项义务。`GET /api/v1/evaluations/{operation_id}` 读回状态与结果。HTTP 提交需现有 Celery Worker 消费 `evonext.bulk`，CLI 同步执行。须配置持久存储和模型凭据并显式启用模型调用；同一 operation_id 用于恢复已有请求，needs_attention 应先核对收费回执。前端输入弹窗提供运行和读回入口。真实服务及语义校准的未验范围见 ACCEPTANCE。
+
+核心调查支持 `investigation=auto/off/always`，默认对未知结果追加取证；always 可搭配 `focus_positions` 调查指定步骤。工作台输入弹窗可选择调查当前步骤。CLI 可执行 `evonext evaluate <snapshot_id> --operation-id <stable-id> --investigation always`。无需业务 PG 的离线合成验证使用 `evonext replay-evaluation examples/trajectory.json --responses examples/synthetic-evaluation-responses.json`。重放输出明确标记合成模型；真实模型语义质量另行校准。

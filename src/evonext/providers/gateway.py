@@ -27,19 +27,28 @@ class ModelGateway:
             timeout=60, follow_redirects=False, transport=transport)
 
     def complete(self, messages, *, snapshot_id=None, operation_id=None, max_tokens=256,
-                 policy_version="manual.v1", repetition_id="0"):
+                 policy_version="manual.v1", repetition_id="0", temperature=None,
+                 reasoning_effort=None):
         if not self.settings.model_calls_enabled:
             raise PermissionError("Model calls are explicitly disabled")
         if not operation_id or not isinstance(operation_id, str):
             raise ContractError("A stable operation_id is required for paid-call recovery")
-        if type(max_tokens) is not int or not 1 <= max_tokens <= 4096:
-            raise ContractError("Model output token budget must be between 1 and 4096")
+        if type(max_tokens) is not int or not 1 <= max_tokens <= self.settings.model_max_output_tokens:
+            raise ContractError("Model output token budget exceeds the configured limit")
+        if temperature is not None and (type(temperature) not in (int, float) or not 0 <= temperature <= 2):
+            raise ContractError("Temperature must be a finite number between 0 and 2")
+        if reasoning_effort not in (None, "low", "medium", "high"):
+            raise ContractError("Unsupported reasoning effort")
         if not isinstance(repetition_id, str) or not repetition_id:
             raise ContractError("Explicit repetition identity must be a non-empty string")
         payload = {"model": self.settings.model_name, "messages": messages, "max_tokens": max_tokens}
+        if temperature is not None:
+            payload["temperature"] = temperature
+        if reasoning_effort is not None:
+            payload["reasoning_effort"] = reasoning_effort
         request_bytes = encode_json(payload)
-        if len(request_bytes) > 1024 * 1024:
-            raise ContractError("Model request exceeds the 1 MiB input budget")
+        if len(request_bytes) > self.settings.model_max_request_bytes:
+            raise ContractError("Model request exceeds the configured input byte budget")
         if self.receipts is None:
             if not self.settings.postgres_dsn or self.settings.demo:
                 raise ContractError("Paid calls require a configured PostgreSQL receipt store")

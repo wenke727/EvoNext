@@ -410,6 +410,7 @@ function Audit({
 }
 
 export function Sidebar({
+  sourceVersion,
   task,
   disabled,
   preferences,
@@ -482,6 +483,7 @@ export function Sidebar({
                 </svg>
               </button>
             </span>
+            {sourceVersion !== undefined && <span className="task-source-version" title="来源版本">v{sourceVersion ?? "?"}</span>}
             {preferences.showTime !== false && task.created_at != null && (
               <span
                 className="task-created-at-label"

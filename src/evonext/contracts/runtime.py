@@ -6,9 +6,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .skills import SkillBundle, SkillRef
 
 
+TargetKind = Literal["local_device", "cloud_batch"]
+
+
 class Target(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-    kind: Literal["local_device", "cloud_batch"]
+    kind: TargetKind
     resource_id: str = Field(min_length=1, max_length=128)
 
 

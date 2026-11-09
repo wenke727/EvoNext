@@ -20,6 +20,27 @@ images/<原文件名>
 
 ## 2. 快照和版本
 
+评估输入投影 `evonext.evaluation-input.v3` 增加原步骤的 `user_interrupt`、角色、
+步骤时钟、布尔 effective 标记和一个可引用的 source context。只从原始输入读取
+created_at 与首个 backflow input endpoint 的 localTime/timeZone；元信息的判决、
+原始模型响应及设备身份不因此进入模型。创建日期与已声明时区下的输入本地日期一致
+才给出 corroborated_local_date，不用评测当天替换历史日期。effective 不代表动作执行。
+原轨迹字节和现有快照身份不变。
+
+评估请求的 `review_localization` 默认 false。显式启用后，已给出错误位置而该位置或
+更早原图未交付时，auto 可继续调查；合法但引用无效的初始 JSON 可在现有调查预算内
+收到明确反馈。保留原始判定和校验错误，只有新响应通过完整校验才接受；网络不确定
+不据此重发。预算停止时无效判定仍不能成为已验收结果。
+
+v3 为交付的事实字段提供 `fact_refs`，保留提案、思考、runtime dispatch 的不同引用。
+`bind_decisions` 默认 false；启用后，定位错误须引用本步骤实际交付的决策字段，
+不能借用后一步的字段或仅引用时钟/状态标记。原图邻接关系不是动作效果或执行者证明。
+`runtime_coordinate_profile=evoloop_fraction_v1` 是调用者显式声明的来源坐标格式，
+仅在 runtime 未声明单位时允许用 0–1 画派遣标记；source 默认不猜单位，
+原声明单位优先，原图字节不变。派遣标记不代表该动作成功。
+未定位的 finding 不填 decision_ref；观察引用仍保留在 evidence_refs。绑定模式的调查
+响应无效时，可在剩余调用预算内收到校验反馈并重新提交，预算耗尽仍报错；不自动改引用。
+
 `Snapshot.id` 使用 `evonext.snapshot-bytes.v1`：trajectory 文件 byte SHA-256、metadata 文件 byte SHA-256、图片路径到 byte hash 的映射，按规范 JSON 编码后再哈希。输入 JSON 的纯格式变化也可能得到新 snapshot_id；这不是“任务语义变化”的判断。移动整个包所在目录不会改变 ID。
 
 旧 `task_id` 和来源 `version_number` 保留。版本 0 有效，未知版本保持未知，版本不代表审核状态。快照同名内容不可覆盖；没有按照 hash 排序推断 latest 的规则。未来审阅需独立 revision/CAS，不能覆写已有 snapshot 或复用它伪造历史。
@@ -82,3 +103,13 @@ Workbench 支持 `trajectory.evaluation.prediction` 与 `trajectory.evaluation.g
 新快照的 header/media 只读取轻量 Mongo wrapper；缺 index 的已有快照全量核验后生成临时视图，不回写。media 仍用 snapshot_id + path 校验绑定后读取原 bytes，不能以 digest 绕过绑定。不存在/未绑定为 404；已有 index 损坏或绑定媒体缺失/损坏为 500，保留 error 字符串形状，不泄漏存储地址。不将损坏当客户端输入错误或自动更换来源版本。
 
 现役列表继续按 snapshot_id/hash 游标返回资产，不改变排序或新增来源时间筛选。页面选中轨迹目前仍调用完整 detail；本后端切片不等于页面已消除整轨迹传输。
+
+## 9. 默认旧 Mongo 来源 profile
+
+`evoloop.mongo-read.v1` 通过显式受信的本地 dotenv 引用读取配置，使用官方 Mongo/MinIO SDK；只读 `{collection}_latest / {collection}_history`，不导入旧 DAL 或执行索引、迁移、修复及写入。前端自动读取列表；`POST /api/v1/source/open/{task_id}` 表示操作者打开并在新 Evidence owner 中固定输入，不是向旧平台发布。`GET /api/v1/source/tasks` 为有界列表，游标按字符串 Task ID 降序；不是全文检索或完整旧查询 API。CLI inspect-source 复用同一读取逻辑，在临时内存中检查而不持久化。
+
+版本留空时读取一次 Latest 的完整文档并保留其明确版本；固定版本只读取匹配的 History 或同版本 Latest。未找到、未声明版本或版本不匹配均报错，0 不当成空值。BSON 文档以 Extended JSON 读取投影，保留 `_id`、未知字段、原始输出与字符串 ID；非 JSON 原生类型和不安全整数的表示转换在 metadata 中声明，不能声称 Mongo 原文是未经转换的 JSON 文件。
+
+只绑定已配置 MinIO origin 下的图片桶及旧 VLM 桶（VLM_MINIO_BUCKET，旧约定默认 vlm-api） 中无 URL 内联凭据、query 或 fragment 的来源对象；不重写源 image 字段、不访问任意来源 URL。缺对象或不支持的 locator 明确未绑定；字节/步骤上限及读取错误不转为假成功。图片字节仍由新 AssetStore 拥有。保留原 URL 的读取 profile 当前可导出 JSON；可移植 ZIP 需要显式路径投影，当前页面禁用该入口。这不是改动既有离线 ZIP profile。
+
+旧源是配置后的默认页面入口，配置错误不静默回退。未配置仍可使用显式本地快照/离线包；本轮 localhost demo 的新捕获仅在内存中，不证明持久化、访问隔离或生产替换已验收。

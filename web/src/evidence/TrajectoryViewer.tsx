@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent } from "react";
 import type { Detail, EvidenceClient } from "./client";
 import { EvidenceInspector } from "./EvidenceInspector";
+import { EvaluationInput } from "./EvaluationInput";
 import { EvidenceImage } from "./EvidenceImage";
 import { actionLabel, projectStep } from "./projection";
 import { usePreferences } from "./preferences";
@@ -66,6 +67,7 @@ export function TrajectoryViewer({
   const inspectorOpener = useRef<HTMLElement | null>(null);
   const inspectorButton = useRef<HTMLButtonElement>(null);
   const [settings, setSettings] = useState(false);
+  const [evaluationInput, setEvaluationInput] = useState(false);
   const [help, setHelp] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [notice, setNotice] = useState("");
@@ -189,6 +191,10 @@ export function TrajectoryViewer({
       step: String(index),
       view: mode,
     });
+    const previous = new URLSearchParams(location.hash.slice(1));
+    if (previous.get("snapshot") === detail.snapshot_id && previous.has("evaluation")) {
+      params.set("evaluation", previous.get("evaluation")!);
+    }
     history.replaceState(null, "", `#${params}`);
     (mode === "grid" ? overview : strip).current
       ?.querySelector('[aria-current="step"]')
@@ -230,7 +236,7 @@ export function TrajectoryViewer({
         )
       )
         return;
-      if (help || zoom || settings) return;
+      if (help || zoom || settings || evaluationInput) return;
       const modifier = event.ctrlKey || event.metaKey;
       if (
         modifier &&
@@ -373,10 +379,8 @@ export function TrajectoryViewer({
         onMouseLeave={() => setHover(null)}
         title={`Step ${index} · ${view.actions.map(actionLabel).join(" / ") || "未解析动作"}\n${text(view.semantic?.value)}`}
       >
-        <span className="step-card-index">
-          {index}
-          <SignalBadges kinds={signals.steps[index]} />
-        </span>
+        {!compact && <span className="step-card-index">{index}<SignalBadges kinds={signals.steps[index]} /></span>}
+        {compact && <span className="step-card-signals"><SignalBadges kinds={signals.steps[index]} /></span>}
         <EvidenceImage
           client={client}
           detail={detail}
@@ -386,6 +390,7 @@ export function TrajectoryViewer({
           markers={prefs.markers} bbox={prefs.display.bbox}
           space={prefs.space}
         />
+        {compact && <span className="step-card-index">{index}</span>}
         {!compact && (
           <span className="step-card-semantic">
             {view.semantic
@@ -445,7 +450,7 @@ export function TrajectoryViewer({
         aria-label="任务信息"
         inert={prefs.collapsed || undefined}
       >
-        <TaskSidebar detail={detail} position={position} onStep={open} display={prefs.display} />
+        <TaskSidebar detail={detail} position={position} onStep={open} display={prefs.display} client={client} />
       </aside>
       <div
         className="sidebar-separator"
@@ -488,7 +493,7 @@ export function TrajectoryViewer({
             {mode === "grid"
               ? `轨迹总览 · 当前 Step ${cursor}`
               : `Step ${position}`}{" "}
-            <small>/ {count} Steps · 0-based</small>
+            <small>/ {count}</small>
           </span>
           <div className="tool-spacer" />
           <button ref={inspectorButton} aria-expanded={inspector} aria-keyshortcuts="i" onClick={toggleInspector}>打点详情</button>
@@ -503,45 +508,7 @@ export function TrajectoryViewer({
             </button>
           )}
           <button aria-haspopup="dialog" onClick={() => setSettings(true)}>显示选项</button>
-          <label className="marker-toggle">
-            <input
-              type="checkbox"
-              checked={prefs.markers}
-              onChange={(e) =>
-                setPrefs((p) => ({ ...p, markers: e.target.checked }))
-              }
-            />
-            动作标记
-          </label>
-          <label className="space-choice">
-            坐标
-            <select
-              aria-label="动作坐标空间"
-              value={prefs.space}
-              onChange={(e) =>
-                setPrefs((p) => ({
-                  ...p,
-                  space: e.target.value as typeof prefs.space,
-                }))
-              }
-            >
-              <option value="unknown">未声明</option>
-              <option value="normalized">0–1000</option>
-              <option value="pixels">原图像素</option>
-            </select>
-          </label>
-          <button
-            className="quiet"
-            onClick={() =>
-              setPrefs((p) => ({
-                ...p,
-                dock: p.dock === "top" ? "bottom" : "top",
-              }))
-            }
-            title="调整小图条位置"
-          >
-            小图置{prefs.dock === "top" ? "底" : "顶"}
-          </button>
+
         </div>
         {!count ? (
           <div className="empty-steps">
@@ -787,8 +754,9 @@ export function TrajectoryViewer({
             />
           </div>
           <span className="read-only">只读浏览</span>
+          <button onClick={() => setEvaluationInput(true)}>评估输入预览</button>
           <button onClick={() => onDownload("trajectory")}>导出 JSON</button>
-          <button onClick={() => onDownload("bundle")}>导出包</button>
+          <button disabled={detail.metadata.portable_bundle === false} title={detail.metadata.portable_bundle === false ? "来源图片地址保持原样，当前支持 JSON 导出；可移植包需显式地址投影" : undefined} onClick={() => onDownload("bundle")}>导出包</button>
           <button onClick={() => setHelp(true)}>⌨ 快捷键</button>
         </div>
       </footer>
@@ -796,13 +764,18 @@ export function TrajectoryViewer({
         onStep={open} onClose={closeInspector} onReload={onReload}
         onResize={event => resize(event, "inspector")}
         onWidth={width => setPrefs(p => ({ ...p, inspector: Math.max(320, Math.min(720, width)) }))} />}
+      {evaluationInput && <EvaluationInput client={client} snapshot={detail.snapshot_id}
+        focusPosition={count ? position : -1}
+        onClose={() => setEvaluationInput(false)} onStep={open} />}
       <DisplaySettings
         open={settings}
         value={prefs.display}
+        layout={prefs}
+        onLayoutChange={layout => setPrefs(p => ({ ...p, ...layout }))}
         onChange={display => setPrefs(p => ({ ...p, display }))}
         onClose={() => setSettings(false)}
       />
-      {peek && !help && !zoom && !settings && (
+      {peek && !help && !zoom && !settings && !evaluationInput && (
         <StepPreview
           client={client}
           detail={detail}
@@ -845,7 +818,7 @@ export function TrajectoryViewer({
           <dt>H / ?</dt>
           <dd>显示快捷键</dd>
         </dl>
-        <p>输入框中不接管浏览快捷键。编辑、保存与审核另行接入。</p>
+        <p>输入框中不接管浏览快捷键。原始轨迹编辑未开放；Case 单独保存与审核。</p>
       </dialog>
       <dialog
         ref={zoomDialog}

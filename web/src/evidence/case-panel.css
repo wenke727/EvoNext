@@ -1,0 +1,52 @@
+/* Separate Case write boundary; do not change the migrated legacy Sidebar. */
+.case-panel {padding: 12px 10px; border-top: 1px solid var(--line);}
+.case-panel > header {display: flex; gap: 6px; align-items: center; justify-content: space-between;}
+.case-panel h2 {font-size: 12px; font-weight: 650; margin: 0 auto 0 0;}
+.case-panel button {border: 1px solid #ddd; white-space: normal; text-align: left;}
+.case-panel label {display: grid; gap: 6px; align-items: start; margin: 8px 0;}
+.case-panel select, .case-panel textarea {width: 100%; border: 1px solid #ddd; border-radius: 5px;
+ padding: 7px; background: white; color: inherit; font: inherit;}
+.case-panel textarea {resize: vertical; min-height: 55px;}
+.case-panel .case-help {font-size: 11px; color: #777; overflow-wrap: anywhere; margin: 6px 0;}
+.case-panel .case-error {color: #a51a1a; font-size: 11px; margin: 6px 0;}
+.case-panel .case-editor {margin: 10px 0; padding: 8px; border: 1px solid #e5e5e5; border-radius: 6px;}
+.case-panel .case-actions {display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;}
+.case-panel .case-item {padding: 8px 0; border-top: 1px solid #eee;}
+.case-panel .case-item-head {display: flex; align-items: center; justify-content: space-between; gap: 5px;}
+.case-panel .case-item-head > span {font-size: 10px; color: #666;}
+.case-panel .case-item > p {margin: 5px 0; overflow-wrap: anywhere;}
+.case-panel .case-item small {color: #777; font-size: 10px;}
+
+.correction-dialog {width: min(1200px, 96vw); max-height: 92vh; box-sizing: border-box; overflow: auto;
+ border: 1px solid #cbd5e1; border-radius: 10px; padding: 20px; color: #243044; background: #fafbfd;}
+.correction-dialog::backdrop {background: #17203399;}
+.correction-dialog > header {display: flex; justify-content: space-between; gap: 12px;}
+.correction-dialog h2 {font-size: 18px;}
+.correction-dialog p {font-size: 13px; line-height: 1.5;}
+.correction-layout {display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); gap: 24px; margin-top: 16px;}
+.correction-layout fieldset {border: 0; padding: 0; min-width: 0;}
+.correction-dialog button {padding: 7px 10px; cursor: pointer;}
+.correction-dialog button[aria-pressed="true"] {background: #dbeafe; border-color: #2563eb;}
+.correction-dialog button:disabled {opacity: .5; cursor: default;}
+.correction-dialog :focus-visible {outline: 2px solid #2563eb; outline-offset: 2px;}
+.correction-dialog pre {white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; font-size: 11px;}
+.correction-image {position: relative; width: 100%; line-height: 0; margin: 12px 0;}
+.correction-image img {width: 100%; height: auto; display: block;}
+.correction-image svg {position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair;}
+.correction-image rect {vector-effect: non-scaling-stroke; stroke-width: 2;}
+.correction-image .original_target {stroke: #b45309; fill: #f59e0b33;}
+.correction-image .suggested_target {stroke: #1d4ed8; fill: #3b82f633;}
+.correction-image .drawing {stroke: #1d4ed8; fill: #3b82f622; stroke-dasharray: 6 4;}
+.correction-image .click-point {fill: #1d4ed8; stroke: white; stroke-width: 2;}
+.correction-region {padding: 10px; margin: 10px 0; border: 1px solid #dbe1ea; border-radius: 5px;}
+.correction-region > div {display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;}
+.correction-dialog input {width: 100%; box-sizing: border-box; min-width: 0; padding: 5px;}
+.correction-conflict {padding: 10px; border: 1px solid #b45309;}
+@media (max-width: 720px) {.correction-layout {grid-template-columns: 1fr;} .correction-dialog {padding: 12px;}}
+.correction-dialog label {display: grid; gap: 6px; margin: 8px 0; font-size: 12px;}
+.correction-dialog textarea, .correction-dialog select {width: 100%; box-sizing: border-box;
+ border: 1px solid #cbd5e1; border-radius: 5px; padding: 7px; background: white; color: inherit; font: inherit;}
+.correction-dialog textarea {min-height: 56px; resize: vertical;}
+.correction-dialog .case-actions {display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0;}
+.correction-dialog .case-error {color: #a51a1a; white-space: pre-wrap;}
+.correction-dialog > header > button {flex-shrink: 0; align-self: flex-start; white-space: nowrap;}

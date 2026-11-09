@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     postgres_dsn: SecretStr | None = None
     broker_url: SecretStr = SecretStr("redis://127.0.0.1:6379/0")
+    legacy_env_file: str = ""
     legacy_base_url: str = ""
     legacy_api_key: SecretStr | None = None
     legacy_writes: bool = False
@@ -28,6 +29,9 @@ class Settings(BaseSettings):
     model_api_key: SecretStr | None = None
     model_name: str = ""
     model_calls_enabled: bool = False
+    model_max_request_bytes: int = Field(default=1024 * 1024, ge=1024, le=16 * 1024 * 1024)
+    model_max_output_tokens: int = Field(default=4096, ge=1, le=32768)
+    review_operator_id: str = Field(default="", max_length=128)
     model_budget_scope: str = Field(default="default", min_length=1, max_length=64)
     model_calls_per_minute: int = Field(default=10, ge=0, le=10000)
     model_calls_per_hour: int = Field(default=100, ge=0, le=100000)
