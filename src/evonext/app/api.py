@@ -22,6 +22,7 @@ from evonext.evaluation.service import (EvalRequest, submit, status as evaluatio
                                         FindingConfirmation, finding_proposal)
 from evonext.review.store import MemoryCases, PostgresCases
 from evonext.app.case_api import attach_case_routes
+from evonext.app.workshop_api import attach_workshop_routes
 
 
 async def limited_body(request, maximum):
@@ -321,4 +322,6 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
 
     attach_case_routes(app, evidence=service, get_store=lambda: active_case_store,
                        auth=auth, settings=settings)
+    attach_workshop_routes(app, evidence=service, get_ledger=lambda: ledger,
+                          get_cases=lambda: active_case_store, settings=settings, auth=auth)
     return app

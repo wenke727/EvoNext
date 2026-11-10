@@ -1,5 +1,38 @@
 # 实施状态与验收证据
 
+## Skills Workshop 显式候选闭环（2026-11-10）
+
+基于 `origin/feat/agentic-findings-cases` 的 `a3f6a656355df6a219f046cdaed59a9264b523b2`，
+在独立 worktree 实施；未处理主 checkout 的既有合并冲突，也未复制 EvoLoop 私有代码。
+本片完成多文件版本、来源与 base revision 绑定的草稿、人工/模型复核、显式提交、
+有界学习和独立精简，以及 API/CLI/React 操作入口。无后台自动学习或激活。
+
+工程验证：`python -X utf8 -m pytest -q` 为 **235 passed / 4 skipped**；
+前端既有测试 **44 passed**；Ruff、compileall、TypeScript/Vite 构建通过。
+初次未指定 UTF-8 的全量运行有两项既有测试按 Windows GBK 读中文失败；
+UTF-8 模式复验通过，未将编码失败归为源码腐化。新增 33 项合成测试覆盖：
+完整附件 hash/恢复/归档、旧 v1 导出与 Runtime 上下文字节、路径/链接/孤立引用、
+草稿版本冲突和复核绑定、同草稿并发提交、HEAD 落盘后的回执恢复、来源集合保留、
+所选证据与固定 Case 审核版本、no_change/缺证、一次修复停止、精简原文保留、
+未知模型回执不重发、生效模型配置冻结、API 认证与 owner 隔离、保存后重新装配读回。
+模型测试使用真实 gateway 代码加 MockTransport/内存回执；没有收费请求。
+
+本地 Chrome 合成浏览器流程通过：编辑 SKILL.md 与附件、返回轨迹后编辑保留、
+缺引用报错、补齐附件、复核前禁止提交、操作员复核、提交候选、刷新读回、
+逐文件检查、证据预览、模型关闭时学习/精简不可用。
+1440×1000 和 1024×768 桌面宽度检查无横向溢出，表单与 diff 可滚动读取，
+无页面 JavaScript 异常；修正了继承样式导致输入框居中变窄的问题。
+合成截图和 QA 清单保存在忽略的 `.local/qa/workshop-*.png`、
+`.local/qa/workshop-qa.json`。浏览器与临时测试服务在检查后关闭。
+CLI `workshop-api list` 也经本地 HTTP 读回浏览器提交的同一候选与草稿；
+服务重启后文件库的 revision 和提交回执保持一致。
+
+未验范围：真实 PG/Celery 联通与多进程故障恢复、生产目录权限/备份、真实模型的
+规则保留和视觉判断、真实设备执行、none/raw/skill 收益。4 项跳过不算实库通过。
+FileLock 仍只服务同主机本地候选库；模型复核、候选提交和正确的消费绑定均不证明
+任务成功或训练资格。当前只支持文本附件与 CommonMark 引用；复杂搬移会停止并
+要求手工提案。本片不包含 merge/group undo、后台调度或生产 Registry。
+
 ## 本轮提交前审查（2026-11-08）
 
 离线复验：pytest 129 passed / 4 skipped；前端 42 passed；Ruff、compileall、TypeScript/Vite 构建通过。4 项跳过不计为实库验收。本轮未重新访问真实服务或执行模型/设备操作。修复连接切换时旧请求覆盖状态的竞态；缺少 infra SDK 时旧源明确返回不可用；BSON 小整数 Int64 也保留 `$numberLong` 类型信息，新增合成回归。EvaluationPanel 的未提交外观改动已按要求撤回，来源评估说明保留。以下真实服务和浏览器记录为此前验收记录，本轮未复验。

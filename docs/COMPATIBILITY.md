@@ -1,5 +1,24 @@
 # 兼容与互通合同
 
+## Skill 多文件与旧 v1 合同
+
+`evonext.skill-revision.v1` 仍按 SKILL.md 的原 UTF-8 字节哈希验证，不重写历史。
+无附件的 v1 Bundle 导出仍只有 `ref/document`，其 Runtime 上下文字节与旧版保持一致。
+v2 显式带 `format_version="v2"` 和不可变 `assets`（path/content）；content_hash 覆盖
+规范 JSON 文件映射 `{"SKILL.md":document, ...assets}`。revision 继续绑定完整记录、
+parent、owner、来源集合和理由，content_hash 与 revision 不混用。
+
+v2 附件只支持 UTF-8 文本；允许 references/templates/scripts/assets 下的安全相对路径，
+不接受路径穿越和大小写冲突。最多 50 个附件，整个规范文件映射 256 KiB，
+SKILL.md 仍限 64 KiB。脚本没有执行权限含义。恢复/归档/diff/导出携带全部文件；
+旧调用未提供 assets 时保留既有附件，显式空映射表示移除附件。
+仅懂 v1 的外部消费者须拒绝 v2，不能静默剥离附件。Runtime 的 owner/hash/grant
+检查覆盖完整 Bundle；候选的导出或交付不等于实际阅读、执行成功或采用。
+
+新增 Workshop API/CLI 不迁移 EvoLoop 数据、旧格式或生产 Registry；本地草稿目录
+与 PG 模型操作回执分别履行已有职责。共享目录的生产权限、备份和多机部署不在
+本地候选 profile 的已验范围。
+
 ## 1. 保留的数据
 
 现有 OpenCUA-shaped 数据主体继续使用 `task_id`、`instruction`、`traj`。已有离线包采用：

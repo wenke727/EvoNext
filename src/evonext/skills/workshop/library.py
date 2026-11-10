@@ -12,7 +12,7 @@ import tempfile
 from filelock import FileLock
 import yaml
 
-from evonext.contracts.skills import SkillBundle, SkillRef
+from evonext.contracts.skills import SkillAsset, SkillBundle, SkillRef, skill_content_hash
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 
 _SLUG = re.compile(r"[a-z][a-z0-9-]{0,63}")
@@ -119,8 +119,12 @@ class Workshop:
         record = load_json(self._path(skill_id, "revisions", revision, "record.json").read_bytes())
         if sha256(encode_json(record)) != revision or record["owner"] != self.owner or record["skill_id"] != skill_id:
             raise ContractError("Skill revision identity mismatch")
+        if record["schema_version"] not in {"evonext.skill-revision.v1", "evonext.skill-revision.v2"}:
+            raise ContractError("Unsupported Skill revision version")
         document = self._path(skill_id, "revisions", revision, "SKILL.md").read_bytes().decode("utf-8")
-        if sha256(document.encode()) != record["content_hash"] or not directory.is_dir():
+        assets = tuple(SkillAsset(path=p, content=c) for p, c in record.get("assets", {}).items())
+        version = "v2" if record["schema_version"] == "evonext.skill-revision.v2" else "v1"
+        if skill_content_hash(document, assets, version) != record["content_hash"] or not directory.is_dir():
             raise ContractError("Skill content hash mismatch")
         validate_document(skill_id, document)
         return record, document
@@ -133,7 +137,7 @@ class Workshop:
             return self._read(skill_id, revision or head["revision"])
 
     def save(self, skill_id, document, *, expected_revision, source_snapshots, reason, actor,
-             archived=False, restored_from=None):
+             archived=False, restored_from=None, assets=None):
         validate_document(skill_id, document)
         if not reason or not actor or not source_snapshots:
             raise ContractError("Candidate needs reason, actor and pinned source snapshot identities")
@@ -144,12 +148,18 @@ class Workshop:
             parent = head["revision"] if head else None
             if parent != expected_revision:
                 raise ContractError("Skill changed since it was read; refresh before saving")
-            record = {"schema_version": "evonext.skill-revision.v1", "skill_id": skill_id,
-                "owner": self.owner, "parent": parent, "content_hash": sha256(document.encode()),
+            old = self._read(skill_id, parent)[0] if head else {}
+            files = old.get("assets", {}) if assets is None else dict(assets)
+            asset_list = tuple(SkillAsset(path=p, content=c) for p, c in files.items())
+            version = "v2" if files or old.get("schema_version", "").endswith(".v2") else "v1"
+            content_hash = skill_content_hash(document, asset_list, version)
+            record = {"schema_version": "evonext.skill-revision." + version, "skill_id": skill_id,
+                "owner": self.owner, "parent": parent, "content_hash": content_hash,
                 "source_snapshots": sorted(set(source_snapshots)), "reason": reason, "actor": actor,
                 "archived": bool(archived), "restored_from": restored_from, "stage": "candidate"}
+            if version == "v2":
+                record["assets"] = files
             if head:
-                old, _ = self._read(skill_id, parent)
                 if all(old[k] == record[k] for k in ("content_hash", "source_snapshots", "archived")):
                     return {**head, "changed": False}
             revision = sha256(encode_json(record))
@@ -170,7 +180,7 @@ class Workshop:
         record, document = self.read(skill_id, revision)
         return self.save(skill_id, document, expected_revision=expected_revision,
             source_snapshots=record["source_snapshots"], reason="restore saved revision", actor=actor,
-            archived=False, restored_from=revision)
+            archived=False, restored_from=revision, assets=record.get("assets", {}))
 
     def archive(self, skill_id, *, expected_revision, actor):
         record, document = self.read(skill_id)
@@ -200,9 +210,22 @@ class Workshop:
                 raise ContractError("Archived revision cannot be exported for use")
             return SkillBundle(ref=SkillRef(skill_id=skill_id, owner=self.owner, revision=revision,
                 content_hash=record["content_hash"], source_snapshots=tuple(record["source_snapshots"])),
-                document=document)
+                document=document,
+                format_version="v2" if record["schema_version"].endswith(".v2") else "v1",
+                assets=tuple(SkillAsset(path=p, content=c) for p, c in record.get("assets", {}).items()))
+
+    def list(self):
+        with self.lock:
+            return [{"skill_id": p.name, **self._head(p.name)}
+                    for p in sorted(self.root.iterdir())
+                    if _SLUG.fullmatch(p.name) and p.is_dir() and self._head(p.name)]
+
+    def files(self, skill_id, revision=None):
+        record, document = self.read(skill_id, revision)
+        return {"SKILL.md": document, **record.get("assets", {})}
 
     def diff(self, skill_id, before, after):
-        _, a = self.read(skill_id, before)
-        _, b = self.read(skill_id, after)
-        return "".join(difflib.unified_diff(a.splitlines(True), b.splitlines(True), before, after))
+        a, b = self.files(skill_id, before), self.files(skill_id, after)
+        return "".join("".join(difflib.unified_diff(a.get(p, "").splitlines(True),
+            b.get(p, "").splitlines(True), f"{before}/{p}", f"{after}/{p}"))
+            for p in sorted(a.keys() | b.keys()))

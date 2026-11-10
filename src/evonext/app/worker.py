@@ -57,3 +57,31 @@ def evaluate(operation_id: str):
         repository.close()
         assets.close()
         ledger.close()
+
+
+@app.task(name="evonext.workshop", acks_late=True)
+def workshop(operation_id: str):
+    from evonext.app.workshop_api import configured_workshop
+    from evonext.evidence.service import EvidenceService
+    from evonext.providers.gateway import ModelGateway
+    from evonext.skills.workshop.service import run, keys
+    repository, assets = stores(settings)
+    ledger = Ledger(secret(settings.postgres_dsn))
+    gateway = None
+    try:
+        gateway = ModelGateway(settings)
+        return run(operation_id, configured_workshop(settings),
+                   EvidenceService(repository, assets, settings), ledger, gateway)
+    except Exception as exc:
+        key = keys(operation_id)
+        row = ledger.get(key)
+        if row:
+            ledger.record(key + "-error", row["snapshot_id"], "workshop_error.v1",
+                          {"automatic_retry": False, "needs_reconciliation": True})
+        raise exc
+    finally:
+        if gateway is not None:
+            gateway.close()
+        repository.close()
+        assets.close()
+        ledger.close()

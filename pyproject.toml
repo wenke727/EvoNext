@@ -12,6 +12,7 @@ dependencies = [
   "fastapi>=0.128,<1", "uvicorn>=0.34,<1", "pydantic>=2.10,<3",
   "pydantic-settings>=2.7,<3", "httpx>=0.28,<1",
   "Jinja2>=3.1.6,<4", "PyYAML>=6.0.2,<7", "filelock>=3.20,<4",
+  "markdown-it-py>=4,<5",
   "Pillow>=11.0,<13",
 ]
 
@@ -43,3 +44,4 @@ select = ["E4", "E7", "E9", "F"]
 
 [tool.setuptools.package-data]
 "evonext.evaluation" = ["*.md"]
+"evonext.skills.workshop" = ["*.md"]

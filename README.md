@@ -12,7 +12,7 @@
 
 **只读工作台阶段完成（2026-11-07）**：真实离线数据浏览、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键与打点原文检索已验收收口。当前版本不宣称完整替代旧平台；真实 Langfuse 联通、编辑/审核、治理管道和其余低频字段留待独立工作包。范围、旧版差异与验证边界见 [验收记录](docs/ACCEPTANCE.md)。
 
-已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。新增本地 Skill 候选维护（版本/CAS/diff/Undo/固定导出）、Runtime 冻结消费与授权合同、严格策略模板、PG 收费调用恢复与请求预算。自动学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
+已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。本地 Skill Workshop 提供多文件候选、草稿复核/CAS 提交、显式学习与精简、版本/diff/Undo/固定导出；Runtime 消费冻结合同。学习复用 PG 收费回执、请求预算和 Celery，模型结果不自动提交。后台自主学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
 
 核心约束：
 
@@ -121,6 +121,8 @@ cd web && npm test && npm run build
 本轮离线测试和实际 CI 状态记录在 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。保留基线测试并增加分层、策略、调用恢复、Workshop 和 Runtime 合同回归。实库/设备/真实语义未测不得算通过；配置 CI 不等于本轮 CI 已通过。
 
 本地候选操作与 Runtime 准备命令见 [08](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md)。`prepare-trial` 仅产计划，不执行。模型 probe 需要显式开启 `EVONEXT_MODEL_CALLS_ENABLED`、PG 迁移和稳定 `--operation-id`；同一请求复用已收到响应，结果未知不自动重发。
+
+顶部 **Skill Workshop** 打开候选库和草稿箱。设置 `EVONEXT_WORKSHOP_ROOT` 为明确的本地绝对目录，并配置 `EVONEXT_WORKSHOP_OWNER`、`EVONEXT_REVIEW_OPERATOR_ID`；API 与 Worker 须在同一主机共享该目录。手工编辑、逐文件 diff、复核和提交无需模型。显式学习/精简还需要 PG、Celery 和已启用的 gateway；步骤、可选截图与固定 Case 审核版本由操作者选择，先预览再提交。CLI `evonext workshop-api` 复用相同 HTTP 用例。完整请求与边界见 [Workshop 操作合同](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md#9-workshop-草稿学习与精简)。
 
 前端依赖已固定在 `web/package-lock.json`，使用 `npm ci` 安装。Python 依赖仍采用版本范围；可复现部署另行验收。
 

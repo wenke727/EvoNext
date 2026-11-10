@@ -4,6 +4,15 @@
 
 完整需求与原验收编号已在 [rebuild](rebuild/README.md) 入仓。本文件只维护交付顺位，不重写另一份功能总表。
 
+## 2026-11-10 · 显式 Workshop 重构切片
+
+用户增补授权先重构 EvoNext Skills，基于 `origin/feat/agentic-findings-cases`：
+完整多文件候选、来源/base revision 绑定的草稿、复核、显式提交，以及复用
+Evidence/gateway/PG/Celery 的学习与精简。API、CLI、工作台共用用例，
+兼容旧 v1 消费合同。当前工程证据见 ACCEPTANCE，操作合同见 rebuild/08 §9。
+本片达到离线和合成浏览器验收即收口；下一 Gate 是另行确定的真实学习/视觉复核
+与 none/raw/skill 比较，不凭本片自动启动设备实验、后台学习或生产平台建设。
+
 ## M0/M1a：本次底座
 
 已实现源码：安全启动、API Key、OpenAPI、JSON/ZIP 契约、不可变快照、媒体绑定、基础工作台、导出、旧平台 HTTP adapter、PG 回执、Celery 校验任务、Langfuse 模型客户端、合成测试与 CI 配置。

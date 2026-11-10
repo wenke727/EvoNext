@@ -50,6 +50,12 @@ def main():
     workshop.add_argument("--revision")
     workshop.add_argument("--source", action="append", default=[])
     workshop.add_argument("--reason", default="manual candidate revision")
+    workshop_api = commands.add_parser("workshop-api", help="Draft/review/author through configured API")
+    workshop_api.add_argument("action", choices=["list", "draft", "show", "review", "commit",
+                                               "discard", "preview", "author", "status"])
+    workshop_api.add_argument("--id", help="Draft hash or stable authoring operation ID")
+    workshop_api.add_argument("--file", type=Path, help="Exact JSON request; reuse on recovery")
+    workshop_api.add_argument("--url", default="http://127.0.0.1:8000")
     available = commands.add_parser("list-available", help="Filter a resource owner inventory JSON file")
     available.add_argument("--inventory", required=True, type=Path)
     available.add_argument("--driver", choices=["external_agent", "builtin_agent", "cloud_query"])
@@ -67,7 +73,31 @@ def main():
     case.add_argument("--revision", type=int)
     case.add_argument("--purpose", choices=["diagnosis", "localization", "sft", "dpo"])
     args = parser.parse_args()
-    if args.command == "case":
+    if args.command == "workshop-api":
+        import httpx
+        from urllib.parse import quote
+        from evonext.config import secret
+        paths = {"list": "", "draft": "/drafts", "show": "/drafts/{id}",
+                 "review": "/drafts/{id}/review", "commit": "/drafts/{id}/commit",
+                 "discard": "/drafts/{id}/discard", "preview": "/preview",
+                 "author": "/operations", "status": "/operations/{id}"}
+        path = paths[args.action]
+        if "{id}" in path and not args.id:
+            parser.error("--id is required")
+        payload = None
+        if args.action in {"draft", "review", "preview", "author"}:
+            if not args.file:
+                parser.error("--file is required")
+            payload = json.loads(args.file.read_text(encoding="utf-8"))
+        method = "GET" if args.action in {"list", "show", "status"} else "POST"
+        with httpx.Client(base_url=args.url, headers={"X-API-Key": secret(Settings().api_key)},
+                          timeout=60) as client:
+            response = client.request(method, "/api/v1/workshop" +
+                path.format(id=quote(args.id or "", safe="")), json=payload)
+            if response.is_error:
+                parser.exit(1, f"HTTP {response.status_code}: {response.text}\n")
+            print(json.dumps(response.json(), ensure_ascii=False, indent=2))
+    elif args.command == "case":
         import httpx
         from uuid import UUID
         from evonext.config import secret
