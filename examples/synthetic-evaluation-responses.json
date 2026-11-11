@@ -1,0 +1,6 @@
+{
+  "responses": [
+    {"checks": [{"check_id": "task_goal", "judgment": "unknown", "evidence_refs": [], "reason": "Synthetic replay: no independent post-action evidence."}], "findings": []},
+    {"read_evidence": [0]}
+  ]
+}

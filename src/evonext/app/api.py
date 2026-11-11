@@ -17,6 +17,9 @@ from evonext.evidence.packages import media_type
 from evonext.evidence.service import EvidenceService
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
+from evonext.evaluation.inputs import InputOptions, prepare_input
+from evonext.evaluation.service import (EvalRequest, submit, status as evaluation_status,
+                                        FindingConfirmation, finding_proposal)
 from evonext.review.store import MemoryCases, PostgresCases
 from evonext.app.case_api import attach_case_routes
 
@@ -227,6 +230,38 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
         check_snapshot_id(snapshot_id)
         return service.get_header(snapshot_id)
 
+    @app.post("/api/v1/snapshots/{snapshot_id}/evaluation-input", dependencies=auth)
+    def evaluation_input(snapshot_id: str, options: InputOptions):
+        return prepare_input(snapshot_or_404(snapshot_id), options)
+
+    @app.post("/api/v1/snapshots/{snapshot_id}/evaluations", dependencies=auth, status_code=202)
+    def start_evaluation(snapshot_id: str, request: EvalRequest):
+        if not settings.model_calls_enabled:
+            raise PermissionError("Model calls are explicitly disabled")
+        if ledger is None:
+            raise HTTPException(503, "Evaluation requires PostgreSQL and migrations")
+        result = submit(snapshot_or_404(snapshot_id), request, ledger)
+        if result["status"] == "pending":
+            from celery import Celery
+            sender = Celery("evonext", broker=secret(settings.broker_url))
+            try:
+                sender.send_task("evonext.evaluate", args=[request.operation_id], queue="evonext.bulk",
+                                 retry=False)
+            except Exception as exc:
+                raise HTTPException(503, "Request saved; queue delivery unverified. Reuse operation_id to reconcile.") from exc
+            finally:
+                sender.close()
+        return result
+
+    @app.get("/api/v1/evaluations/{operation_id}", dependencies=auth)
+    def read_evaluation(operation_id: str):
+        if ledger is None:
+            raise HTTPException(503, "Evaluation store unavailable")
+        result = evaluation_status(operation_id, ledger)
+        if result is None:
+            raise HTTPException(404, "Evaluation not found")
+        return result
+
     @app.get("/api/v1/snapshots/{snapshot_id}/trajectory", dependencies=auth)
     def download_trajectory(snapshot_id: str):
         return Response(snapshot_or_404(snapshot_id).trajectory_json, media_type="application/json",
@@ -264,6 +299,25 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
                                   dry_run=dry_run, allow_projection_loss=allow_projection_loss)
         finally:
             bridge.close()
+
+    @app.post("/api/v1/evaluations/{operation_id}/findings/{index}/cases",
+              dependencies=auth, status_code=201)
+    def confirm_finding(operation_id: str, index: int, body: FindingConfirmation):
+        if ledger is None or active_case_store is None:
+            raise HTTPException(503, "Evaluation and Case storage are required")
+        if not settings.review_operator_id:
+            raise HTTPException(503, "Review operator is not configured")
+        saved = evaluation_status(operation_id, ledger)
+        if saved is None or saved["result"] is None:
+            raise HTTPException(404, "Completed evaluation not found")
+        from evonext.review.service import CaseService
+        from evonext.review.contracts import CaseConflict
+        try:
+            proposal = finding_proposal(saved["result"], index, body)
+            return CaseService(service, active_case_store).propose(
+                proposal, actor=settings.review_operator_id)
+        except CaseConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
 
     attach_case_routes(app, evidence=service, get_store=lambda: active_case_store,
                        auth=auth, settings=settings)

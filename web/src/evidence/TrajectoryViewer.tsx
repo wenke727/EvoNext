@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent } from "react";
 import type { Detail, EvidenceClient } from "./client";
 import { EvidenceInspector } from "./EvidenceInspector";
+import { EvaluationInput } from "./EvaluationInput";
 import { EvidenceImage } from "./EvidenceImage";
 import { actionLabel, projectStep } from "./projection";
 import { usePreferences } from "./preferences";
@@ -66,6 +67,7 @@ export function TrajectoryViewer({
   const inspectorOpener = useRef<HTMLElement | null>(null);
   const inspectorButton = useRef<HTMLButtonElement>(null);
   const [settings, setSettings] = useState(false);
+  const [evaluationInput, setEvaluationInput] = useState(false);
   const [help, setHelp] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [notice, setNotice] = useState("");
@@ -189,6 +191,10 @@ export function TrajectoryViewer({
       step: String(index),
       view: mode,
     });
+    const previous = new URLSearchParams(location.hash.slice(1));
+    if (previous.get("snapshot") === detail.snapshot_id && previous.has("evaluation")) {
+      params.set("evaluation", previous.get("evaluation")!);
+    }
     history.replaceState(null, "", `#${params}`);
     (mode === "grid" ? overview : strip).current
       ?.querySelector('[aria-current="step"]')
@@ -230,7 +236,7 @@ export function TrajectoryViewer({
         )
       )
         return;
-      if (help || zoom || settings) return;
+      if (help || zoom || settings || evaluationInput) return;
       const modifier = event.ctrlKey || event.metaKey;
       if (
         modifier &&
@@ -748,6 +754,7 @@ export function TrajectoryViewer({
             />
           </div>
           <span className="read-only">只读浏览</span>
+          <button onClick={() => setEvaluationInput(true)}>评估输入预览</button>
           <button onClick={() => onDownload("trajectory")}>导出 JSON</button>
           <button disabled={detail.metadata.portable_bundle === false} title={detail.metadata.portable_bundle === false ? "来源图片地址保持原样，当前支持 JSON 导出；可移植包需显式地址投影" : undefined} onClick={() => onDownload("bundle")}>导出包</button>
           <button onClick={() => setHelp(true)}>⌨ 快捷键</button>
@@ -757,6 +764,9 @@ export function TrajectoryViewer({
         onStep={open} onClose={closeInspector} onReload={onReload}
         onResize={event => resize(event, "inspector")}
         onWidth={width => setPrefs(p => ({ ...p, inspector: Math.max(320, Math.min(720, width)) }))} />}
+      {evaluationInput && <EvaluationInput client={client} snapshot={detail.snapshot_id}
+        focusPosition={count ? position : -1}
+        onClose={() => setEvaluationInput(false)} onStep={open} />}
       <DisplaySettings
         open={settings}
         value={prefs.display}
@@ -765,7 +775,7 @@ export function TrajectoryViewer({
         onChange={display => setPrefs(p => ({ ...p, display }))}
         onClose={() => setSettings(false)}
       />
-      {peek && !help && !zoom && !settings && (
+      {peek && !help && !zoom && !settings && !evaluationInput && (
         <StepPreview
           client={client}
           detail={detail}

@@ -19,6 +19,19 @@ def main():
     inspect_source.add_argument("--limit", type=int, default=30)
     validate = commands.add_parser("validate-bundle")
     validate.add_argument("path", type=Path)
+    evaluation_input = commands.add_parser("prepare-evaluation", help="Preview complete trajectory evaluation input")
+    evaluation_input.add_argument("path", type=Path, help="Platform trajectory JSON or portable ZIP")
+    evaluation_input.add_argument("--images", choices=["auto", "all", "last_three"], default="auto")
+    evaluation_input.add_argument("--include-think", action="store_true")
+    evaluation_input.add_argument("--max-images", type=int, default=10)
+    evaluate = commands.add_parser("evaluate", help="Run a registered snapshot through Fast Judge")
+    evaluate.add_argument("snapshot_id")
+    evaluate.add_argument("--operation-id", required=True)
+    evaluate.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
+    replay = commands.add_parser("replay-evaluation", help="Offline synthetic judge response replay")
+    replay.add_argument("path", type=Path)
+    replay.add_argument("--responses", type=Path, required=True)
+    replay.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
     enqueue = commands.add_parser("enqueue-integrity")
     enqueue.add_argument("snapshot_id")
     probe = commands.add_parser("model-probe")
@@ -116,6 +129,70 @@ def main():
             parser.error("Bundle exceeds size limit")
         snapshot = import_bundle(args.path.read_bytes(), MemoryAssets(), settings)
         print(json.dumps(snapshot.summary(), ensure_ascii=False, indent=2))
+    elif args.command == "replay-evaluation":
+        from evonext.contracts.trajectory import Snapshot, load_json
+        from evonext.evaluation.core import evaluate
+        from evonext.evaluation.service import EvalRequest
+        from evonext.evaluation.replay import ReplayGateway
+        from evonext.evidence.packages import import_bundle
+        from evonext.evidence.service import EvidenceService
+        from evonext.evidence.store import MemoryAssets, MemorySnapshots
+        settings = Settings(demo=True, _env_file=None)
+        if args.path.stat().st_size > settings.max_upload_bytes or args.responses.stat().st_size > 1024 * 1024:
+            parser.error("Replay input exceeds size limit")
+        assets = MemoryAssets()
+        raw = args.path.read_bytes()
+        snapshot = (import_bundle(raw, assets, settings) if args.path.suffix.lower() == ".zip"
+                    else Snapshot.create(raw, max_steps=settings.max_steps))
+        service = EvidenceService(MemorySnapshots(), assets, settings)
+        service.accept(snapshot)
+        responses = load_json(args.responses.read_bytes())["responses"]
+        request = EvalRequest(operation_id="synthetic-replay", investigation=args.investigation)
+        prompt = Path(__file__).parents[1].joinpath("evaluation/outcome.md").read_text(encoding="utf-8")
+        result = evaluate(snapshot, request, service, ReplayGateway(responses), prompt, "synthetic-replay")
+        result["native_result"]["synthetic_replay"] = True
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    elif args.command == "evaluate":
+        from evonext.config import secret
+        from evonext.evaluation.service import EvalRequest, submit, run
+        from evonext.evidence.service import EvidenceService
+        from evonext.evidence.store import stores
+        from evonext.operations.ledger import Ledger
+        from evonext.providers.gateway import ModelGateway
+        settings = Settings()
+        if settings.demo or not settings.postgres_dsn or not settings.model_calls_enabled:
+            parser.error("Evaluation requires configured stores and explicitly enabled model calls")
+        repository, assets = stores(settings)
+        ledger = Ledger(secret(settings.postgres_dsn))
+        gateway = None
+        try:
+            service = EvidenceService(repository, assets, settings)
+            snapshot = service.get(args.snapshot_id)
+            if snapshot is None:
+                parser.error("Snapshot not found")
+            submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation), ledger)
+            gateway = ModelGateway(settings)
+            print(json.dumps(run(args.operation_id, service, ledger, gateway), ensure_ascii=False, indent=2))
+        finally:
+            if gateway is not None:
+                gateway.close()
+            ledger.close()
+            repository.close()
+            assets.close()
+    elif args.command == "prepare-evaluation":
+        from evonext.contracts.trajectory import Snapshot
+        from evonext.evaluation.inputs import InputOptions, prepare_input
+        from evonext.evidence.packages import import_bundle
+        from evonext.evidence.store import MemoryAssets
+        settings = Settings(demo=True, _env_file=None)
+        if args.path.stat().st_size > settings.max_upload_bytes:
+            parser.error("Input exceeds size limit")
+        raw = args.path.read_bytes()
+        snapshot = (import_bundle(raw, MemoryAssets(), settings) if args.path.suffix.lower() == ".zip"
+                    else Snapshot.create(raw, max_steps=settings.max_steps))
+        options = InputOptions(images=args.images, include_think=args.include_think,
+                               max_images=args.max_images)
+        print(json.dumps(prepare_input(snapshot, options), ensure_ascii=False, indent=2))
     elif args.command == "enqueue-integrity":
         from evonext.app.worker import verify
         receipt = verify.apply_async(args=[args.snapshot_id], queue="evonext.bulk")
