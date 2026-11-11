@@ -17,6 +17,8 @@ from evonext.evidence.packages import media_type
 from evonext.evidence.service import EvidenceService
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
+from evonext.review.store import MemoryCases, PostgresCases
+from evonext.app.case_api import attach_case_routes
 
 
 async def limited_body(request, maximum):
@@ -28,7 +30,7 @@ async def limited_body(request, maximum):
     return bytes(body)
 
 
-def create_app(settings=None, repository=None, assets=None, source=None):
+def create_app(settings=None, repository=None, assets=None, case_store=None, *, source=None):
     settings = settings or Settings()
     if (repository is None) != (assets is None):
         raise ValueError("Inject both repository and assets, or neither")
@@ -51,14 +53,17 @@ def create_app(settings=None, repository=None, assets=None, source=None):
 
     ledger = None
     ledger_error = "NotInitialized"
+    active_case_store = case_store if case_store is not None else (MemoryCases() if settings.demo else None)
 
     @asynccontextmanager
     async def lifespan(app):
-        nonlocal ledger, ledger_error
+        nonlocal ledger, ledger_error, active_case_store
         if settings.postgres_dsn and not settings.demo:
             try:
                 from evonext.operations.ledger import Ledger
                 ledger = Ledger(secret(settings.postgres_dsn))
+                if active_case_store is None and hasattr(ledger, "engine"):
+                    active_case_store = PostgresCases(ledger.engine)
             except Exception as exc:
                 ledger_error = type(exc).__name__
         try:
@@ -260,4 +265,6 @@ def create_app(settings=None, repository=None, assets=None, source=None):
         finally:
             bridge.close()
 
+    attach_case_routes(app, evidence=service, get_store=lambda: active_case_store,
+                       auth=auth, settings=settings)
     return app

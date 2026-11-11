@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DisplayPreferences } from "./display-preferences";
-import type { Detail } from "./client";
+import type { Detail, EvidenceClient } from "./client";
+import { CasePanel } from "./CasePanel";
 import { record } from "./evaluation";
 import { Sidebar } from "../workbench/sidebar/Sidebar";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -23,9 +24,11 @@ export function TaskSidebar({
   position,
   onStep,
   display,
+  client,
 }: {
   display: DisplayPreferences;
   detail: Detail;
+  client: EvidenceClient;
   position: number;
   onStep: (position: number) => void;
 }) {
@@ -98,6 +101,7 @@ export function TaskSidebar({
         onTags={rejectWrite}
         onAudit={rejectWrite}
       />
+      <CasePanel detail={detail} position={position} onStep={onStep} client={client} />
       {notice && <p className="sidebar-note" role="status">{notice}</p>}
       <details className="sidebar-provenance">
         <summary>来源信息</summary>

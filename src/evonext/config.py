@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     model_api_key: SecretStr | None = None
     model_name: str = ""
     model_calls_enabled: bool = False
+    review_operator_id: str = Field(default="", max_length=128)
     model_budget_scope: str = Field(default="default", min_length=1, max_length=64)
     model_calls_per_minute: int = Field(default=10, ge=0, le=10000)
     model_calls_per_hour: int = Field(default=100, ge=0, le=100000)

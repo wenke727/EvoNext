@@ -1,3 +1,4 @@
+import type { CorrectionDraft, SavedDraft, FrozenReview, UsePreview } from "./correction";
 import { MediaCache } from "./media";
 
 export type Summary = {
@@ -27,6 +28,29 @@ export type SourceTask = Omit<Summary, "snapshot_id" | "media_count">;
 export type SourcePage = { items: SourceTask[]; next_cursor: string | null };
 export type Page = { items: Summary[]; next_cursor: string | null };
 
+export type IssueKind = "task_outcome" | "step_action" | "tool_execution" |
+  "environment" | "safety" | "data_or_label" | "unknown";
+export type CaseDecision = "confirmed" | "rejected" | "needs_evidence";
+export type CaseProposal = {
+  case_id: string;
+  snapshot_id: string;
+  position: number;
+  source_step_id: string | null;
+  issue_kind: IssueKind;
+  summary: string;
+  evidence_refs: string[];
+  analysis_refs: {kind: "outcome" | "diagnosis"; producer: string; record_id: string; snapshot_id: string}[];
+};
+export type CaseView = CaseProposal & {
+  source_version: number | null;
+  review_status: "pending" | "operator_confirmed" | "rejected" | "needs_evidence";
+  review_revision: number;
+  created_at: string;
+  created_by: string;
+  authority: "none" | "configured_operator";
+  history: {revision: number; decision: CaseDecision; reason: string; actor: string; created_at: string}[];
+};
+
 // A client belongs to one in-memory credential session. Never persist credentials or evidence.
 export class EvidenceClient {
   readonly media: MediaCache;
@@ -51,6 +75,7 @@ export class EvidenceClient {
       throw new Error(
         typeof reason === "string"
           ? reason
+          : Array.isArray(reason) ? reason.map(item => `${item.loc?.join(".")}: ${item.msg}`).join("\n")
           : `请求失败（HTTP ${response.status}）`,
       );
     }
@@ -81,6 +106,59 @@ export class EvidenceClient {
 
   async detail(id: string, signal: AbortSignal): Promise<Detail> {
     return (await this.request(`/api/v1/snapshots/${id}`, { signal })).json();
+  }
+
+  async casesForSnapshot(id: string, signal?: AbortSignal): Promise<{items: CaseView[]}> {
+    return (await this.request(`/api/v1/snapshots/${id}/cases`, {signal})).json();
+  }
+
+  async createCase(proposal: CaseProposal): Promise<CaseView> {
+    return (await this.request("/api/v1/cases", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(proposal),
+    })).json();
+  }
+
+  async decideCase(id: string, revision: number,
+                   body: {decision: CaseDecision; reason: string}): Promise<CaseView> {
+    return (await this.request(`/api/v1/cases/${id}/review`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "If-Match": `"${revision}"`},
+      body: JSON.stringify(body),
+    })).json();
+  }
+
+  async correctionDraft(id: string, signal?: AbortSignal): Promise<SavedDraft> {
+    return (await this.request(`/api/v1/cases/${id}/draft`, {signal})).json();
+  }
+
+  async saveCorrections(id: string, command: {
+    command_id: string; expected_draft_revision: number; draft: CorrectionDraft;
+  }): Promise<SavedDraft> {
+    return (await this.request(`/api/v1/cases/${id}/draft`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json", "If-Match": `"${command.expected_draft_revision}"`},
+      body: JSON.stringify(command),
+    })).json();
+  }
+
+  async reviewCorrections(id: string, command: {
+    command_id: string; expected_review_revision: number; draft_revision: number;
+    draft_hash: string; decision: CaseDecision; reason: string;
+  }): Promise<CaseView> {
+    return (await this.request(`/api/v1/cases/${id}/review`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "If-Match": `"${command.expected_review_revision}"`},
+      body: JSON.stringify(command),
+    })).json();
+  }
+
+  async frozenReview(id: string, revision: number): Promise<FrozenReview> {
+    return (await this.request(`/api/v1/cases/${id}/reviews/${revision}`)).json();
+  }
+
+  async correctionPreview(id: string, revision: number, purpose: string): Promise<UsePreview> {
+    return (await this.request(`/api/v1/cases/${id}/reviews/${revision}/previews/${purpose}`)).json();
   }
 
   async importFile(file: File): Promise<Summary> {

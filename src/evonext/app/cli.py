@@ -42,8 +42,47 @@ def main():
     prepare.add_argument("--request", type=Path, required=True)
     prepare.add_argument("--bundle", type=Path, required=True)
     probe.add_argument("--operation-id", required=True)
+    case = commands.add_parser("case")
+    case.add_argument("action", choices=["show", "draft", "save", "review", "preview"])
+    case.add_argument("case_id")
+    case.add_argument("--url", default="http://127.0.0.1:8000")
+    case.add_argument("--file", type=Path, help="Exact DraftCommand or FrozenReviewCommand JSON")
+    case.add_argument("--revision", type=int)
+    case.add_argument("--purpose", choices=["diagnosis", "localization", "sft", "dpo"])
     args = parser.parse_args()
-    if args.command == "serve":
+    if args.command == "case":
+        import httpx
+        from uuid import UUID
+        from evonext.config import secret
+        from evonext.review.corrections import DraftCommand, FrozenReviewCommand
+        UUID(args.case_id)
+        settings = Settings()
+        path = f"/api/v1/cases/{args.case_id}"
+        headers = {"X-API-Key": secret(settings.api_key)}
+        method, payload = "GET", None
+        if args.action == "draft":
+            path += "/draft"
+        elif args.action in {"save", "review"}:
+            if not args.file:
+                parser.error("--file is required for a mutation; reuse it to retry the same command")
+            command_type = DraftCommand if args.action == "save" else FrozenReviewCommand
+            command = command_type.model_validate_json(args.file.read_text())
+            payload = command.model_dump(mode="json")
+            revision = (command.expected_draft_revision if isinstance(command, DraftCommand)
+                        else command.expected_review_revision)
+            headers["If-Match"] = f'"{revision}"'
+            method = "PUT" if args.action == "save" else "POST"
+            path += "/draft" if args.action == "save" else "/review"
+        elif args.action == "preview":
+            if args.revision is None or not args.purpose:
+                parser.error("--revision and --purpose are required")
+            path += f"/reviews/{args.revision}/previews/{args.purpose}"
+        with httpx.Client(base_url=args.url, headers=headers, timeout=30) as client:
+            response = client.request(method, path, json=payload)
+            if response.is_error:
+                parser.exit(1, f"HTTP {response.status_code}: {response.text}\n")
+            print(json.dumps(response.json(), ensure_ascii=False, indent=2))
+    elif args.command == "serve":
         import uvicorn
         from evonext.app.api import create_app
         settings = Settings(demo=True) if args.demo else Settings()
