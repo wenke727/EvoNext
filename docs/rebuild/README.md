@@ -6,7 +6,7 @@
 
 ## 已确认、不能被旧草稿覆盖的决定
 
-Mongo + MinIO + PostgreSQL 保留；不再推荐把 Task 全量迁 PG。OpenCUA-shaped `task_id / instruction / traj` 及现有 sidecar 保留，新增控制对象不写进原始轨迹。Langfuse 做模型观测，不另建完整 tracing/Prompt 管理后台。复用 Celery，不引入 pg-boss 或第二个调度器。
+Mongo + MinIO + PostgreSQL 保留；不再推荐把 Task 全量迁 PG。OpenCUA-shaped `task_id / instruction / traj` 及现有 sidecar 保留，新增控制对象不写进原始轨迹。Langfuse 做模型观测，不另建完整 tracing/Prompt 管理后台。Celery/Redis 继续承担通用后台与 bulk 任务；本地物理设备执行按 [ADR-004](../adr/0004-local-device-execution-queue.md) 使用 PostgreSQL 事务领取与设备租约，不把它扩展成第二个通用 Broker，也不引入 pg-boss。
 
 在 `src/evonext/` 中，skills 与 runtime 是一级业务模块，不放 offline，也不把 Skill 变成 Runtime 的私有子模块。这个 Python 命名空间包装不降低其产品地位。Workshop 维护候选；Runtime 消费冻结版本；Evaluation 独立评效果；设备、云 batch 和训练集群仍通过适配器接入。不得复制旧实现或恢复已退役的平行链路。
 
@@ -25,5 +25,6 @@ Mongo + MinIO + PostgreSQL 保留；不再推荐把 Task 全量迁 PG。OpenCUA-
 | [08_SKILLS_RUNTIME_AND_PIPELINE](08_SKILLS_RUNTIME_AND_PIPELINE.md) | AIHOT/OpenClaw 适配、Workshop/Runtime 合同和新增 Gate |
 | [09_REVIEW_CORRECTION_WORKBENCH v0.3](https://github.com/wenke727/EvoNext/blob/13d834807e1a858c265dffc75fed415799d92d45/docs/rebuild/09_REVIEW_CORRECTION_WORKBENCH.md) | 步骤级 Case、同一步纠正候选与逐项审核（PR #4 评审稿） |
 | [examples](examples/README.md) | 9 份合成业务对象、独立 oracle、哈希/身份校验 |
+| [Local Device Queue MVP](../work-packages/local-device-queue-mvp.md) | 本地设备任务领取、租约、Host 与 Codex 实施验收；详见 ADR-004 |
 
 实现 Agent 按 README → 01 → 02 → 03 → 08 → 当前工作包 → 06 阅读。不要求为了改一个模块读取所有历史讨论。最新明确用户约束高于旧草稿，但不能改写历史运行的真实证据。
