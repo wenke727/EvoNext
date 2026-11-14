@@ -4,6 +4,8 @@
 
 本章描述**行为**和最小可用界面；示例 URL 为新系统候选路径，不是对旧系统已有路径的生效声明。新实现可统一版本化 API，但必须为已证实活跃的消费端提供转换/迁移，不能因代码清洁而直接破坏 CLI、Worker、外部回流与训练发布回执。OpenAPI、TypeScript client 与契约测试从同一 schema 生成/验证。
 
+> **跨仓新决策（2026-11-14）**：本文件的“EvoNext Workbench”页面目标已被 EvoLoop 单前端方案覆盖。本章 API/领域交接作为目标合同仍有效，**所有 UI/React/TS/页面/交互必须在 EvoLoop 实现**；EvoNext 仅实现 Agentic Evaluation/Diagnosis、Case/Correction、Recovery、Teacher、Verification、Skill 等领域 API/Worker。当前 EvoNext `web/` 是待迁移删除源，不能作为第二个正式业务 SPA。本文下方“页面/信息架构”只描述 EvoLoop 应呈现的能力，不是授权继续开发 EvoNext 前端。
+
 ## 1. API 设计原则
 
 - REST 表达对象和受控命令，长任务 202 返回 `job_id/run_id/status_url`，不在 HTTP 里等待模型/设备执行。
