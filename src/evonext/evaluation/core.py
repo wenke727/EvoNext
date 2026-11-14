@@ -5,6 +5,7 @@ from pydantic import Field
 from evonext.contracts.trajectory import Check, ContractError, EvaluationRecord, encode_json, load_json, sha256
 from evonext.evaluation.inputs import prepare_input
 from evonext.evaluation.images import image_message
+from evonext.evidence.image_views import JPEG_PROFILE
 
 
 class StepFinding(Check):
@@ -54,7 +55,8 @@ def validate_assessment(native, obligations, refs, bind_decisions=False):
     return checks, findings, outcome
 
 
-def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_call=None):
+def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_call=None,
+             *, image_profile=JPEG_PROFILE):
     obligations = request.obligations or {"task_goal": snapshot.document["instruction"]}
     if any(not key.strip() or not value.strip() for key, value in obligations.items()):
         raise ContractError("Obligation IDs and descriptions must be nonempty")
@@ -76,7 +78,7 @@ def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_cal
         if not image["selected"]:
             continue
         parts, receipt = image_message(snapshot, image, evidence, request.options.markers,
-                                       request.options.runtime_coordinate_profile)
+                                       request.options.runtime_coordinate_profile, image_profile)
         refs.add(image["evidence_ref"])
         media_receipts.append(receipt)
         content.extend(parts)
@@ -133,7 +135,8 @@ def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_cal
         from evonext.evaluation.investigator import investigate
         native, calls, events, stop_reason = investigate(
             snapshot, request, evidence, gateway, prompt, preview, messages,
-            refs, media_receipts, initial, calls, before_call, initial_validation_error)
+            refs, media_receipts, initial, calls, before_call, initial_validation_error,
+            image_profile=image_profile)
         checks, findings, outcome = validate_assessment(native, obligations, refs, request.bind_decisions)
     record = EvaluationRecord(record_id=record_id, snapshot_id=snapshot.id,
         grader_id="fast_judge_investigator" if len(calls) > 1 else "fast_judge",
@@ -152,6 +155,7 @@ def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_cal
             "localization_review_requested": request.review_localization,
             "decisions_bound": request.bind_decisions,
             "cost": None, "delivered_evidence_refs": sorted(refs),
-            "media_receipts": media_receipts, "input_context_sha256": preview["context_sha256"],
+            "media_receipts": media_receipts, "image_profile": image_profile,
+            "input_context_sha256": preview["context_sha256"],
             "stop_reason": stop_reason}).model_dump(mode="json")
     return record

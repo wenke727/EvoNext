@@ -77,7 +77,8 @@ def workshop(operation_id: str):
         row = ledger.get(key)
         if row:
             ledger.record(key + "-error", row["snapshot_id"], "workshop_error.v1",
-                          {"automatic_retry": False, "needs_reconciliation": True})
+                          {"automatic_retry": False, "needs_reconciliation": True,
+                           "error_type": type(exc).__name__})
         raise exc
     finally:
         if gateway is not None:

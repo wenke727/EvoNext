@@ -192,6 +192,7 @@ def main():
         from evonext.config import secret
         from evonext.evaluation.service import EvalRequest, submit, run
         from evonext.evidence.service import EvidenceService
+        from evonext.evidence.image_views import profile_for_quality
         from evonext.evidence.store import stores
         from evonext.operations.ledger import Ledger
         from evonext.providers.gateway import ModelGateway
@@ -208,7 +209,8 @@ def main():
                 parser.error("Snapshot not found")
             submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation,
                                          review_localization=args.review_localization,
-                                         bind_decisions=args.bind_decisions), ledger)
+                                         bind_decisions=args.bind_decisions), ledger,
+                   image_profile=profile_for_quality(settings.model_image_quality))
             gateway = ModelGateway(settings)
             print(json.dumps(run(args.operation_id, service, ledger, gateway), ensure_ascii=False, indent=2))
         finally:

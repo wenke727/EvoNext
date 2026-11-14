@@ -138,6 +138,8 @@ evonext workshop-api status --id stable-learning-id
 
 当前检索只覆盖已注册工作区的有界快照范围，采用词项重合，不承诺语义检索质量。尚未连接任务结束、空闲整理、设备执行或自动采用；详细限制见 [§10.8](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md#108-手工触发首片的现役合同)。
 
+Workshop 和 Evaluation 的新请求共用 JPEG 消费视图：默认 quality=98、无色度抽样、32 像素对齐、最多 980 patch；可显式配置 `EVONEXT_MODEL_IMAGE_QUALITY=90`。原始证据和下载保持原字节，源/派生 hash、尺寸及实际字节数单独记录。980 是几何上限，不是固定计费 Token 或 KB 承诺；请求字节预算仍生效，超限不会自动降质。已冻结操作保持原图片 profile，修改配置不会重发 unknown 请求。见 [图片消费合同](docs/COMPATIBILITY.md#10-模型图片消费视图)。
+
 前端依赖已固定在 `web/package-lock.json`，使用 `npm ci` 安装。Python 依赖仍采用版本范围；可复现部署另行验收。
 
 ## 文档入口

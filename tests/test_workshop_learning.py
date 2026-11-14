@@ -389,3 +389,55 @@ def test_image_request_timeout_retains_loaded_hash_and_never_resends_unknown(env
         assert len(calls) == 2
     finally:
         gateway.close()
+
+
+def test_image_quality_is_frozen_and_preview_measures_the_sent_jpeg(env):
+    import base64
+    from evonext.contracts.trajectory import sha256
+    from evonext.evidence.image_views import JPEG90_PROFILE
+    from evonext.skills.workshop.service import SourceWindow, preview, keys
+    library, evidence, ledger, settings = env
+    snap = source(env, 'synthetic-quality', image=True, count=1)
+    request = AuthorRequest(operation_id='synthetic-quality', skill_id='check-target',
+        instruction='Inspect synthetic state', include_images=True,
+        sources=[SourceWindow(snapshot_id=snap.id, positions=[0])])
+    settings.model_name = 'synthetic'
+    settings.model_image_quality = 90
+    view = preview(request, library, evidence, settings)
+    assert view['image_profile'] == JPEG90_PROFILE
+    assert view['image_views'][0]['jpeg_quality'] == 90
+    submit(request, library, evidence, ledger, settings=settings)
+    settings.model_image_quality = 98
+    gateway, calls = model([proposal(), response(snap.id + ':0')])
+    try:
+        result = run(request.operation_id, library, evidence, ledger, gateway)
+        assert result['image_profile'] == JPEG90_PROFILE
+        assert view['initial_request_bytes'] == len(encode_json(calls[0]))
+        url = calls[0]['messages'][1]['content'][-1]['image_url']['url']
+        wire = base64.b64decode(url.split(',', 1)[1], validate=True)
+        assert url.startswith('data:image/jpeg;base64,')
+        assert view['image_views'][0]['view_sha256'] == sha256(wire)
+        assert ledger.get(keys(request.operation_id))['payload']['image_profile'] == JPEG90_PROFILE
+        assert evidence.read_media(snap.id, '0.png').startswith(b'\x89PNG')
+    finally:
+        gateway.close()
+
+
+def test_preexisting_workshop_operation_retains_its_original_image_profile(env):
+    from evonext.evidence.image_views import SOURCE_PROFILE
+    from evonext.skills.workshop.service import SourceWindow, prepare_authoring, keys
+    library, evidence, ledger, _ = env
+    snap = source(env, 'synthetic-old-image-profile', image=True, count=1)
+    request = AuthorRequest(operation_id='synthetic-old-profile', skill_id='check-target',
+        instruction='Inspect synthetic state', include_images=True,
+        sources=[SourceWindow(snapshot_id=snap.id, positions=[0])])
+    payload, _, _ = prepare_authoring(request, library, evidence, image_profile=SOURCE_PROFILE)
+    del payload['image_profile']
+    ledger.record(keys(request.operation_id), snap.id, 'workshop_request.v1', payload)
+    gateway, calls = model([proposal(), response(snap.id + ':0')])
+    try:
+        result = run(request.operation_id, library, evidence, ledger, gateway)
+        assert result['image_profile'] == SOURCE_PROFILE and result['image_views'] == {}
+        assert calls[0]['messages'][1]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,')
+    finally:
+        gateway.close()

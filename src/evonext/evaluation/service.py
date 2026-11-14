@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from evonext.contracts.trajectory import ContractError, encode_json, sha256
 from evonext.evaluation.inputs import InputOptions
+from evonext.evidence.image_views import JPEG_PROFILE, SOURCE_PROFILE
 
 
 class EvalRequest(BaseModel):
@@ -27,14 +28,21 @@ def keys(operation_id):
     return "eval-request-" + identity, "eval-result-" + identity
 
 
-def submit(snapshot, request, ledger):
+def submit(snapshot, request, ledger, *, image_profile=JPEG_PROFILE):
+    request_key, _ = keys(request.operation_id)
+    previous = ledger.get(request_key)
+    if previous:
+        if (previous["kind"] != "evaluation_request.v1" or previous["snapshot_id"] != snapshot.id
+                or previous["payload"]["request"] != request.model_dump()):
+            raise ContractError("Operation ID already binds another Evaluation request")
+        return status(request.operation_id, ledger)
     obligations = request.obligations or {"task_goal": snapshot.document["instruction"]}
     if any(not key.strip() or not value.strip() for key, value in obligations.items()):
         raise ContractError("Obligation IDs and descriptions must be nonempty")
     prompt = Path(__file__).with_name("outcome.md").read_text(encoding="utf-8")
     payload = {"request": request.model_dump(), "prompt": prompt,
+               "image_profile": image_profile,
                "policy_hash": sha256(prompt.encode()), "obligations": obligations}
-    request_key, _ = keys(request.operation_id)
     ledger.record(request_key, snapshot.id, "evaluation_request.v1", payload)
     return status(request.operation_id, ledger)
 
@@ -74,7 +82,8 @@ def run(operation_id, evidence, ledger, gateway):
             "budget_scope": gateway.settings.model_budget_scope,
             "policy_hash": payload["policy_hash"], "max_tokens": 4096})
 
-    record = evaluate(snapshot, request, evidence, gateway, payload["prompt"], result_key, pin_input)
+    record = evaluate(snapshot, request, evidence, gateway, payload["prompt"], result_key, pin_input,
+                      image_profile=payload.get("image_profile", SOURCE_PROFILE))
     ledger.record(result_key, snapshot.id, "evaluation_record.v1", record)
     return record
 

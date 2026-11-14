@@ -3,10 +3,12 @@ import time
 
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.evaluation.images import image_message
+from evonext.evidence.image_views import JPEG_PROFILE
 
 
 def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
-                refs, media_receipts, initial, calls, before_call, initial_validation_error=None):
+                refs, media_receipts, initial, calls, before_call, initial_validation_error=None,
+                *, image_profile=JPEG_PROFILE):
     from evonext.evaluation.core import validate_assessment
     if any(type(p) is not int or not 0 <= p < preview["step_count"] for p in request.focus_positions):
         raise ContractError("Investigation focus is outside the frozen trajectory")
@@ -95,7 +97,7 @@ def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
                 events.append({"position": position, "status": "image_budget"})
                 continue
             parts, receipt = image_message(snapshot, image, evidence, request.options.markers,
-                                           request.options.runtime_coordinate_profile)
+                                           request.options.runtime_coordinate_profile, image_profile)
             additions.extend(parts)
             staged.append(receipt)
         if not staged:

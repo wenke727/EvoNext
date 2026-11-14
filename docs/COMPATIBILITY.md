@@ -132,3 +132,15 @@ Workbench 支持 `trajectory.evaluation.prediction` 与 `trajectory.evaluation.g
 只绑定已配置 MinIO origin 下的图片桶及旧 VLM 桶（VLM_MINIO_BUCKET，旧约定默认 vlm-api） 中无 URL 内联凭据、query 或 fragment 的来源对象；不重写源 image 字段、不访问任意来源 URL。缺对象或不支持的 locator 明确未绑定；字节/步骤上限及读取错误不转为假成功。图片字节仍由新 AssetStore 拥有。保留原 URL 的读取 profile 当前可导出 JSON；可移植 ZIP 需要显式路径投影，当前页面禁用该入口。这不是改动既有离线 ZIP profile。
 
 旧源是配置后的默认页面入口，配置错误不静默回退。未配置仍可使用显式本地快照/离线包；本轮 localhost demo 的新捕获仅在内存中，不证明持久化、访问隔离或生产替换已验收。
+
+## 10. 模型图片消费视图
+
+Workshop 与 Evaluation 的新操作共用 Evidence 所属的 `jpeg98-qwen32-patch980.pillow.v1`，默认 JPEG quality=98、subsampling=0、optimize=true。`EVONEXT_MODEL_IMAGE_QUALITY=90` 显式选择 `jpeg90-qwen32-patch980.pillow.v1`；不接受其他质量，不因请求超限自动降质。两种配置共用 32 像素对齐、最小 4 / 最大 980 patch 的 Qwen 几何规则。980 指 `width × height / 32²` 上限，不承诺供应方计费 Token 或每张文件大小；实际 billing_tokens 未知。
+
+这些视图沿用 EvoLoop 的几何与编码参数，但使用已有 Pillow 双线性缩放，不依赖私有工具包或新增 OpenCV。与 EvoLoop 的 OpenCV 线性缩放不宣称逐字节一致，因此使用明确的新 profile 并记录 Pillow 版本。原 PNG/JPEG/WebP 先校验绑定 hash，再解码、转 RGB、缩放及 JPEG 编码。超过 1600 万像素、超过 200:1、有 EXIF 旋转、动画或解码损坏时拒绝，不回退成未经预算的原图。
+
+原始 JSON、image locator、Snapshot、AssetStore 字节及浏览/下载/离线 ZIP profile 不变；不批量改写、回填或迁移历史媒体。模型输入及其回执单独列 source/view hash、原/派生尺寸、原/派生字节、质量、patch 数和实际编码 profile。评估动作标记在源坐标的无损中间视图上先绘制，再缩放编码，记录 marker/rendered/view 的来源链；不把缩放后的像素坐标回写源动作。Workshop 按需读图缓存共用实际 JPEG 字节，发送前的既有 PG 输入回执保存派生图信息；loaded 不等于 delivered。
+
+profile 在新操作提交时冻结；API、CLI 与 Worker 使用同一字段。质量配置修改不改变在途操作；历史缺少该字段的操作按原 `source.v1` 字节路径恢复，已完成结果原样读回。sending/unknown 仍须核对，不因 JPEG 修复、配置修改或后台重复消息自动重发。原 profile 只为冻结历史回放保留，新请求默认不直发原始 PNG。
+
+图片数、任务请求字节预算和 gateway 字节预算继续独立检查，任一超限即停止。图片缩小只改善传输/输入体积，不证明可读性、模型语义质量、费用或执行收益等价。

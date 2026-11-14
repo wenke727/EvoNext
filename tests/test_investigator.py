@@ -1,7 +1,9 @@
 """Synthetic scripted responses exercise investigation mechanics, not judge quality."""
 import copy
+from io import BytesIO
 from pathlib import Path
 
+from PIL import Image
 import pytest
 
 from evonext.config import Settings
@@ -26,7 +28,9 @@ class ScriptedGateway:
 
 def setup():
     assets = MemoryAssets()
-    digest = assets.put(b"\x89PNG\r\n\x1a\nsynthetic-investigator")
+    pixels = BytesIO()
+    Image.new("RGB", (64, 96), "white").save(pixels, format="PNG")
+    digest = assets.put(pixels.getvalue())
     snapshot = Snapshot.create(encode_json({"task_id": "synthetic-investigation", "instruction": "test",
         "traj": [{"image": f"images/{p}.png", "value": {"tool_call": {"action": "wait"}}}
                  for p in range(12)]}), media={f"images/{p}.png": digest for p in range(12)})

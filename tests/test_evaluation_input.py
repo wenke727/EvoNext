@@ -161,7 +161,11 @@ def test_fast_judge_recovers_received_response_and_validates_refs():
         assert recovered["outcome"] == "success"
         assert recovered["native_result"]["findings"][0]["judgment"] == "fail"
         assets = MemoryAssets()
-        raw = b"\x89PNG\r\n\x1a\nsynthetic-image-bytes"
+        from io import BytesIO
+        from PIL import Image
+        pixels = BytesIO()
+        Image.new("RGB", (64, 96), "white").save(pixels, format="PNG")
+        raw = pixels.getvalue()
         digest = assets.put(raw)
         pictured = Snapshot.create(snapshot.trajectory_json, media={"images/0.png": digest})
         repository.put(pictured)
@@ -171,6 +175,6 @@ def test_fast_judge_recovers_received_response_and_validates_refs():
         picture_result = run("synthetic-picture", EvidenceService(repository, assets, settings), ledger, gateway)
         assert picture_result["native_result"]["media_receipts"][0]["sha256"] == digest
         sent = json.loads(calls[-1].content)["messages"][1]["content"]
-        assert sent[-1]["image_url"]["url"].startswith("data:image/png;base64,")
+        assert sent[-1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
     finally:
         gateway.close()

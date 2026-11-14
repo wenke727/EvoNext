@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from evonext.contracts.model_request import chat_payload
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.evidence.packages import media_type
+from evonext.evidence.image_views import JPEG_PROFILE, SOURCE_PROFILE, model_image, profile_for_quality
 from evonext.skills.workshop.authoring import diet, validate_files
 from evonext.skills.workshop.drafts import Drafts
 
@@ -83,7 +84,7 @@ def keys(operation_id):
     return "workshop-" + sha256(operation_id.encode())
 
 
-def source_input(request, evidence):
+def source_input(request, evidence, image_profile=JPEG_PROFILE):
     rows, images = [], []
     for window in request.sources:
         snapshot = evidence.get(window.snapshot_id)
@@ -112,6 +113,9 @@ def source_input(request, evidence):
                 raw = evidence.read_media(snapshot.id, locator)
                 if sha256(raw) != snapshot.media[locator]:
                     raise ContractError("Source screenshot hash mismatch")
+                if image_profile != SOURCE_PROFILE:
+                    raw, view = model_image(raw, image_profile)
+                    rows[-1]["image_view"] = view
                 images.extend([{"type": "text", "text": reference + " screenshot"},
                     {"type": "image_url", "image_url": {"url":
                         f"data:{media_type(raw)};base64," + base64.b64encode(raw).decode()}}])
@@ -127,7 +131,8 @@ def submit(request, library, evidence, ledger, cases=None, *, settings=None, lea
         if previous["payload"]["owner"] != library.owner:
             raise ContractError("Operation belongs to another Workshop owner")
         return status(request.operation_id, ledger, library.owner)
-    payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    profile = profile_for_quality(settings.model_image_quality) if settings else JPEG_PROFILE
+    payload, rows, images = prepare_authoring(request, library, evidence, cases, image_profile=profile)
     if learning is not None:
         payload.update(learning)
     if settings is not None and input_budget(payload, rows, images, settings)["input_budget_exceeded"]:
@@ -136,7 +141,7 @@ def submit(request, library, evidence, ledger, cases=None, *, settings=None, lea
     return status(request.operation_id, ledger, library.owner)
 
 
-def prepare_authoring(request, library, evidence, cases=None):
+def prepare_authoring(request, library, evidence, cases=None, *, image_profile=JPEG_PROFILE):
     with library.lock:
         head = library.current(request.skill_id)
         if (head["revision"] if head else None) != request.base_revision:
@@ -144,7 +149,7 @@ def prepare_authoring(request, library, evidence, cases=None):
         original = library.files(request.skill_id, request.base_revision) if head else {}
         if request.mode == "diet" and not original:
             raise ContractError("Diet requires an existing Skill")
-    rows, images = source_input(request, evidence)
+    rows, images = source_input(request, evidence, image_profile)
     frozen_cases = []
     for item in request.cases:
         if cases is None:
@@ -158,6 +163,7 @@ def prepare_authoring(request, library, evidence, cases=None):
                              "meaning": "reviewed correction proposal, not executed success"})
     policy = Path(__file__).with_name("policy.md").read_text(encoding="utf-8")
     payload = {"request": request.model_dump(), "owner": library.owner, "original": original,
+               "image_profile": image_profile,
                "policy": policy, "policy_hash": sha256(policy.encode()), "cases": frozen_cases,
                "source_input_hash": sha256(encode_json([rows, images]))}
     return payload, rows, images
@@ -174,6 +180,8 @@ def author_context(payload, rows):
                "source_steps": rows, "cases": payload["cases"]}
     if "retrieval" in payload:
         context["source_selection"] = payload["retrieval"]["sources"]
+    if "image_profile" in payload:
+        context["image_profile"] = payload["image_profile"]
     return context
 
 
@@ -192,10 +200,15 @@ def input_budget(payload, rows, images, settings):
 
 
 def preview(request, library, evidence, settings, cases=None, *, retrieval=None):
-    payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    payload, rows, images = prepare_authoring(request, library, evidence, cases,
+        image_profile=profile_for_quality(settings.model_image_quality))
     if retrieval is not None:
         payload["retrieval"] = retrieval
     return {"steps": rows, "bound_images": len(images) // 2, "model_called": False,
+            "image_profile": payload["image_profile"],
+            "image_policy": {"format": "JPEG", "quality": settings.model_image_quality,
+                             "max_patches": 980, "patch_size": 32, "billing_tokens": None},
+            "image_views": [r["image_view"] for r in rows if "image_view" in r],
             **input_budget(payload, rows, images, settings)}
 
 
@@ -222,7 +235,8 @@ def run(operation_id, library, evidence, ledger, gateway):
         return saved["payload"]
     payload = row["payload"]
     request = AuthorRequest.model_validate(payload["request"])
-    rows, images = source_input(request, evidence)
+    image_profile = payload.get("image_profile", SOURCE_PROFILE)
+    rows, images = source_input(request, evidence, image_profile)
     if sha256(encode_json([rows, images])) != payload["source_input_hash"]:
         raise ContractError("Frozen authoring evidence changed")
     context = author_context(payload, rows)
@@ -231,6 +245,7 @@ def run(operation_id, library, evidence, ledger, gateway):
     available = {r["ref"]: r for r in rows}
     loaded = {r["ref"] for r in rows if r["image_attached_to_input"]}
     delivered = set()
+    image_views = {r["ref"]: r["image_view"] for r in rows if "image_view" in r}
     deadline = time.monotonic() + 180
 
     def call(role, data, repetition, schema):
@@ -247,12 +262,14 @@ def run(operation_id, library, evidence, ledger, gateway):
             if len(encode_json(wire)) > gateway.settings.model_max_request_bytes:
                 raise EvidenceStop("input_byte_budget")
             identity = repetition if not feedback else repetition + "-read-" + str(state["reads"])
-            ledger.record(key + "-" + identity, row["snapshot_id"], "workshop_input.v1",
-                {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
+            input_receipt = {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
                  "endpoint": gateway.settings.model_base_url,
                  "budget_scope": gateway.settings.model_budget_scope, "max_tokens": 4096,
                  "image_refs": sorted(loaded), "request_bytes": len(encode_json(wire)),
-                 "policy_hash": payload["policy_hash"]})
+                 "policy_hash": payload["policy_hash"]}
+            if image_profile != SOURCE_PROFILE:
+                input_receipt["image_views"] = image_views.copy()
+            ledger.record(key + "-" + identity, row["snapshot_id"], "workshop_input.v1", input_receipt)
             response = gateway.complete(messages, snapshot_id=row["snapshot_id"], operation_id=key,
                 repetition_id=identity, policy_version=payload["policy_hash"], max_tokens=4096)
             state["calls"] += 1
@@ -282,12 +299,16 @@ def run(operation_id, library, evidence, ledger, gateway):
                     # Reuse the same source reader and its byte-hash verification.
                     window = SourceWindow(snapshot_id=snapshot_id, positions=[int(position)],
                                           image_positions=[int(position)])
-                    _, additions = source_input(request.model_copy(update={
-                        "sources": [window], "include_images": True}), evidence)
+                    added_rows, additions = source_input(request.model_copy(update={
+                        "sources": [window], "include_images": True}), evidence, image_profile)
                     images.extend(additions)
                     loaded.add(item.evidence_ref)
                     digest = evidence.get(snapshot_id).media[source["step"]["image"]]
                     event.update(status="loaded_not_yet_delivered", image_hash=digest)
+                    if "image_view" in added_rows[0]:
+                        image_views[item.evidence_ref] = added_rows[0]["image_view"]
+                        event["image_view"] = added_rows[0]["image_view"]
+                        source.update(image_attached_to_input=True, image_view=added_rows[0]["image_view"])
                 feedback.append(event)
             evidence_events.extend(feedback)
             ledger.record(key + "-evidence-" + str(state["reads"]), row["snapshot_id"],
@@ -344,6 +365,7 @@ def run(operation_id, library, evidence, ledger, gateway):
               "source_refs": [r["ref"] for r in rows], "auto_committed": False,
               "execution_verified": False, "policy_hash": payload["policy_hash"],
               "evidence_events": evidence_events, "delivered_image_refs": sorted(delivered),
+              "image_profile": image_profile, "image_views": image_views,
               "model_calls": state["calls"], "retrieval": payload.get("retrieval"),
               "body_chars": (len(last_draft_files["SKILL.md"].split("---", 2)[2].strip())
                              if last_draft_files else None)}

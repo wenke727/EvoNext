@@ -19,7 +19,8 @@ type LearningPlan = {
     independent_family_count: number;
     sources: {snapshot_id: string; task_id: string; source_label_hint: string;
       step_count: number; window: number[]; omitted_positions: number[]}[]};
-  budget: {initial_request_bytes: number; max_request_bytes: number; input_budget_exceeded: boolean};
+  budget: {initial_request_bytes: number; max_request_bytes: number; input_budget_exceeded: boolean;
+    image_policy: {quality: number; max_patches: number}};
 };
 type Operation = { operation_id: string; status: string;
   result?: { outcome: string; notes: string; draft_ids: string[]; model_calls?: number; body_chars?: number | null } | null; error?: unknown };
@@ -184,6 +185,8 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
             </li>)}</ul>
             <p>首轮 {learningPlan.budget.initial_request_bytes} / {learningPlan.budget.max_request_bytes} bytes ·
               {learningPlan.budget.input_budget_exceeded ? "超限，需缩小主题或调整预算" : "首轮不附图；后续取图仍受预算限制"}</p>
+            <p>模型图片：JPEG {learningPlan.budget.image_policy.quality} · 每张最多 {learningPlan.budget.image_policy.max_patches} patch
+              （不等于计费 Token）。原始证据保留。</p>
           </div>}
           {operation && <div role="status"><p>操作 {operation.operation_id} · {operation.status} · {operation.result?.outcome || "等待结果"}</p>
             {operation.result && <p>{operation.result.notes} · 模型调用 {operation.result.model_calls ?? "未提供"} 次
