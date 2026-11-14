@@ -137,7 +137,9 @@ Workbench 支持 `trajectory.evaluation.prediction` 与 `trajectory.evaluation.g
 
 Workshop 与 Evaluation 的新操作共用 Evidence 所属的 `jpeg98-qwen32-patch980.pillow.v1`，默认 JPEG quality=98、subsampling=0、optimize=true。`EVONEXT_MODEL_IMAGE_QUALITY=90` 显式选择 `jpeg90-qwen32-patch980.pillow.v1`；不接受其他质量，不因请求超限自动降质。两种配置共用 32 像素对齐、最小 4 / 最大 980 patch 的 Qwen 几何规则。980 指 `width × height / 32²` 上限，不承诺供应方计费 Token 或每张文件大小；实际 billing_tokens 未知。
 
-这些视图沿用 EvoLoop 的几何与编码参数，但使用已有 Pillow 双线性缩放，不依赖私有工具包或新增 OpenCV。与 EvoLoop 的 OpenCV 线性缩放不宣称逐字节一致，因此使用明确的新 profile 并记录 Pillow 版本。原 PNG/JPEG/WebP 先校验绑定 hash，再解码、转 RGB、缩放及 JPEG 编码。超过 1600 万像素、超过 200:1、有 EXIF 旋转、动画或解码损坏时拒绝，不回退成未经预算的原图。
+两边的纯核心现同步为逐字节相同的模块：EvoNext `evidence/image_processing.py` 与 EvoLoop `utils/cv/image_processing.py`。沿用原 round/floor/ceil 几何、Pillow 双线性和既定 JPEG 参数，不依赖对方仓库或新增 OpenCV。相同依赖环境下，两边编码一致；跨 Pillow/codec 版本不承诺字节相同，实际版本和 hash 仍须固定。EvoLoop 历史 OpenCV profile 保留原复现路径，不重标或覆盖旧结果。EvoLoop 通用 Runtime 的 API-fit/OpenCV 像素路径不在本 JPEG profile 中，Qwen 几何统一委托纯核心。
+
+原 PNG/JPEG/WebP 先校验绑定 hash，再解码、必要时转 RGB、缩放及 JPEG 编码。已有 RGB 避免无效拷贝；不增加自动质量下降、重试或全局缓存。对零/负数/非整数 factor、非法或无法对齐的像素预算显式拒绝，不返回零尺寸或越界结果。超过 1600 万像素、超过 200:1、有 EXIF 旋转、动画或解码损坏时拒绝，不回退成未经预算的原图。
 
 原始 JSON、image locator、Snapshot、AssetStore 字节及浏览/下载/离线 ZIP profile 不变；不批量改写、回填或迁移历史媒体。模型输入及其回执单独列 source/view hash、原/派生尺寸、原/派生字节、质量、patch 数和实际编码 profile。评估动作标记在源坐标的无损中间视图上先绘制，再缩放编码，记录 marker/rendered/view 的来源链；不把缩放后的像素坐标回写源动作。Workshop 按需读图缓存共用实际 JPEG 字节，发送前的既有 PG 输入回执保存派生图信息；loaded 不等于 delivered。
 
