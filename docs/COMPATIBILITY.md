@@ -1,5 +1,13 @@
 # 兼容与互通合同
 
+## 0. 跨仓单写与旧入口去向
+
+- **生产交互唯一入口：EvoLoop。** EvoNext 的本地 Viewer/Case/Correction 界面只做开发/迁移/验收；正式人审指令由业务平台经认证服务端调用 EvoNext CaseService，不能让两套工作台分别保存同一条 Case/Review。
+- **源事实仍属于 EvoLoop。** 旧 Task/Trajectory/Step、源媒体、实际设备 dispatch 与 mobile_execution 回执由原执行/接入模块写入。EvoNext EvidenceService 仅拥有由固定来源导入后的不可变 Snapshot，不能修改旧 latest/history 或把 Snapshot 当源 TaskRevision。
+- **结果按 namespace 单写。** 旧 ORM/Run Grader 的当前 PG/Mongo 路由和历史记录仍由 EvoLoop Evaluation 持有；EvoNext 仅写新 Agentic Evaluation/Diagnosis、Case/Review/Correction，Recovery/Teacher/Verification 在对应接口实现和验收后才获得写入资格。缓存、旧来源评分只读面板和 Langfuse trace 都不是结果权威。
+- **兼容 URL 不自动切换 owner。** GET 旧来源、POST 导入冻结及旧上传投影遵守本页现有安全限制；本仓对旧平台发布的桥接默认 dry-run，绝不能作为跨仓双写或生产设备续跑通道。旧业务入口退役先核对调用者、来源权限、版本/hash、读回、失败回滚和零流量窗口。
+- **真实设备链尚未接线。** Recovery 的恢复资格/状态与 Teacher/Verification 的决策归 EvoNext；设备动作和新 Trial 的原始事实仍由 Runtime/ingestion 负责。没有经验证的后态与独立评价不能宣称恢复成功或训练资格。
+
 ## 1. 保留的数据
 
 现有 OpenCUA-shaped 数据主体继续使用 `task_id`、`instruction`、`traj`。已有离线包采用：
