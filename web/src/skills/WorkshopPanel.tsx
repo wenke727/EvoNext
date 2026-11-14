@@ -30,6 +30,7 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
   const [instruction, setInstruction] = useState("");
   const [caseRef, setCaseRef] = useState("");
   const [images, setImages] = useState(false);
+  const [imagePositions, setImagePositions] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [notes, setNotes] = useState("");
   const [operationId, setOperationId] = useState("");
@@ -72,10 +73,13 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
     const selected = positions.split(",").map(p => Number(p.trim()));
     if (!positions.trim() || selected.some(p => !Number.isInteger(p) || p < 0))
       throw new Error("请输入逗号分隔的 0-based 步骤序号");
+    const pictures = imagePositions.trim() ? imagePositions.split(",").map(p => Number(p.trim())) : [];
+    if (images && (pictures.length > 4 || pictures.some(p => !Number.isInteger(p) || !selected.includes(p))))
+      throw new Error("图片步骤须在文本步骤内，最多 4 个");
     const [caseId, reviewRevision] = caseRef.trim().split("@");
     return { operation_id: operationId || crypto.randomUUID(), skill_id: skillId,
       base_revision: base, mode, instruction,
-      sources: [{ snapshot_id: source, positions: selected }], include_images: images,
+      sources: [{ snapshot_id: source, positions: selected, image_positions: pictures }], include_images: images,
       cases: caseId ? [{ case_id: caseId, revision: Number(reviewRevision) }] : [] };
   }
   async function author(mode: "learn" | "diet") {
@@ -153,6 +157,10 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
           <label>证据步骤（0-based，逗号分隔）<input value={positions} onChange={e => setPositions(e.target.value)} /></label>
           <label>可选 Case（ID@审核版本）<input value={caseRef} onChange={e => setCaseRef(e.target.value)} /></label>
           <label><input type="checkbox" checked={images} onChange={e => setImages(e.target.checked)} />包含已绑定截图（最多 4 张）</label>
+          {images && <label>图片步骤（文本窗口内，最多 4 个；留空不附图）
+            <input aria-label="图片步骤" value={imagePositions} disabled={busy}
+              onChange={e => { setImagePositions(e.target.value); setPreview(""); }} placeholder="0,3,8,11" />
+          </label>}
           <div className="workshop-actions">
             <button disabled={busy || !source || !skillId || !instruction}
               onClick={() => void perform(async () => setPreview(JSON.stringify(await api("/preview", request("learn")), null, 2)))}>

@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from evonext.contracts.model_request import chat_payload
 from evonext.config import secret
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.providers.receipts import PostgresCallReceipts, ResponseReceipt
@@ -41,11 +42,8 @@ class ModelGateway:
             raise ContractError("Unsupported reasoning effort")
         if not isinstance(repetition_id, str) or not repetition_id:
             raise ContractError("Explicit repetition identity must be a non-empty string")
-        payload = {"model": self.settings.model_name, "messages": messages, "max_tokens": max_tokens}
-        if temperature is not None:
-            payload["temperature"] = temperature
-        if reasoning_effort is not None:
-            payload["reasoning_effort"] = reasoning_effort
+        payload = chat_payload(self.settings.model_name, messages, max_tokens,
+                               temperature, reasoning_effort)
         request_bytes = encode_json(payload)
         if len(request_bytes) > self.settings.model_max_request_bytes:
             raise ContractError("Model request exceeds the configured input byte budget")

@@ -145,3 +145,13 @@ evonext workshop-api list
 `mode` 可为 `diet`。最多 4 个快照、每个 12 个步骤、共 4 张已绑定截图；总请求仍受 gateway 字节预算限制，不静默截断。可选 `cases` 条目为 `{"case_id":"<id>","revision":1}`。`preview/author/status` 分别使用 `workshop-api preview --file`、`workshop-api author --file`、`workshop-api status --id`；HTTP 对应 `/preview`、`/operations`、`/operations/{id}`。图片附在输入中不证明模型阅读或执行收益。
 
 本片停止于可审查候选闭环；不扩展后台自主学习、自动归档/激活、Skill 商店、通用插件系统、merge/group undo 或真实设备执行。真实学习质量、截图复核能力和 none/raw/skill 收益保留 AX-12 独立验收。
+
+### 2026-11-14 · 选图、预算预览与定向修补
+
+每个 SourceWindow 可显式提供 `image_positions`，必须是 `positions` 的子集；总共最多附 4 张图，文本窗口仍可保留每源 12 步。`include_images=false` 时不能提供非空图片选择。`image_positions=[]` 明确不附图，省略/null 则保留旧的“所选步骤中所有已绑定图”语义，超图数仍拒绝，不静默截断。工作台提供单独的图片步骤输入框；CLI 的请求 JSON 与 HTTP 共用该合同。
+
+`/preview` 同时读取固定基线、Case 审核引用和选定证据，返回 `initial_request_bytes`、`max_request_bytes`、`input_budget_exceeded`、`model_configured`。字节数使用与网关相同的请求序列化合同；未配置模型时显示的是空模型名的预览，配置后须重新预览。该估计仅覆盖首轮作者输入，复核和修补含新生成内容，仍在每次 gateway admission 前校验预算。HTTP 提交在初始请求超限时拒绝入队且不新增操作回执；增大预算必须明确配置，不压缩或改写源图。
+
+修补请求分开携带 `original`（不可变基线）、`previous_proposal`（被驳回的完整文件/精简标题和原因）、`repair_feedback`。新建时基线为空不代表被驳回稿不存在。策略和请求均冻结并核 hash，仍最多修补一次，旧草稿及复核不覆写。
+
+`gpt-6.1-sol` 及其日期版本通过 gateway 使用 `max_completion_tokens`；其他既有模型保留当前参数合同。实际 wire payload 参与收费回执身份，不自动重发 sending/unknown，也不把参数兼容当作语义质量验收。

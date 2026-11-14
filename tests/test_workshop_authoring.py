@@ -318,6 +318,12 @@ def test_repair_is_bounded_to_one_and_preserves_rejected_draft(env):
         result = run(req.operation_id, library, evidence, ledger, gateway)
         assert result["outcome"] == "rejected" and len(calls) == 4
         assert len(result["draft_ids"]) == 2 and library.current("check-target") is None
+        initial = json.loads(calls[0]["messages"][1]["content"][0]["text"])
+        repair = json.loads(calls[2]["messages"][1]["content"][0]["text"])
+        assert initial["previous_proposal"] is None
+        assert repair["original"] == initial["original"] == {}
+        assert repair["previous_proposal"]["files"] == proposal()["files"]
+        assert repair["repair_feedback"] == review(env, "rejected")["notes"]
     finally:
         gateway.close()
 
@@ -439,3 +445,70 @@ def test_api_requires_explicit_root_and_auth():
     with TestClient(create_app(settings, MemorySnapshots(), MemoryAssets())) as client:
         assert client.get("/api/v1/workshop").status_code == 401
         assert client.get("/api/v1/workshop", headers={"X-API-Key": "synthetic"}).status_code == 503
+
+
+def test_explicit_picture_window_keeps_all_text_and_hash_binds_selection(env):
+    import io
+    from PIL import Image
+    library, evidence, _, ledger = env
+    raw = io.BytesIO()
+    Image.new("RGB", (8, 8), "white").save(raw, format="PNG")
+    digest = evidence.assets.put(raw.getvalue())
+    snapshot = Snapshot.create(encode_json({"task_id": "synthetic-window", "instruction": "Inspect",
+        "traj": [{"image": f"{i}.png", "value": {"text": f"Synthetic observation {i}"}}
+                 for i in range(12)]}), media={f"{i}.png": digest for i in range(12)})
+    evidence.accept(snapshot)
+    req = request(env, include_images=True)
+    req.sources = [SourceWindow(snapshot_id=snapshot.id, positions=list(range(12)),
+                                image_positions=[0, 3, 8, 11])]
+    original = snapshot.trajectory_json
+    rows, pictures = source_input(req, evidence)
+    assert len(rows) == 12 and len(pictures) == 8
+    assert [i for i, row in enumerate(rows) if row["image_attached_to_input"]] == [0, 3, 8, 11]
+    submit(req, library, evidence, ledger)
+    changed = req.model_copy(deep=True)
+    changed.sources[0].image_positions = [0]
+    with pytest.raises(ContractError, match="another Workshop request"):
+        submit(changed, library, evidence, ledger)
+    changed.sources[0].image_positions = [13]
+    with pytest.raises(ContractError, match="text window"):
+        source_input(changed, evidence)
+    changed.sources[0].image_positions = []
+    assert not source_input(changed, evidence)[1]
+    changed.sources[0].image_positions = None
+    with pytest.raises(ContractError, match="at most four"):
+        source_input(changed, evidence)
+    assert snapshot.trajectory_json == original
+
+
+def test_preview_bytes_match_gateway_and_overbudget_admission_has_no_receipt(env):
+    from evonext.skills.workshop.service import preview
+    library, evidence, _, ledger = env
+    req = request(env)
+    gateway, calls = model([proposal(), review(env)])
+    try:
+        seen = preview(req, library, evidence, gateway.settings)
+        assert not seen["input_budget_exceeded"] and not seen["model_called"]
+        submit(req, library, evidence, ledger, settings=gateway.settings)
+        run(req.operation_id, library, evidence, ledger, gateway)
+        assert seen["initial_request_bytes"] == len(encode_json(calls[0]))
+        tight = gateway.settings.model_copy(update={"model_max_request_bytes": 1024})
+        other = req.model_copy(update={"operation_id": "synthetic-too-large"})
+        assert preview(other, library, evidence, tight)["input_budget_exceeded"]
+        with pytest.raises(ContractError, match="byte budget"):
+            submit(other, library, evidence, ledger, settings=tight)
+        assert ledger.get(keys(other.operation_id)) is None
+    finally:
+        gateway.close()
+
+
+def test_http_preview_exposes_request_budget_without_model_calls(env):
+    library, evidence, _, _ = env
+    settings = Settings(demo=True, _env_file=None, workshop_root=str(library.root),
+                        workshop_owner=library.owner, model_max_request_bytes=1024)
+    with TestClient(create_app(settings, evidence.repository, evidence.assets)) as client:
+        response = client.post("/api/v1/workshop/preview", json=request(env).model_dump())
+        assert response.status_code == 200
+        assert response.json()["input_budget_exceeded"]
+        assert response.json()["initial_request_bytes"] > 1024
+        assert not response.json()["model_called"]

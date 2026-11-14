@@ -306,3 +306,13 @@ One canonical UUIDv4 Case identity and one source Snapshot/Step anchor are share
 The sole migration chain is 0001 → 0002 → 0003 → 0004. The isolated fixed-image Outcome migration from closed PR #6 is absent. Alembic reports one head, 0004. No migrations run at application startup. The full 09 v0.3 specification and ADR-005 have been brought into #7; the superseded 09 stub is removed and the documentation index points to the local canonical specification.
 
 Verification on this integrated branch: pytest 201 passed, 5 skipped; frontend 44 passed; frontend build, Ruff, compileall and diff check passed. The skipped tests include isolated PostgreSQL and other external integrations, plus missing Celery/Langfuse packages. Docker is unavailable on this host, so live PostgreSQL concurrency and migration upgrade/downgrade were not rerun. Existing live-test source files are retained unchanged. The six separately reported Evaluation issues remain outside this convergence change.
+
+## 2026-11-14 · Workshop 存量轨迹评估后修复
+
+基于 PR #7 的 `130e9c4` 候选修复三处实测问题：Sol 6.1 的输出预算参数、定向修补丢失被驳回稿、文本窗口与图片选择绑定。新增共享的纯请求序列化合同，Workshop 不导入 providers；API/CLI 请求可独立选取图片，工作台增加图片步骤输入，预算预览显示首轮 wire 字节数及超限标志。提交超限请求在入队前拒绝，后续调用仍由 gateway 逐次限制。默认请求预算未自动提高，源图未改变。
+
+离线全量验证：pytest **240 passed / 5 skipped**，前端 **44 passed**，TypeScript/Vite 构建通过。合成回归覆盖 Sol/日期版本/既有模型的参数与响应复用、新建修补时原基线不变且上一稿完整送达、12 步文本配 4 张指定图、跨窗图片拒绝、空列表不附图、旧省略语义、来源字节不变、选图变更身份冲突、预览与实际 wire 字节相同、超限不新增操作回执，以及 HTTP 预览。实库集成测试仍关闭。
+
+独立于普通测试，在用户已授权的存量轨迹质量评估中，用同一日历样本和同一四步窗口复测 Sol 6.1：本次作者与复核两次调用后产出 approved 候选（约 34.79 秒），未触发修补。此前为 rejected 后修补 needs_evidence；两次结果受生成差异和策略修订影响，不能将本次通过归因于修补逻辑。修补合同的修复由可控回归验证。真实调用走本机隔离 PG 持久收费回执，新 operation_id，原始回执及私有材料仅保留本地；未执行手机、提交/激活候选或修改旧库。机器复核仍不替代独立任务收益验证。
+
+Playwright 使用本机隔离演示服务、12 步合成轨迹与真实 Chromium 验证：Workshop 页面配置完整文本窗口 `0..11`，单独选择 `0,3,8,11` 四图，点击预览后读回 12 步、4 图、首轮请求 7786 bytes、预算未超限及 `model_called=false`。模型执行按钮保持禁用。页面存在既有 favicon 404；未用真实材料做浏览器截图。

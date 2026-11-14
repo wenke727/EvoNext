@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from evonext.config import secret
 from evonext.skills.workshop import Workshop
 from evonext.skills.workshop.drafts import Drafts
-from evonext.skills.workshop.service import AuthorRequest, source_input, status, submit
+from evonext.skills.workshop.service import AuthorRequest, preview as preview_authoring, status, submit
 
 
 class ManualDraft(BaseModel):
@@ -89,8 +89,7 @@ def attach_workshop_routes(app, *, evidence, get_ledger, get_cases, settings, au
 
     @app.post("/api/v1/workshop/preview", dependencies=auth)
     def preview(body: AuthorRequest):
-        rows, images = source_input(body, evidence)
-        return {"steps": rows, "bound_images": len(images) // 2, "model_called": False}
+        return preview_authoring(body, configured_workshop(settings), evidence, settings, get_cases())
 
     @app.post("/api/v1/workshop/operations", dependencies=auth, status_code=202)
     def author(body: AuthorRequest):
@@ -100,7 +99,7 @@ def attach_workshop_routes(app, *, evidence, get_ledger, get_cases, settings, au
         ledger = get_ledger()
         if ledger is None:
             raise HTTPException(503, "Workshop authoring requires PostgreSQL and migrations")
-        result = submit(body, configured_workshop(settings), evidence, ledger, get_cases())
+        result = submit(body, configured_workshop(settings), evidence, ledger, get_cases(), settings=settings)
         if result["status"] == "pending":
             from celery import Celery
             sender = Celery("evonext", broker=secret(settings.broker_url))

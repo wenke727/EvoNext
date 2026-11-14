@@ -16,7 +16,9 @@ For diet choose sections only; the host moves original text verbatim. Preserve f
 conditions, rule strength, order, checks and stop/fallback behavior. Do not invent file paths.
 For learning patch the supplied skill first. A new skill must have matching YAML name and
 description. Cite source step references in your reason. Never truncate omitted files.
-When repair feedback is supplied, fix only its stated issues against the same original.
+When repair feedback is supplied, repair previous_proposal using the feedback. The original
+is the immutable baseline, which is empty for a new Skill; do not confuse it with the rejected
+proposal. Return complete corrected files and preserve supported rules outside the feedback.
 
 REVIEW: Return ONLY JSON with verdict (approved/rejected/needs_evidence), notes (nonempty),
 evidence_refs (list of supplied exact snapshot:position references).

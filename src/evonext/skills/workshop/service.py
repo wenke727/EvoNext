@@ -15,6 +15,8 @@ class SourceWindow(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     snapshot_id: str = Field(pattern=r"^[a-f0-9]{64}$")
     positions: list[int] = Field(min_length=1, max_length=12)
+    # None preserves the legacy all-bound-images selection; [] explicitly selects none.
+    image_positions: list[int] | None = Field(default=None, max_length=4)
 
 
 class CaseInput(BaseModel):
@@ -60,13 +62,20 @@ def source_input(request, evidence):
         snapshot = evidence.get(window.snapshot_id)
         if snapshot is None:
             raise ContractError("Workshop source snapshot is unavailable")
+        if window.image_positions is not None:
+            if not set(window.image_positions).issubset(window.positions):
+                raise ContractError("Image positions must belong to the selected text window")
+            if window.image_positions and not request.include_images:
+                raise ContractError("Explicit image selection requires include_images")
+        image_positions = set(window.positions if window.image_positions is None
+                              else window.image_positions)
         for position in sorted(set(window.positions)):
             if not 0 <= position < len(snapshot.document["traj"]):
                 raise ContractError("Source position is outside the frozen trajectory")
             step = snapshot.document["traj"][position]
             reference = f"{snapshot.id}:{position}"
             locator = step.get("image")
-            delivered = request.include_images and locator in snapshot.media
+            delivered = request.include_images and position in image_positions and locator in snapshot.media
             rows.append({"ref": reference, "instruction": snapshot.document["instruction"],
                          "step": step, "image_attached_to_input": delivered})
             if delivered:
@@ -81,7 +90,7 @@ def source_input(request, evidence):
     return rows, images
 
 
-def submit(request, library, evidence, ledger, cases=None):
+def submit(request, library, evidence, ledger, cases=None, *, settings=None):
     key = keys(request.operation_id)
     previous = ledger.get(key)
     if previous:
@@ -90,6 +99,14 @@ def submit(request, library, evidence, ledger, cases=None):
         if previous["payload"]["owner"] != library.owner:
             raise ContractError("Operation belongs to another Workshop owner")
         return status(request.operation_id, ledger, library.owner)
+    payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    if settings is not None and input_budget(payload, rows, images, settings)["input_budget_exceeded"]:
+        raise ContractError("Workshop input exceeds the configured byte budget; preview and select fewer images or configure an explicit larger budget")
+    ledger.record(key, request.sources[0].snapshot_id, "workshop_request.v1", payload)
+    return status(request.operation_id, ledger, library.owner)
+
+
+def prepare_authoring(request, library, evidence, cases=None):
     with library.lock:
         head = library.current(request.skill_id)
         if (head["revision"] if head else None) != request.base_revision:
@@ -113,8 +130,36 @@ def submit(request, library, evidence, ledger, cases=None):
     payload = {"request": request.model_dump(), "owner": library.owner, "original": original,
                "policy": policy, "policy_hash": sha256(policy.encode()), "cases": frozen_cases,
                "source_input_hash": sha256(encode_json([rows, images]))}
-    ledger.record(key, request.sources[0].snapshot_id, "workshop_request.v1", payload)
-    return status(request.operation_id, ledger, library.owner)
+    return payload, rows, images
+
+
+def messages_for(policy, role, data, images):
+    return [{"role": "system", "content": policy + "\nPerform " + role + " now."},
+            {"role": "user", "content": [{"type": "text", "text": encode_json(data).decode()},
+                                       *images]}]
+
+
+def author_context(payload, rows):
+    return {"request": payload["request"], "original": payload["original"],
+            "source_steps": rows, "cases": payload["cases"]}
+
+
+def input_budget(payload, rows, images, settings):
+    from evonext.contracts.model_request import chat_payload
+    context = {**author_context(payload, rows), "repair_feedback": None,
+               "previous_proposal": None}
+    messages = messages_for(payload["policy"], "AUTHOR", context, images)
+    size = len(encode_json(chat_payload(settings.model_name, messages, 4096)))
+    return {"initial_request_bytes": size, "max_request_bytes": settings.model_max_request_bytes,
+            "input_budget_exceeded": size > settings.model_max_request_bytes,
+            "model_configured": bool(settings.model_name),
+            "budget_scope": "initial_author_only; review and repair checked before each call"}
+
+
+def preview(request, library, evidence, settings, cases=None):
+    payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    return {"steps": rows, "bound_images": len(images) // 2, "model_called": False,
+            **input_budget(payload, rows, images, settings)}
 
 
 def status(operation_id, ledger, owner=None):
@@ -143,14 +188,11 @@ def run(operation_id, library, evidence, ledger, gateway):
     rows, images = source_input(request, evidence)
     if sha256(encode_json([rows, images])) != payload["source_input_hash"]:
         raise ContractError("Frozen authoring evidence changed")
-    context = {"request": request.model_dump(), "original": payload["original"],
-               "source_steps": rows, "cases": payload["cases"]}
+    context = author_context(payload, rows)
     call_keys = []
 
     def call(role, data, repetition, schema):
-        messages = [{"role": "system", "content": payload["policy"] + "\nPerform " + role + " now."},
-                    {"role": "user", "content": [{"type": "text", "text": encode_json(data).decode()},
-                                               *images]}]
+        messages = messages_for(payload["policy"], role, data, images)
         # Pin effective transport/config before gateway admission; changed config cannot resend.
         ledger.record(key + "-" + repetition, row["snapshot_id"], "workshop_input.v1",
             {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
@@ -164,12 +206,16 @@ def run(operation_id, library, evidence, ledger, gateway):
             response["response"]["choices"][0]["message"]["content"].encode()))
 
     feedback, drafts, outcome = None, [], "needs_evidence"
+    previous_proposal = None
     # At most author + review + one author repair + one review. No automatic commit.
     for attempt in range(2):
-        proposed = call("AUTHOR", {**context, "repair_feedback": feedback}, f"author{attempt}", Proposal)
+        proposed = call("AUTHOR", {**context, "repair_feedback": feedback,
+                                 "previous_proposal": previous_proposal}, f"author{attempt}", Proposal)
         if proposed.decision != "propose":
             outcome, feedback = proposed.decision, proposed.reason
             break
+        previous_proposal = {"files": proposed.files, "headings": proposed.headings,
+                             "reason": proposed.reason}
         try:
             files = (diet(payload["original"], proposed.headings) if request.mode == "diet"
                      else proposed.files)
@@ -178,6 +224,7 @@ def run(operation_id, library, evidence, ledger, gateway):
             feedback = str(exc)
             outcome = "rejected"
             continue
+        previous_proposal["files"] = files
         draft = Drafts(library).create(skill_id=request.skill_id,
             base_revision=request.base_revision, files=files,
             sources=[s.snapshot_id for s in request.sources],
