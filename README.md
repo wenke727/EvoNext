@@ -8,7 +8,7 @@
 
 本仓库 web/ 中的 Viewer/CasePanel/EvaluationPanel/Workshop 界面定位为**开发、调试、迁移和合同验收客户端**，不是另一个生产业务 Workbench；业务入口统一由 EvoLoop 通过受控版本化 API 调用本仓所属的领域用例。现役旧 ORM/Grader 结果继续由其原 Owner 写入，本仓新 Agentic 评估使用独立命名空间。全部业务对象坚持单一写入 Owner；缓存/投影不构成第二权威。跨仓完整 Ownership/API 交接矩阵由业务平台维护，本公开仓不复制私有实现与内部地址。
 
-当前已有的 Snapshot/Evaluation API 不等于生产跨仓授权与回读验收完成；Review/Case/Correction 集中于尚待集成的 PR #7，真机 Recovery/Teacher/Verification 与独立验收尚未完成。
+当前已有的 Snapshot/Evaluation/Case/Correction 路由不等于生产跨仓授权与回读验收完成；PR #7 仍是统一集成与文档评审候选，真机 Recovery/Teacher/Verification 与独立验收尚未完成。
 
 ## 完整重构文档
 
