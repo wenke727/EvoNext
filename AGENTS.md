@@ -2,6 +2,8 @@
 
 Implement the product, not a copy of the previous implementation. Read README, docs/rebuild/README.md, docs/rebuild/03_ARCHITECTURE.md, docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md and docs/ROADMAP.md before making changes. The full PRD/contracts and original acceptance IDs are now in docs/rebuild; current implementation evidence is only in docs/ACCEPTANCE.md.
 
+**Cross-repo UI ownership override (approved 2026-11-14): EvoLoop owns ALL frontend code and business UI, including Viewer/Case/Correction/Evaluation/Recovery/Teacher/Verification/Skill Workshop pages. Do not add frontend features, UI routes, or a second SPA in EvoNext. Existing `web/` is transitional source code to port back and DELETE after EvoLoop integration and acceptance. Continue implementing algorithms, domain services, API/CLI/Worker, schemas, and backend tests in EvoNext. Older instructions mentioning React or a user-facing path refer to EvoLoop as the UI consumer, not a requirement to build one here.**
+
 1. Preserve OpenCUA-shaped source JSON and the existing offline profile. Validate a view without serializing defaults back into source evidence. Unknown fields, long string IDs, source versions including zero, raw output, dispatch and observed results must survive interchange.
 2. Mongo owns trajectory facts, MinIO owns bytes, PG owns explicitly introduced control records. Do not replace these technologies or migrate legacy data as a side effect of startup. Never modify legacy collections directly.
 3. A Snapshot is a frozen package identity, not a new meaning of Task/Trial/Review. Byte hash, semantic input hash, source revision and human review status are different concepts.
