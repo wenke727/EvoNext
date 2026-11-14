@@ -4,6 +4,8 @@
 
 完整需求与原验收编号已在 [rebuild](rebuild/README.md) 入仓。本文件只维护交付顺位，不重写另一份功能总表。
 
+> **最新跨仓裁决（2026-11-14）**：EvoLoop 负责**全部前端源码、所有页面及正式交互发布**，不仅是当前生产入口；EvoNext 只开发进化算法、Case/Correction/Evaluation/Recovery/Teacher/Verification/Skill 的领域服务与 API/Worker。现有 `web/` 是待回迁源，不再新开发 GUI，验收迁回 EvoLoop 后删除。本文件历史 M1b“工作台”、M4“生产替换”指 EvoLoop 客户端能力及跨仓 API 消费验收，**不再授权 EvoNext 建独立业务 Workbench**。根据 EvoLoop #495 当前 P0 是真实设备恢复→教师续跑→独立验证闭环；Compile/Skill 新架构扩建继续 HOLD，仅按配对 ROI 测试解锁。旧 R0–R5 作为长期技术路线，不可取代当前 P0 优先级。
+
 ## 演进主线：Benchmark 牵引的 Skill 收益闭环
 
 **先证明有用，再自动提炼，再自动选择，最后形成受控持续进化。** 近期积累两类可复用知识：避坑，以及入口与路径。北极星是在固定 Executor、同等信息权限与预算、可比起态下，提高未参与开发实例的成功率，或在成功率与安全性不退化的前提下降低成本。Skill 数量、生成通过率、检索命中率和 Reviewer 认可率只是过程指标。
