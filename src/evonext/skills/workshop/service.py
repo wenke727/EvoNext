@@ -1,10 +1,12 @@
 """Explicit, bounded author/reviewer loop on the existing gateway and PG ledger."""
 import base64
+import time
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from evonext.contracts.model_request import chat_payload
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.evidence.packages import media_type
 from evonext.skills.workshop.authoring import diet, validate_files
@@ -31,10 +33,11 @@ class AuthorRequest(BaseModel):
     skill_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
     base_revision: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     mode: Literal["learn", "diet"] = "learn"
-    sources: list[SourceWindow] = Field(min_length=1, max_length=4)
+    sources: list[SourceWindow] = Field(min_length=1, max_length=8)
     cases: list[CaseInput] = Field(default_factory=list, max_length=4)
     instruction: str = Field(min_length=1, max_length=4000)
     include_images: bool = False
+    evidence_mode: Literal["selected", "on_demand"] = "selected"
 
 
 class Proposal(BaseModel):
@@ -49,7 +52,31 @@ class Review(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     verdict: Literal["approved", "rejected", "needs_evidence"]
     notes: str = Field(min_length=1, max_length=8000)
-    evidence_refs: list[str] = Field(max_length=48)
+    evidence_refs: list[str] = Field(max_length=96)
+
+
+class EvidenceRead(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    evidence_ref: str = Field(min_length=1, max_length=100)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class EvidenceQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    read_evidence: list[EvidenceRead] = Field(min_length=1, max_length=4)
+
+
+class EvidenceStop(Exception):
+    """A completed, non-success learning outcome when a shared bound is reached."""
+
+
+def evidence_context(data, rows, delivered, feedback):
+    return {**data, "image_inventory": [{"evidence_ref": r["ref"],
+                "available": r["image_available"]} for r in rows],
+            "image_refs_in_this_request": delivered, "evidence_feedback": feedback,
+            "read_protocol": {"read_evidence": [{"evidence_ref": "snapshot:position",
+                "reason": "The state or transition to verify"}]},
+            "evidence_limits": {"images": 4, "read_rounds": 2, "model_calls": 6}}
 
 
 def keys(operation_id):
@@ -77,7 +104,8 @@ def source_input(request, evidence):
             locator = step.get("image")
             delivered = request.include_images and position in image_positions and locator in snapshot.media
             rows.append({"ref": reference, "instruction": snapshot.document["instruction"],
-                         "step": step, "image_attached_to_input": delivered})
+                         "step": step, "image_attached_to_input": delivered,
+                         "image_available": locator in snapshot.media})
             if delivered:
                 if len(images) // 2 >= 4:
                     raise ContractError("Select at most four bound screenshots per authoring request")
@@ -90,7 +118,7 @@ def source_input(request, evidence):
     return rows, images
 
 
-def submit(request, library, evidence, ledger, cases=None, *, settings=None):
+def submit(request, library, evidence, ledger, cases=None, *, settings=None, learning=None):
     key = keys(request.operation_id)
     previous = ledger.get(key)
     if previous:
@@ -100,6 +128,8 @@ def submit(request, library, evidence, ledger, cases=None, *, settings=None):
             raise ContractError("Operation belongs to another Workshop owner")
         return status(request.operation_id, ledger, library.owner)
     payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    if learning is not None:
+        payload.update(learning)
     if settings is not None and input_budget(payload, rows, images, settings)["input_budget_exceeded"]:
         raise ContractError("Workshop input exceeds the configured byte budget; preview and select fewer images or configure an explicit larger budget")
     ledger.record(key, request.sources[0].snapshot_id, "workshop_request.v1", payload)
@@ -140,14 +170,19 @@ def messages_for(policy, role, data, images):
 
 
 def author_context(payload, rows):
-    return {"request": payload["request"], "original": payload["original"],
-            "source_steps": rows, "cases": payload["cases"]}
+    context = {"request": payload["request"], "original": payload["original"],
+               "source_steps": rows, "cases": payload["cases"]}
+    if "retrieval" in payload:
+        context["source_selection"] = payload["retrieval"]["sources"]
+    return context
 
 
 def input_budget(payload, rows, images, settings):
-    from evonext.contracts.model_request import chat_payload
     context = {**author_context(payload, rows), "repair_feedback": None,
                "previous_proposal": None}
+    if payload["request"].get("evidence_mode") == "on_demand":
+        attached = sorted({r["ref"] for r in rows if r["image_attached_to_input"]})
+        context = evidence_context(context, rows, attached, [])
     messages = messages_for(payload["policy"], "AUTHOR", context, images)
     size = len(encode_json(chat_payload(settings.model_name, messages, 4096)))
     return {"initial_request_bytes": size, "max_request_bytes": settings.model_max_request_bytes,
@@ -156,8 +191,10 @@ def input_budget(payload, rows, images, settings):
             "budget_scope": "initial_author_only; review and repair checked before each call"}
 
 
-def preview(request, library, evidence, settings, cases=None):
+def preview(request, library, evidence, settings, cases=None, *, retrieval=None):
     payload, rows, images = prepare_authoring(request, library, evidence, cases)
+    if retrieval is not None:
+        payload["retrieval"] = retrieval
     return {"steps": rows, "bound_images": len(images) // 2, "model_called": False,
             **input_budget(payload, rows, images, settings)}
 
@@ -189,64 +226,126 @@ def run(operation_id, library, evidence, ledger, gateway):
     if sha256(encode_json([rows, images])) != payload["source_input_hash"]:
         raise ContractError("Frozen authoring evidence changed")
     context = author_context(payload, rows)
-    call_keys = []
+    call_keys, evidence_events = [], []
+    state = {"calls": 0, "reads": 0}
+    available = {r["ref"]: r for r in rows}
+    loaded = {r["ref"] for r in rows if r["image_attached_to_input"]}
+    delivered = set()
+    deadline = time.monotonic() + 180
 
     def call(role, data, repetition, schema):
-        messages = messages_for(payload["policy"], role, data, images)
-        # Pin effective transport/config before gateway admission; changed config cannot resend.
-        ledger.record(key + "-" + repetition, row["snapshot_id"], "workshop_input.v1",
-            {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
-             "endpoint": gateway.settings.model_base_url,
-             "budget_scope": gateway.settings.model_budget_scope, "max_tokens": 4096,
-             "policy_hash": payload["policy_hash"]})
-        response = gateway.complete(messages, snapshot_id=row["snapshot_id"], operation_id=key,
-            repetition_id=repetition, policy_version=payload["policy_hash"], max_tokens=4096)
-        call_keys.append(response["call_key"])
-        return schema.model_validate(load_json(
-            response["response"]["choices"][0]["message"]["content"].encode()))
+        feedback = []
+        while True:
+            if time.monotonic() >= deadline:
+                raise EvidenceStop("time_budget")
+            if state["calls"] >= 6:
+                raise EvidenceStop("call_budget")
+            current = (evidence_context(data, rows, sorted(loaded), feedback)
+                       if request.evidence_mode == "on_demand" else data)
+            messages = messages_for(payload["policy"], role, current, images)
+            wire = chat_payload(gateway.settings.model_name, messages, 4096)
+            if len(encode_json(wire)) > gateway.settings.model_max_request_bytes:
+                raise EvidenceStop("input_byte_budget")
+            identity = repetition if not feedback else repetition + "-read-" + str(state["reads"])
+            ledger.record(key + "-" + identity, row["snapshot_id"], "workshop_input.v1",
+                {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
+                 "endpoint": gateway.settings.model_base_url,
+                 "budget_scope": gateway.settings.model_budget_scope, "max_tokens": 4096,
+                 "image_refs": sorted(loaded), "request_bytes": len(encode_json(wire)),
+                 "policy_hash": payload["policy_hash"]})
+            response = gateway.complete(messages, snapshot_id=row["snapshot_id"], operation_id=key,
+                repetition_id=identity, policy_version=payload["policy_hash"], max_tokens=4096)
+            state["calls"] += 1
+            call_keys.append(response["call_key"])
+            delivered.update(loaded)
+            reply = load_json(response["response"]["choices"][0]["message"]["content"].encode())
+            if request.evidence_mode != "on_demand" or "read_evidence" not in reply:
+                return schema.model_validate(reply)
+            query = EvidenceQuery.model_validate(reply)
+            if state["reads"] >= 2:
+                raise EvidenceStop("evidence_round_budget")
+            state["reads"] += 1
+            feedback = []
+            for item in query.read_evidence:
+                if item.evidence_ref not in available:
+                    raise ContractError("Requested image is outside the frozen source window")
+                source = available[item.evidence_ref]
+                event = {"evidence_ref": item.evidence_ref, "reason": item.reason}
+                if item.evidence_ref in loaded:
+                    event["status"] = "already_available"
+                elif not source["image_available"]:
+                    event["status"] = "missing_image"
+                elif len(loaded) >= 4:
+                    event["status"] = "image_budget"
+                else:
+                    snapshot_id, position = item.evidence_ref.rsplit(":", 1)
+                    # Reuse the same source reader and its byte-hash verification.
+                    window = SourceWindow(snapshot_id=snapshot_id, positions=[int(position)],
+                                          image_positions=[int(position)])
+                    _, additions = source_input(request.model_copy(update={
+                        "sources": [window], "include_images": True}), evidence)
+                    images.extend(additions)
+                    loaded.add(item.evidence_ref)
+                    digest = evidence.get(snapshot_id).media[source["step"]["image"]]
+                    event.update(status="loaded_not_yet_delivered", image_hash=digest)
+                feedback.append(event)
+            evidence_events.extend(feedback)
+            ledger.record(key + "-evidence-" + str(state["reads"]), row["snapshot_id"],
+                "workshop_evidence.v1", {"events": feedback, "delivery": "not_confirmed"})
+            if not any(e["status"] == "loaded_not_yet_delivered" for e in feedback):
+                raise EvidenceStop("no_new_image_evidence")
 
     feedback, drafts, outcome = None, [], "needs_evidence"
     previous_proposal = None
+    last_draft_files = None
     # At most author + review + one author repair + one review. No automatic commit.
-    for attempt in range(2):
-        proposed = call("AUTHOR", {**context, "repair_feedback": feedback,
-                                 "previous_proposal": previous_proposal}, f"author{attempt}", Proposal)
-        if proposed.decision != "propose":
-            outcome, feedback = proposed.decision, proposed.reason
-            break
-        previous_proposal = {"files": proposed.files, "headings": proposed.headings,
-                             "reason": proposed.reason}
-        try:
-            files = (diet(payload["original"], proposed.headings) if request.mode == "diet"
-                     else proposed.files)
-            validate_files(request.skill_id, files)
-        except ValueError as exc:
-            feedback = str(exc)
-            outcome = "rejected"
-            continue
-        previous_proposal["files"] = files
-        draft = Drafts(library).create(skill_id=request.skill_id,
-            base_revision=request.base_revision, files=files,
-            sources=[s.snapshot_id for s in request.sources],
-            reason=f"{key} attempt:{attempt} {proposed.reason}", mode=request.mode,
-            provenance={"operation_id": operation_id, "source_windows": request.model_dump()["sources"],
-                        "cases": request.model_dump()["cases"],
-                        "source_input_hash": payload["source_input_hash"]})
-        drafts.append(draft["draft_id"])
-        review = call("REVIEW", {**context, "proposed_files": files},
-                      f"review{attempt}", Review)
-        valid_refs = {r["ref"] for r in rows}
-        if (not set(review.evidence_refs).issubset(valid_refs)
-                or (review.verdict == "approved" and not review.evidence_refs)):
-            raise ContractError("Review must cite supplied source steps")
-        Drafts(library).review(draft["draft_id"], verdict=review.verdict, notes=review.notes,
-            actor="model:" + gateway.settings.model_name, kind="model", policy_hash=payload["policy_hash"],
-            evidence_refs=review.evidence_refs)
-        outcome, feedback = review.verdict, review.notes
-        if outcome != "rejected":
-            break
+    try:
+        for attempt in range(2):
+            proposed = call("AUTHOR", {**context, "repair_feedback": feedback,
+                                     "previous_proposal": previous_proposal}, f"author{attempt}", Proposal)
+            if proposed.decision != "propose":
+                outcome, feedback = proposed.decision, proposed.reason
+                break
+            previous_proposal = {"files": proposed.files, "headings": proposed.headings,
+                                 "reason": proposed.reason}
+            try:
+                files = (diet(payload["original"], proposed.headings) if request.mode == "diet"
+                         else proposed.files)
+                validate_files(request.skill_id, files)
+            except ValueError as exc:
+                feedback = str(exc)
+                outcome = "rejected"
+                continue
+            previous_proposal["files"] = files
+            draft = Drafts(library).create(skill_id=request.skill_id,
+                base_revision=request.base_revision, files=files,
+                sources=[s.snapshot_id for s in request.sources],
+                reason=f"{key} attempt:{attempt} {proposed.reason}", mode=request.mode,
+                provenance={"operation_id": operation_id, "source_windows": request.model_dump()["sources"],
+                            "cases": request.model_dump()["cases"],
+                            "source_input_hash": payload["source_input_hash"]})
+            drafts.append(draft["draft_id"])
+            last_draft_files = files
+            review = call("REVIEW", {**context, "proposed_files": files},
+                          f"review{attempt}", Review)
+            valid_refs = {r["ref"] for r in rows}
+            if (not set(review.evidence_refs).issubset(valid_refs)
+                    or (review.verdict == "approved" and not review.evidence_refs)):
+                raise ContractError("Review must cite supplied source steps")
+            Drafts(library).review(draft["draft_id"], verdict=review.verdict, notes=review.notes,
+                actor="model:" + gateway.settings.model_name, kind="model", policy_hash=payload["policy_hash"],
+                evidence_refs=review.evidence_refs)
+            outcome, feedback = review.verdict, review.notes
+            if outcome != "rejected":
+                break
+    except EvidenceStop as exc:
+        outcome, feedback = "needs_evidence", str(exc)
     result = {"outcome": outcome, "notes": feedback, "draft_ids": drafts, "call_keys": call_keys,
               "source_refs": [r["ref"] for r in rows], "auto_committed": False,
-              "execution_verified": False, "policy_hash": payload["policy_hash"]}
+              "execution_verified": False, "policy_hash": payload["policy_hash"],
+              "evidence_events": evidence_events, "delivered_image_refs": sorted(delivered),
+              "model_calls": state["calls"], "retrieval": payload.get("retrieval"),
+              "body_chars": (len(last_draft_files["SKILL.md"].split("---", 2)[2].strip())
+                             if last_draft_files else None)}
     ledger.record(key + "-result", row["snapshot_id"], "workshop_result.v1", result)
     return result

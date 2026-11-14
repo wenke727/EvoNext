@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from evonext.config import secret
 from evonext.skills.workshop import Workshop
 from evonext.skills.workshop.drafts import Drafts
+from evonext.skills.workshop.learning import LearningRequest, plan, submit_learning
 from evonext.skills.workshop.service import AuthorRequest, preview as preview_authoring, status, submit
 
 
@@ -16,7 +17,7 @@ class ManualDraft(BaseModel):
     skill_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
     base_revision: str | None = None
     files: dict[str, str] = Field(max_length=51)
-    source_snapshots: list[str] = Field(min_length=1, max_length=4)
+    source_snapshots: list[str] = Field(min_length=1, max_length=8)
     reason: str = Field(min_length=1, max_length=4000)
 
 
@@ -42,6 +43,34 @@ def attach_workshop_routes(app, *, evidence, get_ledger, get_cases, settings, au
         if not settings.review_operator_id:
             raise HTTPException(503, "Review operator is not configured")
         return settings.review_operator_id
+
+    def enqueue(operation_id, result):
+        if result["status"] == "pending":
+            from celery import Celery
+            sender = Celery("evonext", broker=secret(settings.broker_url))
+            try:
+                sender.send_task("evonext.workshop", args=[operation_id],
+                                 queue="evonext.bulk", retry=False)
+            except Exception as exc:
+                raise HTTPException(503, "Request saved; reuse operation_id to reconcile delivery") from exc
+            finally:
+                sender.close()
+
+    @app.post("/api/v1/workshop/learning/preview", dependencies=auth)
+    def learning_preview(body: LearningRequest):
+        return plan(body, configured_workshop(settings), evidence, settings)
+
+    @app.post("/api/v1/workshop/learning/operations", dependencies=auth, status_code=202)
+    def learn(body: LearningRequest):
+        actor()
+        if not settings.model_calls_enabled:
+            raise PermissionError("Model calls are explicitly disabled")
+        ledger = get_ledger()
+        if ledger is None:
+            raise HTTPException(503, "Workshop learning requires PostgreSQL and migrations")
+        result = submit_learning(body, configured_workshop(settings), evidence, ledger, settings)
+        enqueue(body.operation_id, result)
+        return result
 
     @app.get("/api/v1/workshop", dependencies=auth)
     def inventory():
@@ -100,16 +129,7 @@ def attach_workshop_routes(app, *, evidence, get_ledger, get_cases, settings, au
         if ledger is None:
             raise HTTPException(503, "Workshop authoring requires PostgreSQL and migrations")
         result = submit(body, configured_workshop(settings), evidence, ledger, get_cases(), settings=settings)
-        if result["status"] == "pending":
-            from celery import Celery
-            sender = Celery("evonext", broker=secret(settings.broker_url))
-            try:
-                sender.send_task("evonext.workshop", args=[body.operation_id],
-                                 queue="evonext.bulk", retry=False)
-            except Exception as exc:
-                raise HTTPException(503, "Request saved; reuse operation_id to reconcile delivery") from exc
-            finally:
-                sender.close()
+        enqueue(body.operation_id, result)
         return result
 
     @app.get("/api/v1/workshop/operations/{operation_id}", dependencies=auth)

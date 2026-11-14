@@ -52,7 +52,7 @@ def main():
     workshop.add_argument("--reason", default="manual candidate revision")
     workshop_api = commands.add_parser("workshop-api", help="Draft/review/author through configured API")
     workshop_api.add_argument("action", choices=["list", "draft", "show", "review", "commit",
-                                               "discard", "preview", "author", "status"])
+                                               "discard", "preview", "author", "status", "learning-preview", "learn"])
     workshop_api.add_argument("--id", help="Draft hash or stable authoring operation ID")
     workshop_api.add_argument("--file", type=Path, help="Exact JSON request; reuse on recovery")
     workshop_api.add_argument("--url", default="http://127.0.0.1:8000")
@@ -80,12 +80,13 @@ def main():
         paths = {"list": "", "draft": "/drafts", "show": "/drafts/{id}",
                  "review": "/drafts/{id}/review", "commit": "/drafts/{id}/commit",
                  "discard": "/drafts/{id}/discard", "preview": "/preview",
-                 "author": "/operations", "status": "/operations/{id}"}
+                 "author": "/operations", "status": "/operations/{id}",
+                 "learning-preview": "/learning/preview", "learn": "/learning/operations"}
         path = paths[args.action]
         if "{id}" in path and not args.id:
             parser.error("--id is required")
         payload = None
-        if args.action in {"draft", "review", "preview", "author"}:
+        if args.action in {"draft", "review", "preview", "author", "learning-preview", "learn"}:
             if not args.file:
                 parser.error("--file is required")
             payload = json.loads(args.file.read_text(encoding="utf-8"))

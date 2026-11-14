@@ -263,3 +263,17 @@ Workshop 是编写系统，其他模块消费的产物是冻结 `SkillBundle`，
 | 消费与收益 | API/CLI/Workbench 同一候选；其他模块只消费合同；固定 None/Raw/Skill 对照、新任务收益与负迁移另验 |
 
 上游依据：[固定版本经验复核](https://github.com/openclaw/openclaw/blob/bd0557f4fac019b945905facd9211ae726210647/extensions/skill-workshop/src/experience-review.ts)、[固定版本复核 Prompt](https://github.com/openclaw/openclaw/blob/bd0557f4fac019b945905facd9211ae726210647/extensions/skill-workshop/src/experience-review-prompt.ts)。本节不复制上游源码或其完整产品。
+
+### 10.8 手工触发首片的现役合同
+
+`POST /api/v1/workshop/learning/preview` 只读规划；`POST /api/v1/workshop/learning/operations` 冻结并提交，后者要求已配置 operator、模型开关和 PG。请求为 `operation_id`、`topic` 或 `seed_snapshot_id`、可选 `skill_id`、`source_limit`（默认 4，允许 1–8；不足不补重复来源）。CLI `workshop-api learning-preview/learn` 与工作台“从相关经验学习”消费相同用例；状态仍由既有 `/workshop/operations/{operation_id}` 读回，队列复用 `evonext.workshop`。没有第二套学习状态库或调度器。
+
+本片只检索 Evidence 已注册工作区，按稳定快照 ID 顺序扫描最多 200 个条目，返回截断标志和后续 cursor；不是“最近 200 条”或全库语义搜索。用中英文词项重合筛相关候选，按来源标签补足对照；标签明确为未独立核验的来源提示。排除 sidecar 显式声明的 test/holdout/heldout/confirmation、revoked/restricted 以及空轨迹。同 Task 的版本只取一个；同 lineage 可保留一对不同标签的对照，另报 `independent_family_count`，不将它们当独立案例。缺少 lineage 元数据时只能按 Task ID 去重；该边界不是完整的来源许可或污染审查实现。
+
+选窗使用动作描述中的主题词项，在单条轨迹内按出现频率降低重复账号名的权重，围绕相关邻域保留最多 12 个连续源 position。返回遗漏位置，不能拼接为未执行的连续成功链。原始 JSON、媒体字节和 source revision 不变。现有 Skill 通过名称/description 词项发现，唯一明确匹配固定 base revision；接近匹配有歧义则拒绝并要求指定 ID。相关性不等于适用性，作者仍可 No Change / Needs Evidence。当前支持 create/patch，不实现自动 merge。
+
+首轮无图片，提供本轮窗口内的绑定图片 inventory。作者/复核可按策略返回严格 JSON `{"read_evidence":[{"evidence_ref":"snapshot:position","reason":"需确认的状态"}]}`；只能读取该窗口的已绑定图片。每次校验源 hash，图片字节在本次运行内共用缓存；不同模型请求仍可能计费。共享上限为 4 张、2 次读取轮、6 次模型调用、一次修补，每次发送前检查字节预算及 180 秒运行截止时间；已发出的请求仍受 gateway 的传输超时控制。缺图/无新增图片、调用/轮次/字节/时间预算耗尽返回 needs_evidence；越界引用拒绝。事件区分 loaded 和实际响应收到后的 delivered，结果列出图片引用、调用数和正文字符数。未实现正文/参考材料的实际消费者 Token 统计或硬长度认证。
+
+同一 operation_id 恢复读取原先冻结的来源、base、策略和请求；不重新召回。收费响应仍先落 PG 再解析，sending/unknown 不重发。预览本身不锁定来源；提交时的 PG 回执是本轮正式输入。模型审查只形成草稿，沿用显式候选提交、CAS 与冻结导出；不改变执行/评估/采用/训练权威。
+
+任务收尾、空闲扫描、共享事件去重及实际消费收益均未在本片启用。§10.7 的目标验收仍保留，当前证据以 ACCEPTANCE 为准。

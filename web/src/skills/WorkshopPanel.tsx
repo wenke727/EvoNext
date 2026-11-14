@@ -13,12 +13,23 @@ type Draft = {
 };
 type Inventory = { skills: { skill_id: string; revision: string; archived: boolean }[];
   drafts: Draft[]; owner: string; model_enabled: boolean };
+type LearningPlan = {
+  author_request: {skill_id: string; base_revision: string | null};
+  retrieval: {selected_count: number; requested: number; shortfall: number; scan_truncated: boolean;
+    independent_family_count: number;
+    sources: {snapshot_id: string; task_id: string; source_label_hint: string;
+      step_count: number; window: number[]; omitted_positions: number[]}[]};
+  budget: {initial_request_bytes: number; max_request_bytes: number; input_budget_exceeded: boolean};
+};
 type Operation = { operation_id: string; status: string;
-  result?: { outcome: string; notes: string; draft_ids: string[] } | null; error?: unknown };
+  result?: { outcome: string; notes: string; draft_ids: string[]; model_calls?: number; body_chars?: number | null } | null; error?: unknown };
 
 export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
   client: EvidenceClient; snapshotId: string; visible: boolean; onClose: () => void;
 }) {
+  const [topic, setTopic] = useState("");
+  const [sourceLimit, setSourceLimit] = useState(4);
+  const [learningPlan, setLearningPlan] = useState<LearningPlan | null>(null);
   const [inventory, setInventory] = useState<Inventory | null>(null);
   const [skillId, setSkillId] = useState("");
   const [base, setBase] = useState<string | null>(null);
@@ -82,6 +93,17 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
       sources: [{ snapshot_id: source, positions: selected, image_positions: pictures }], include_images: images,
       cases: caseId ? [{ case_id: caseId, revision: Number(reviewRevision) }] : [] };
   }
+  function learningRequest() {
+    return {operation_id: operationId || crypto.randomUUID(), topic,
+      seed_snapshot_id: source || snapshotId || null, skill_id: skillId || null,
+      source_limit: sourceLimit};
+  }
+  async function learn() {
+    const body = learningRequest();
+    setOperationId(body.operation_id);
+    setOperation(await api<Operation>("/learning/operations", body));
+    await refresh();
+  }
   async function author(mode: "learn" | "diet") {
     const body = request(mode);
     // Retain the exact request identity even when delivery becomes uncertain.
@@ -132,6 +154,45 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
             onChange={e => { setInstruction(e.target.value); setDraft(null); }} /></label>
         </div>
         <p>基于版本：{base || "新建"}。附件只保存为内容，不执行脚本。</p>
+        <section aria-label="标准学习" className="workshop-review">
+          <h2>从相关经验学习</h2>
+          <p>从已导入的工作区快照召回、去重并选取连续步骤，模型按需看图。只生成待复核草稿。</p>
+          <label>任务族或子流程<input aria-label="学习任务族" value={topic}
+            disabled={busy} onChange={e => { setTopic(e.target.value); setLearningPlan(null); }}
+            placeholder="例如：官方账号主页的作品排序" /></label>
+          <label>来源数量（默认 4，最多 8）<input type="number" min={1} max={8}
+            aria-label="学习来源数量" value={sourceLimit} disabled={busy}
+            onChange={e => { setSourceLimit(Number(e.target.value)); setLearningPlan(null); }} /></label>
+          <p>可使用上方来源快照作为起点；Skill ID 留空时查找相关方法，已有方法优先修补。</p>
+          <div className="workshop-actions">
+            <button disabled={busy || (!topic.trim() && !source && !snapshotId)}
+              onClick={() => void perform(async () => {
+                setLearningPlan(await api<LearningPlan>("/learning/preview", learningRequest()));
+              })}>预览自动选源</button>
+            <button disabled={busy || !inventory?.model_enabled || (!topic.trim() && !source && !snapshotId)}
+              onClick={() => void perform(learn)}>开始标准学习（模型调用）</button>
+          </div>
+          {learningPlan && <div role="status">
+            <p>实际选中 {learningPlan.retrieval.selected_count} / {learningPlan.retrieval.requested} 条，
+              来自 {learningPlan.retrieval.independent_family_count} 个独立来源族；
+              {learningPlan.retrieval.shortfall ? `不足 ${learningPlan.retrieval.shortfall} 条，不重复凑数。` : ""}
+              {learningPlan.retrieval.scan_truncated ? "仅扫描了有界快照范围。" : ""}</p>
+            <p>目标 {learningPlan.author_request.skill_id} · {learningPlan.author_request.base_revision ? "修补已有版本" : "新建候选"}</p>
+            <ul>{learningPlan.retrieval.sources.map(item => <li key={item.snapshot_id}>
+              {item.task_id} · 来源标注 {item.source_label_hint}（未独立核验） ·
+              选取 {item.window[0]}–{item.window.at(-1)} / 共 {item.step_count} 步
+            </li>)}</ul>
+            <p>首轮 {learningPlan.budget.initial_request_bytes} / {learningPlan.budget.max_request_bytes} bytes ·
+              {learningPlan.budget.input_budget_exceeded ? "超限，需缩小主题或调整预算" : "首轮不附图；后续取图仍受预算限制"}</p>
+          </div>}
+          {operation && <div role="status"><p>操作 {operation.operation_id} · {operation.status} · {operation.result?.outcome || "等待结果"}</p>
+            {operation.result && <p>{operation.result.notes} · 模型调用 {operation.result.model_calls ?? "未提供"} 次
+              {operation.result.body_chars != null ? ` · 正文 ${operation.result.body_chars} 字符` : ""}</p>}
+          </div>}
+          <button disabled={busy || !operationId} onClick={() => void perform(async () => {
+            setOperation(await api<Operation>("/operations/" + encodeURIComponent(operationId))); await refresh();
+          })}>读回标准学习结果</button>
+        </section>
         <div className="workshop-tabs">{Object.keys(files).map(path =>
           <button key={path} aria-pressed={activeFile === path} onClick={() => setActiveFile(path)}>{path}</button>)}</div>
         <textarea className="workshop-editor" aria-label="Skill 文件内容" value={files[activeFile] ?? ""}
