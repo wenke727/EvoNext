@@ -1,5 +1,17 @@
 # 兼容与互通合同
 
+## 0. 跨仓单写与旧入口去向
+
+- **全部前端源码和页面唯一 Owner：EvoLoop。** 当前 EvoNext `web/` 的 Viewer/Case/Correction/Evaluation 是待迁出旧代码，不是目标架构的“开发 Workbench”；不再增加前端功能。EvoLoop 复用现有 Task/Sidebar/Timeline/Marker，只迁入缺失的进化业务 UI，正式人审经 EvoLoop 同源 BFF/可信服务器身份调用 EvoNext CaseService。单 URL 浏览、CAS、刷新读回、权限和测试通过后，删除 EvoNext `web/` 与 React/Vite 构建/启动入口。不得建立或保留两个 SPA。
+- **源事实仍属于 EvoLoop。** 旧 Task/Trajectory/Step、源媒体、实际设备 dispatch 与 mobile_execution 回执由原执行/接入模块写入。EvoNext EvidenceService 仅拥有由固定来源导入后的不可变 Snapshot，不能修改旧 latest/history 或把 Snapshot 当源 TaskRevision。
+- **结果按 namespace 单写。** 旧 ORM/Run Grader 的当前 PG/Mongo 路由和历史记录仍由 EvoLoop Evaluation 持有；EvoNext 仅写新 Agentic Evaluation/Diagnosis、Case/Review/Correction，Recovery/Teacher/Verification 在对应接口实现和验收后才获得写入资格。缓存、旧来源评分只读面板和 Langfuse trace 都不是结果权威。
+- **兼容 URL 不自动切换 owner。** GET 旧来源、POST 导入冻结及旧上传投影遵守本页现有安全限制；本仓对旧平台发布的桥接默认 dry-run，绝不能作为跨仓双写或生产设备续跑通道。旧业务入口退役先核对调用者、来源权限、版本/hash、读回、失败回滚和零流量窗口。
+- **真实设备链尚未接线。** Recovery 的恢复资格/状态与 Teacher/Verification 的决策归 EvoNext；设备动作和新 Trial 的原始事实仍由 Runtime/ingestion 负责。没有经验证的后态与独立评价不能宣称恢复成功或训练资格。
+
+### 0.1 前端退役 Gate（目标，尚未实现）
+
+F0 冻结 EvoNext `web/`，记录每份源组件/测试/交互的去向；F1 将 EvoNext 新增 Case/Correction、Agentic Evaluation 编辑/预览能力合并到 EvoLoop 现有 React Workbench，旧 Sidebar/Viewer/Timeline 只提取差异而不再复制；F2 经 EvoLoop 同源 BFF 固定 source_task_id/version（含 0）/hash + evonext_snapshot_id、服务端 actor/scope 与稳定 operation/command_id，UI 只显示 owner 回执，不保存 EvoNext API key；F3 EvoLoop 的编译/单测/浏览器完整操作、旧功能回归及服务端读回通过；F4 按已确认用户流量/外部消费者/回滚窗口删除本仓 `web/`、前端依赖和前端构建/部署脚本。迁移期间现有 `web/` 只作为临时对照样例运行，不可独立上线或继续扩充。API/CLI/Worker/模型调用与领域合同保持原位置，不因 UI 移动改变事实权限。
+
 ## 1. 保留的数据
 
 现有 OpenCUA-shaped 数据主体继续使用 `task_id`、`instruction`、`traj`。已有离线包采用：

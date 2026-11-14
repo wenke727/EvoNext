@@ -1,6 +1,18 @@
 # EvoNext
 
-面向 GUI Agent 的轨迹工作台与能力进化控制面。重新实现内部结构，保留数据、事实语义和外部协作边界，不复制旧平台实现。
+面向 GUI Agent 的能力进化领域引擎。保留独立证据冻结、评估、Case/纠正和后续受控恢复/教师续跑/验证能力，不复制旧平台的事实 Owner 或生产业务操作台。
+
+## 与生产业务 Workbench 的边界
+
+**EvoLoop 是唯一生产业务 Workbench**，负责 Task/Trajectory/来源 Evidence 的业务浏览、人工交互入口、任务运营与现役设备/ORM/Grader。**EvoNext 是进化领域事实 Owner**：新 Case/Review/Correction、Agentic Evaluation/Diagnosis，以及待实现的 Recovery 决策、Teacher 续跑管理、独立 Verification 和候选回流。EvoNext 只保存自己冻结的 Snapshot，不修改来源 Task/Run/Step；实际设备执行回执和新 Trial 原始轨迹由执行器及来源 ingestion 持有。
+
+**全部前端源码、页面、构建、测试和交互发布的唯一 Owner 是 EvoLoop。** 本仓库现存 `web/` 是此前重构阶段留下的**待迁出源代码**，不作为长期保留的开发/演示 Workbench。立即停止向它增加 GUI 功能。EvoLoop 复用原有 React Workbench 的 Task/Viewer/Sidebar/Timeline，将本仓独有的 Case/Correction、Agentic Evaluation 等 UI 能力迁回其现役 React 工程，通过同源 BFF 安全调用 EvoNext API；不得把整个 `web/` 复制成 EvoLoop 内第二个 SPA。完成源/目标/测试/权限/浏览器读回对照后，**移除 EvoNext `web/`、React/Vite 构建和前端启动入口**。迁移期间仅允许修复阻塞导出/对照的遗留 UI 问题，不形成第二用户界面。
+
+EvoNext 长期只保留 `src/evonext/` 内的算法、领域服务、FastAPI/CLI/Worker、数据合同和相应后端测试。现役旧 ORM/Grader 仍由 EvoLoop 写入，本仓新 Agentic 评估使用独立命名空间。所有业务对象坚持单一事实 Writer；缓存/投影不是第二权威。完整 Ownership/API 和前端逐文件回迁矩阵由 EvoLoop 维护，本公开仓不复制其私有实现与内部地址。
+
+当前已有的 Snapshot/Evaluation/Case/Correction 路由不等于生产跨仓授权与回读验收完成；PR #7 仍是统一集成与文档评审候选，真机 Recovery/Teacher/Verification 与独立验收尚未完成。
+
+**迁移未完成声明**：当前 `web/` 仍位于本仓，本 PR 只修正其唯一前端 Owner 和删除 Gate，**并未实际迁移/删除 React 文件**。
 
 ## 完整重构文档
 
@@ -25,7 +37,7 @@
 - 旧平台上传是 `traj → steps + multipart` 的显式投影，默认只预览；不能把 HTTP 成功当成无损同步或审核完成。
 - 模型追踪使用 Langfuse，不另建模型时序/费用可视化平台。启动、导入、浏览和普通测试不调用付费模型或设备。
 
-## 本地演示
+## 迁移期间的遗留本地 UI 验证（非目标部署）
 
 Python 3.11+；前端使用 Node 22.12+。
 

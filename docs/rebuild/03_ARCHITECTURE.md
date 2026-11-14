@@ -2,6 +2,8 @@
 
 版本 0.2。模块化单体 + 独立 Worker；目录是一种可改进的组织方式，业务身份、写入责任和可观察行为才是硬约束。不能为每个名词再建一套服务、工厂或状态表。
 
+**2026-11-14 跨仓纠偏（优先于本章历史目标图中的前端布局）：EvoLoop 拥有全部业务 React/TS 页面、交互、构建与发布；EvoNext 只拥有进化算法/领域服务/API/Worker。`web/` 是待回迁且最终删除的遗留源码，不是 EvoNext 长期子系统。** 保留下面旧版源码与产品图仅供审计已实施功能，不能据此再开发 EvoNext UI。
+
 ## 1. 系统主线
 
 ```text
@@ -41,7 +43,7 @@ src/evonext/
     workshop/               候选版本、编辑、diff、归档、Undo、固定导出
   runtime/                  会话/上下文/授权/回执边界；不依赖 Workshop 存储
 policies/gui/               Prompt 与非秘密策略配置
-web/                       React/TypeScript 工作台
+web/                       迁移期旧 React 源码；目标回迁 EvoLoop 后删除
 migrations/                唯一 PG 迁移链
 examples/                  现役可导入的合成样例
 ```
@@ -56,11 +58,11 @@ OpenClaw 当前 runtime 位于 src/agents、传输位于 src/llm，Workshop 是 
 
 app → 所属业务用例 → contracts/端口；数据库和网络只在适配器中发生。contracts 不导入 app、providers、存储客户端。Runtime 只消费 SkillBundle/SkillRef，不导入 Workshop 库；Workshop 不调用设备、评分器或 Runtime。providers 不导入 app 或业务页面。前端只经 HTTP，不直连 Mongo/PG，也不获取服务端密钥。
 
-前端迁用旧 workbench 已有 React 只读视图的范围及来源见 [ADR-002](../adr/0002-workbench-ui-reuse.md)。原视图和样式放在 web/src/workbench，新快照/认证/来源适配留在 evidence；不迁旧 DOM host、旧写入路径或后端。
+前端迁用历史与文件 provenance 见 [ADR-002](../adr/0002-workbench-ui-reuse.md)，但迁用方向已被纠偏：EvoLoop 现有 Workbench 才是唯一最终前端，应把 EvoNext 新增 Case/Correction/Evaluation UI 归并回原 React 工程，而不是长期在 `web/src/workbench` 复制一套。EvoNext 的 Evidence/Review/Evaluation/Recovery/Teacher/Verification 后端由 EvoLoop 同源服务端 BFF 经版本化 API 调用；前端不持 EvoNext API Key、不直连数据库。
 
-前端由 App 负责会话/选中快照，独立工作台、评估、图例、来源上下文与证据对照组件消费纯读取投影。组件不依赖旧 DOM host 或 window 业务状态；来源评估读取 profile 不引入第二个评估事实 owner。
+遗留 EvoNext `App.tsx` 会话/快照 UI 只是当前迁移对照，不作为目标 App。目标会话、Task/version/Step/Case 选中与深链由 EvoLoop 既有 Workbench 承担；来源评估与进化评估按 producer/namespace 并列显示，不能升格为第二个评估事实 owner。
 
-前端 evidence/EvidenceClient 统一证据 API 调用；MediaCache 只管理会话内媒体请求和临时 Blob，不持有业务事实或解释旧来源 URL。轨迹视图只消费该客户端，后端 SnapshotRepository/AssetStore 仍是事实/字节的访问端口，不增加跨库通用 ORM/DAL。
+现有 `web/src/evidence/EvidenceClient` 是待迁出的客户端实现；目标为 EvoLoop 的同源 API client/BFF（服务端持密钥与用户授权）及已有 task/media reader。若需要冻结 EvoNext Snapshot，只通过其 EvidenceService API 取得固定来源/快照双引用；后端 SnapshotRepository/AssetStore 仍拥有其隔离副本，不引入跨库通用 ORM/DAL。
 
 默认旧源与顶部导航的增补见 [ADR-004](../adr/0004-legacy-source-navigation.md)：compat 中的独立只读源适配只做读取，操作者打开后才交由新 Evidence owner 固定，不迁旧 DAL 初始化或写入路径。
 
