@@ -155,7 +155,7 @@ def test_reviewer_can_request_images_and_missing_images_stop_without_success(env
         assert result["outcome"] == "needs_evidence" and len(calls) == 2
         assert not result["delivered_image_refs"]
         assert result["evidence_events"][0]["status"] == "missing_image"
-        assert Drafts(library).get(result["draft_ids"][0])["state"] == "pending"
+        assert Drafts(library).get(result["draft_ids"][0])["state"] == "model_review_pending"
     finally:
         gateway.close()
 

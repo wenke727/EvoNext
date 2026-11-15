@@ -96,7 +96,7 @@ def model(responses):
 
 def test_multifile_restore_archive_and_frozen_runtime(env):
     library, _, snapshot, _ = env
-    a = library.save("check-target", DOCUMENT, expected_revision=None,
+    a = library.save("check-target", DOCUMENT + "\n[Check](references/check.md)", expected_revision=None,
         source_snapshots=[snapshot.id], reason="synthetic", actor="operator",
         assets={"references/check.md": "# Check\nRead state before action.\n"})
     bundle = library.export("check-target", a["revision"])
@@ -108,7 +108,7 @@ def test_multifile_restore_archive_and_frozen_runtime(env):
     forged = bundle.model_copy(update={"assets": (SkillAsset(path="references/check.md", content="changed"),)})
     with pytest.raises(ContractError, match="hash"):
         prepare_trial(req.model_copy(update={"skills": (forged,)}), snapshot)
-    b = library.save("check-target", DOCUMENT, expected_revision=a["revision"],
+    b = library.save("check-target", DOCUMENT + "\n[Check](references/check.md)", expected_revision=a["revision"],
         source_snapshots=[snapshot.id], reason="synthetic change", actor="operator",
         assets={"references/check.md": "# Check\nStop on unknown state.\n"})
     assert "Stop on unknown" in library.diff("check-target", a["revision"], b["revision"])
@@ -380,7 +380,7 @@ def test_unknown_review_cannot_rebill_author_or_retry_review(env):
             run(req.operation_id, library, evidence, ledger, gateway)
         with pytest.raises(CallHeld):
             run(req.operation_id, library, evidence, ledger, gateway)
-        assert len(calls) == 2 and Drafts(library).list()[0]["state"] == "pending"
+        assert len(calls) == 2 and Drafts(library).list()[0]["state"] == "model_review_pending"
         gateway.settings.model_name = "changed"
         with pytest.raises(ContractError, match="different result"):
             run(req.operation_id, library, evidence, ledger, gateway)
@@ -397,7 +397,7 @@ def test_wrong_evidence_reference_stops_review(env):
     try:
         with pytest.raises(ContractError, match="cite"):
             run(req.operation_id, library, evidence, ledger, gateway)
-        assert Drafts(library).list()[0]["state"] == "pending"
+        assert Drafts(library).list()[0]["state"] == "model_review_pending"
     finally:
         gateway.close()
 
@@ -512,3 +512,78 @@ def test_http_preview_exposes_request_budget_without_model_calls(env):
         assert response.json()["input_budget_exceeded"]
         assert response.json()["initial_request_bytes"] > 1024
         assert not response.json()["model_called"]
+
+
+def test_model_pending_blocks_human_commit_review_and_discard(env):
+    drafts = Drafts(env[0])
+    item = drafts.create(skill_id="check-target", base_revision=None, files={"SKILL.md": DOCUMENT},
+                         sources=[env[2].id], reason="Synthetic model review", model_review_pending=True)
+    for action in (
+        lambda: drafts.review(item["draft_id"], verdict="approved", notes="Human", actor="operator"),
+        lambda: drafts.commit(item["draft_id"], "operator"),
+        lambda: drafts.discard(item["draft_id"], actor="operator"),
+    ):
+        with pytest.raises(ContractError):
+            action()
+    reviewed = drafts.review(item["draft_id"], verdict="approved", notes="Synthetic model",
+                             actor="synthetic-model", kind="model")
+    assert reviewed["state"] == "approved"
+
+
+def test_library_direct_save_cannot_bypass_attachment_integrity(env):
+    with pytest.raises(ContractError, match="reachable"):
+        env[0].save("check-target", DOCUMENT, expected_revision=None, source_snapshots=[env[2].id],
+                    reason="Synthetic", actor="operator", assets={"references/orphan.md": "Orphan"})
+
+
+def test_case_location_is_present_in_author_and_review_context(env):
+    from evonext.skills.workshop.service import prepare_authoring, author_context, CaseInput
+    library, evidence, snapshot, _ = env
+    case = {"case_id": "synthetic-case", "snapshot_id": snapshot.id, "position": 0,
+            "source_step_id": "before", "issue_kind": "step_action", "summary": "Incorrect target",
+            "evidence_refs": ["step:0"], "analysis_refs": []}
+
+    class Cases:
+        def get(self, case_id): return case
+        def get_review(self, case_id, revision): return {"revision": revision}
+
+    req = AuthorRequest(operation_id="case-binding", skill_id="check-target",
+        sources=[SourceWindow(snapshot_id=snapshot.id, positions=[0, 1])],
+        cases=[CaseInput(case_id=case["case_id"], revision=2)], instruction="Learn target selection")
+    payload, rows, _ = prepare_authoring(req, library, evidence, Cases())
+    context = author_context(payload, rows)
+    assert context["cases"][0]["position"] == 0
+    assert context["cases"][0]["source_step_id"] == "before"
+    assert context["cases"][0]["revision"] == 2
+    assert context["cases"][0]["evidence_refs"] == ["step:0"]
+
+
+def test_draft_api_preserves_multisource_provenance_and_case_404(env, tmp_path):
+    library, evidence, snapshot, _ = env
+    another = Snapshot.create(encode_json({"task_id": "synthetic-second", "instruction": "Read",
+                                           "traj": [{"value": {"action": "wait"}}]}))
+    evidence.accept(another)
+    drafts = Drafts(library)
+    sources = [snapshot.id, another.id]
+    provenance = {"source_windows": [{"snapshot_id": sid, "positions": [0]} for sid in sources],
+                  "cases": [{"case_id": "synthetic-missing", "revision": 2}], "include_images": False}
+    original = drafts.create(skill_id="check-target", base_revision=None,
+        files={"SKILL.md": DOCUMENT}, sources=sources, reason="Synthetic", provenance=provenance)
+    settings = Settings(demo=True, _env_file=None, workshop_root=str(library.root),
+                        workshop_owner="operator", review_operator_id="synthetic-operator")
+    with TestClient(create_app(settings, evidence.repository, evidence.assets)) as client:
+        response = client.post("/api/v1/workshop/drafts", json={
+            "skill_id": "check-target", "base_revision": None,
+            "files": {"SKILL.md": DOCUMENT + "\nRevised"}, "source_snapshots": sources,
+            "reason": "Synthetic revision", "parent_draft_id": original["draft_id"]})
+        assert response.status_code == 201, response.text
+        revised = response.json()
+        assert revised["proposal"]["provenance"] == provenance
+        view = client.get("/api/v1/workshop/drafts/" + revised["draft_id"] + "/evidence").json()
+        assert len(view["steps"]) == 2
+        assert set(view["source_snapshots"]) == set(sources)
+        missing = client.post("/api/v1/workshop/preview", json={
+            "operation_id": "synthetic-missing-case", "skill_id": "check-target",
+            "instruction": "Learn", "sources": [{"snapshot_id": snapshot.id, "positions": [0]}],
+            "cases": [{"case_id": "11111111-1111-4111-8111-111111111111", "revision": 1}]})
+        assert missing.status_code == 404

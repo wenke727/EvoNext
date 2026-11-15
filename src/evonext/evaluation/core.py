@@ -4,6 +4,7 @@ from pydantic import Field
 
 from evonext.contracts.trajectory import Check, ContractError, EvaluationRecord, encode_json, load_json, sha256
 from evonext.evaluation.inputs import prepare_input
+from evonext.contracts.model_request import bounded_payload
 from evonext.evaluation.images import image_message
 from evonext.evidence.image_views import JPEG_PROFILE
 
@@ -43,7 +44,8 @@ def validate_assessment(native, obligations, refs, bind_decisions=False):
                 or finding.decision_ref not in finding.evidence_refs
                 or suffix not in finding.decision_ref
                 or finding.decision_ref.rsplit("/", 1)[-1] not in {
-                    "tool_call", "action", "dispatch", "dispatched_action", "think", "thought"}):
+                    "tool_call", "action", "dispatch", "dispatched_action", "think", "thought",
+                    "raw_model_output.tool_call", "recorded_execution.normalized_tool_call"}):
                 raise ContractError("Decision reference must cite a delivered field of its owning step")
         if bind_decisions and finding.judgment == "fail" and finding.position is not None and finding.decision_ref is None:
             raise ContractError("A bound located error requires an explicit source decision_ref")
@@ -99,12 +101,12 @@ def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_cal
     prompt = messages[0]["content"]
     policy_hash = sha256(prompt.encode())
     # Mirror the gateway's hard limit before admission, including base64 and prompt overhead.
-    if len(encode_json(messages)) > request.max_request_bytes:
+    if len(encode_json(bounded_payload(gateway, messages)[0])) > request.max_request_bytes:
         raise ContractError("Combined image/text request exceeds gateway budget")
     if before_call is not None:
         before_call(messages, "0")
     output = gateway.complete(messages, snapshot_id=snapshot.id, operation_id=request.operation_id,
-        max_tokens=4096, policy_version=policy_hash, repetition_id="0")
+        max_tokens=bounded_payload(gateway, messages)[1], policy_version=policy_hash, repetition_id="0")
     native = load_json(output["response"]["choices"][0]["message"]["content"].encode())
     initial_validation_error = None
     try:

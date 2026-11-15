@@ -80,7 +80,10 @@ def run(operation_id, evidence, ledger, gateway):
             "messages_sha256": sha256(encode_json(messages)),
             "model": gateway.settings.model_name, "endpoint": gateway.settings.model_base_url,
             "budget_scope": gateway.settings.model_budget_scope,
-            "policy_hash": payload["policy_hash"], "max_tokens": 4096})
+            "base_policy_hash": payload["policy_hash"],
+            "effective_policy_hash": sha256(messages[0]["content"].encode()),
+            "policy_hash": sha256(messages[0]["content"].encode()),
+            "max_tokens": min(4096, gateway.settings.model_max_output_tokens)})
 
     record = evaluate(snapshot, request, evidence, gateway, payload["prompt"], result_key, pin_input,
                       image_profile=payload.get("image_profile", SOURCE_PROFILE))

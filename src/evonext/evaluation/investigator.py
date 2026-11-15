@@ -2,6 +2,7 @@
 import time
 
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
+from evonext.contracts.model_request import bounded_payload
 from evonext.evaluation.images import image_message
 from evonext.evidence.image_views import JPEG_PROFILE
 
@@ -41,13 +42,13 @@ def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
     for round_number in range(1, request.max_investigation_calls + 1):
         if time.monotonic() >= deadline:
             return current, calls, events, "investigation_time_budget"
-        if len(encode_json(messages)) > request.max_request_bytes:
+        if len(encode_json(bounded_payload(gateway, messages)[0])) > request.max_request_bytes:
             return current, calls, events, "investigation_input_budget"
         repetition = f"investigation-{round_number}"
         if before_call is not None:
             before_call(messages, repetition)
         call = gateway.complete(messages, snapshot_id=snapshot.id,
-            operation_id=request.operation_id, max_tokens=4096,
+            operation_id=request.operation_id, max_tokens=bounded_payload(gateway, messages)[1],
             policy_version=sha256(prompt.encode()), repetition_id=repetition)
         calls.append(call)
         refs.update(item["evidence_ref"] for item in pending)
@@ -104,7 +105,7 @@ def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
             return current, calls, events, "investigation_no_new_evidence"
         candidate = messages + [{"role": "assistant", "content": encode_json(reply).decode()},
             {"role": "user", "content": additions}]
-        if len(encode_json(candidate)) > request.max_request_bytes:
+        if len(encode_json(bounded_payload(gateway, candidate)[0])) > request.max_request_bytes:
             return current, calls, events, "investigation_input_budget"
         messages = candidate
         next_refs = {item["evidence_ref"] for item in staged}

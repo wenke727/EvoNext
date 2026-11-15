@@ -3,12 +3,17 @@ import type { EvidenceClient } from "../evidence/client";
 import "./workshop.css";
 
 type Files = Record<string, string>;
+type Provenance = {
+  source_windows?: {snapshot_id: string; positions: number[]; image_positions?: number[] | null}[];
+  cases?: {case_id: string; revision: number}[];
+  include_images?: boolean; source_input_hash?: string;
+};
 type Draft = {
   draft_id: string; state: string;
   proposal: { skill_id: string; base_revision: string | null; files: Files;
-    sources: string[]; reason: string; mode: string };
+    sources: string[]; reason: string; mode: string; provenance: Provenance };
   diff: string; warnings: string[];
-  review: { verdict: string; notes: string; kind: string } | null;
+  review: { verdict: string; notes: string; kind: string; evidence_refs?: string[] } | null;
   commit: { revision: string } | null;
 };
 type Inventory = { skills: { skill_id: string; revision: string; archived: boolean }[];
@@ -43,6 +48,7 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
   const [caseRef, setCaseRef] = useState("");
   const [images, setImages] = useState(false);
   const [imagePositions, setImagePositions] = useState("");
+  const [binding, setBinding] = useState<Draft | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [notes, setNotes] = useState("");
   const [operationId, setOperationId] = useState("");
@@ -77,11 +83,25 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
 
   function editFiles(next: Files) { setFiles(next); setDirty(true); setDraft(null); }
   function adoptDraft(value: Draft) {
+    setBinding(value); setPreview(""); setNotes("");
     setDraft(value); setSkillId(value.proposal.skill_id); setBase(value.proposal.base_revision);
     setFiles(value.proposal.files); setActiveFile("SKILL.md");
-    setSource(value.proposal.sources[0]); setInstruction(value.proposal.reason); setDirty(false);
+    setSource(value.proposal.sources[0]);
+    const first = value.proposal.provenance.source_windows?.[0];
+    setPositions(first?.positions.join(",") || "");
+    setImagePositions(first?.image_positions?.join(",") || "");
+    setImages(value.proposal.provenance.include_images ?? false);
+    setCaseRef(value.proposal.provenance.cases?.map(c => c.case_id + "@" + c.revision).join(",") || "");
+    setInstruction(value.proposal.reason); setDirty(false);
   }
   function request(mode: "learn" | "diet") {
+    if (binding?.proposal.provenance.source_windows?.length) {
+      return {operation_id: operationId || crypto.randomUUID(), skill_id: skillId,
+        base_revision: base, mode, instruction,
+        sources: binding.proposal.provenance.source_windows,
+        cases: binding.proposal.provenance.cases || [],
+        include_images: binding.proposal.provenance.include_images ?? false};
+    }
     const selected = positions.split(",").map(p => Number(p.trim()));
     if (!positions.trim() || selected.some(p => !Number.isInteger(p) || p < 0))
       throw new Error("请输入逗号分隔的 0-based 步骤序号");
@@ -116,7 +136,7 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
   async function loadSkill(id: string) {
     const result = await api<{ files: Files; head: { revision: string } }>("/skills/" + encodeURIComponent(id));
     setSkillId(id); setBase(result.head.revision); setFiles(result.files);
-    setActiveFile("SKILL.md"); setDraft(null); setDirty(false); setOperationId(""); setOperation(null);
+    setActiveFile("SKILL.md"); setDraft(null); setBinding(null); setPreview(""); setDirty(false); setOperationId(""); setOperation(null);
   }
 
   return <section className="workshop-panel" hidden={!visible} aria-label="Skill Workshop">
@@ -134,7 +154,7 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
         </button>)}
         <button disabled={busy || dirty} onClick={() => {
           setSkillId(""); setBase(null); setFiles({ "SKILL.md": "" }); setActiveFile("SKILL.md");
-          setDraft(null); setOperationId(""); setOperation(null);
+          setDraft(null); setBinding(null); setPreview(""); setOperationId(""); setOperation(null);
         }}>新建候选</button>
         <h2>草稿箱</h2>
         {inventory?.drafts.slice().reverse().map(d => <button key={d.draft_id} disabled={busy || dirty}
@@ -147,9 +167,9 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
         <div className="workshop-fields">
           <label>Skill ID<input aria-label="Skill ID" value={skillId} disabled={busy || !!base}
             onChange={e => { setSkillId(e.target.value); setDraft(null); }} placeholder="check-target" /></label>
-          <label>来源快照<input aria-label="来源快照" value={source} disabled={busy}
+          <label>来源快照<input aria-label="来源快照" value={source} disabled={busy || !!binding}
             onChange={e => { setSource(e.target.value); setPreview(""); setDraft(null); }} /></label>
-          <button disabled={busy || !snapshotId} onClick={() => { setSource(snapshotId); setPreview(""); setDraft(null); }}>
+          <button disabled={busy || !!binding || !snapshotId} onClick={() => { setSource(snapshotId); setPreview(""); setDraft(null); }}>
             使用当前轨迹快照</button>
           <label>学习目标 / 修改理由<textarea aria-label="修改理由" value={instruction} disabled={busy}
             onChange={e => { setInstruction(e.target.value); setDraft(null); }} /></label>
@@ -211,23 +231,24 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
           <button disabled={busy || !skillId || !source || !instruction || !files["SKILL.md"]}
             onClick={() => void perform(async () => {
               const result = await api<Draft>("/drafts", { skill_id: skillId, base_revision: base,
-                files, source_snapshots: [source], reason: instruction });
+                files, source_snapshots: binding?.proposal.sources || [source], reason: instruction,
+                parent_draft_id: binding?.draft_id || null });
               adoptDraft(result); await refresh();
             })}>保存完整草稿</button>
         </div>
         <details>
           <summary>从证据学习 / 精简现有 Skill</summary>
           <p>最多一次修复。精简保持段落原文，仍须复核规则是否在正确时机可读。缺证可停止。</p>
-          <label>证据步骤（0-based，逗号分隔）<input value={positions} onChange={e => setPositions(e.target.value)} /></label>
-          <label>可选 Case（ID@审核版本）<input value={caseRef} onChange={e => setCaseRef(e.target.value)} /></label>
-          <label><input type="checkbox" checked={images} onChange={e => setImages(e.target.checked)} />包含已绑定截图（最多 4 张）</label>
+          <label>证据步骤（0-based，逗号分隔）<input value={positions} disabled={!!binding} onChange={e => setPositions(e.target.value)} /></label>
+          <label>可选 Case（ID@审核版本）<input value={caseRef} disabled={!!binding} onChange={e => setCaseRef(e.target.value)} /></label>
+          <label><input type="checkbox" checked={images} disabled={!!binding} onChange={e => setImages(e.target.checked)} />包含已绑定截图（最多 4 张）</label>
           {images && <label>图片步骤（文本窗口内，最多 4 个；留空不附图）
-            <input aria-label="图片步骤" value={imagePositions} disabled={busy}
+            <input aria-label="图片步骤" value={imagePositions} disabled={busy || !!binding}
               onChange={e => { setImagePositions(e.target.value); setPreview(""); }} placeholder="0,3,8,11" />
           </label>}
           <div className="workshop-actions">
             <button disabled={busy || !source || !skillId || !instruction}
-              onClick={() => void perform(async () => setPreview(JSON.stringify(await api("/preview", request("learn")), null, 2)))}>
+              onClick={() => void perform(async () => setPreview(JSON.stringify(await api(binding ? `/drafts/${binding.draft_id}/evidence` : "/preview", binding ? undefined : request("learn")), null, 2)))}>
               预览选中证据</button>
             <button disabled={busy || !inventory?.model_enabled || !skillId || !source || !instruction || dirty}
               onClick={() => void perform(() => author("learn"))}>显式学习</button>
@@ -246,6 +267,15 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
         {draft && <section className="workshop-review">
           <h2>草稿复核 · {draft.state}</h2>
           <p>{draft.draft_id}</p>
+          <p>冻结证据 {draft.proposal.provenance.source_input_hash || "手工草稿，未绑定模型输入"}</p>
+          {draft.proposal.provenance.source_windows?.map(window => <div key={window.snapshot_id}>
+            <p>快照 {window.snapshot_id}</p>
+            {window.positions.map(position => <a key={position} target="_blank" rel="noreferrer"
+              href={`/#snapshot=${window.snapshot_id}&step=${position}&view=detail`}>查看 Step {position} 原图与动作 </a>)}
+          </div>)}
+          {draft.proposal.provenance.cases?.map(item => <p key={item.case_id}>Case {item.case_id} · 审核版本 {item.revision}</p>)}
+          {draft.review?.evidence_refs?.map(ref => <p key={ref}>模型引用 {ref}</p>)}
+          {draft.state === "model_review_pending" && <p role="status">模型复核尚未完成，请先核对操作回执。</p>}
           {draft.warnings.map(w => <p key={w}>{w}</p>)}
           <pre aria-label="草稿 diff">{draft.diff || "内容无变化"}</pre>
           {draft.review && <p>{draft.review.kind === "model" ? "模型复核" : "操作员复核"}：{draft.review.notes}</p>}
@@ -261,7 +291,7 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
               const result = await api<Draft>(`/drafts/${draft.draft_id}/commit`, {});
               setDraft(result); if (result.commit) setBase(result.commit.revision); await refresh();
             })}>提交为候选版本</button>
-            <button disabled={busy || !!draft.commit || draft.state === "discarded"} onClick={() => void perform(async () => {
+            <button disabled={busy || !!draft.commit || draft.state === "discarded" || draft.state === "model_review_pending"} onClick={() => void perform(async () => {
               setDraft(await api<Draft>(`/drafts/${draft.draft_id}/discard`, {})); await refresh();
             })}>丢弃草稿</button>
           </div>

@@ -19,7 +19,9 @@ def snapshot(created="2026-07-18 09:57:12", local="20260718095708127"):
                               "dispatched_action": {"action": "open", "text": "synthetic app"}},
                   "value": {"thought": "synthetic thought", "unknown": "keep in source"}}],
     }
-    return Snapshot.create(encode_json(document))
+    metadata = document.pop("metadata")
+    metadata["created_at"] = document.pop("created_at")
+    return Snapshot.create(encode_json(document), encode_json(metadata))
 
 
 def test_source_clock_amendment_role_and_dispatch_survive_a_readonly_view():
@@ -69,3 +71,16 @@ def test_unstructured_effective_and_invalid_clock_stay_in_original_only():
     assert "effective" not in preview["model_context"]["steps"][0]["facts"]["runtime"]
     assert preview["model_context"]["source_context"]["task_date_anchor"]["status"] == "unknown"
     assert source.document["created_at"] == {"evaluation": "hidden"}
+
+
+def test_legacy_decisions_project_without_exposing_raw_thoughts():
+    raw = '<think>PRIVATE THOUGHT</think><tool_call>{"name":"mobile_use","arguments":{"action":"wait"}}</tool_call>'
+    source = Snapshot.create(encode_json({"task_id": "synthetic-legacy", "instruction": "Wait",
+        "traj": [{"value": {"raw_model_output": raw, "recorded_execution": {
+            "normalized_tool_call": {"action": "wait"}, "unrelated_label": "hidden"}}}]}))
+    view = prepare_input(source, InputOptions())["model_context"]["steps"][0]
+    assert view["facts"]["value"]["raw_model_output.tool_call"]["name"] == "mobile_use"
+    assert view["facts"]["value"]["recorded_execution.normalized_tool_call"] == {"action": "wait"}
+    assert "PRIVATE THOUGHT" not in json.dumps(view)
+    assert "unrelated_label" not in json.dumps(view)
+    assert source.document["traj"][0]["value"]["raw_model_output"] == raw

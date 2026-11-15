@@ -1,6 +1,7 @@
 """Prepare a bounded model view without changing or truncating source evidence."""
 from typing import Literal
 import json
+import re
 from datetime import datetime, timedelta, timezone
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -29,12 +30,11 @@ FACT_FIELDS = (
 
 def source_context(snapshot):
     """Quote bounded source clocks; never substitute the evaluator's current time."""
-    document = snapshot.document
     clocks = []
-    created = document.get("created_at")
+    created = snapshot.metadata.get("created_at")
     if isinstance(created, str):
-        clocks.append({"source_field": "created_at", "value": created})
-    metadata = document.get("metadata") or {}
+        clocks.append({"source_field": "metadata.created_at", "value": created})
+    metadata = snapshot.metadata
     raw = metadata.get("backflow_raw") or {} if isinstance(metadata, dict) else {}
     records = raw.get("input_properties") or [] if isinstance(raw, dict) else []
     first = records[0] if isinstance(records, list) and records else {}
@@ -103,6 +103,19 @@ def prepare_input(snapshot, options: InputOptions):
                 if container == "step" else set()))
             if excluded:
                 omitted.append({"position": position, "container": container, "fields": excluded})
+        recorded = value.get("recorded_execution")
+        if isinstance(recorded, dict) and isinstance(recorded.get("normalized_tool_call"), dict):
+            facts["value"]["recorded_execution.normalized_tool_call"] = recorded["normalized_tool_call"]
+        raw = value.get("raw_model_output")
+        if isinstance(raw, str):
+            calls = re.findall(r"<tool_call>(.*?)</tool_call>", raw, flags=re.S)
+            if len(calls) == 1:
+                try:
+                    call = json.loads(calls[0])
+                except ValueError:
+                    call = None
+                if isinstance(call, (dict, list)):
+                    facts["value"]["raw_model_output.tool_call"] = call
         reference = f"{snapshot.id}/steps/{position}"
         steps.append({"position": position, "evidence_ref": reference,
                       "source_identity": {key: step[key] for key in

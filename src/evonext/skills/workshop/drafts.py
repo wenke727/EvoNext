@@ -1,5 +1,6 @@
 """Local owner-bound proposals and review receipts; publication is explicit CAS."""
 import difflib
+from datetime import datetime, timezone
 
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.skills.workshop.authoring import lint, validate_files
@@ -23,7 +24,7 @@ class Drafts:
         return path
 
     def create(self, *, skill_id, base_revision, files, sources, reason, mode="manual",
-               provenance=None):
+               provenance=None, actor="local-operator", model_review_pending=False):
         validate_files(skill_id, files)
         if mode not in {"manual", "learn", "diet"} or not reason.strip():
             raise ContractError("Draft needs an authoring mode and reason")
@@ -45,7 +46,8 @@ class Drafts:
             if (head["revision"] if head else None) != base_revision:
                 raise ContractError("Skill changed before draft creation")
             old_warnings = lint(original) if original else []
-            record = {"draft_id": draft_id, "proposal": proposal, "state": "pending",
+            record = {"draft_id": draft_id, "proposal": proposal, "state": "model_review_pending" if model_review_pending else "pending",
+                      "model_review_required": model_review_pending, "created_by": actor, "created_at": datetime.now(timezone.utc).isoformat(),
                       "review": None, "commit": None,
                       "warnings": [w for w in lint(files) if w not in old_warnings],
                       "diff": "".join("".join(difflib.unified_diff(original.get(p, "").splitlines(True),
@@ -64,6 +66,9 @@ class Drafts:
                     or sha256(encode_json(record["proposal"])) != draft_id
                     or record["proposal"]["owner"] != self.library.owner):
                 raise ContractError("Draft identity mismatch")
+            if (record["state"] == "pending" and record["review"] is None
+                    and record.get("model_review_required", bool(record["proposal"]["provenance"].get("operation_id")))):
+                record["state"] = "model_review_pending"
             return record
 
     def list(self):
@@ -82,7 +87,7 @@ class Drafts:
                   "evidence_refs": list(evidence_refs)}
         with self.library.lock:
             record = self.get(draft_id)
-            if record["state"] != "pending":
+            if record["state"] != ("model_review_pending" if kind == "model" else "pending"):
                 if record["review"] == review:
                     return record
                 raise ContractError("Draft is already reviewed or closed; create a revised proposal")
@@ -90,11 +95,17 @@ class Drafts:
             _atomic(self._path(draft_id), encode_json(record))
             return record
 
-    def discard(self, draft_id):
+    def discard(self, draft_id, actor="local-operator"):
         with self.library.lock:
             record = self.get(draft_id)
             if record["commit"]:
                 raise ContractError("Committed draft requires revision restore, not discard")
+            if record["state"] == "model_review_pending":
+                raise ContractError("Model review is still pending")
+            if record["state"] == "discarded":
+                return record
+            record["discarded_by"] = actor
+            record["discarded_at"] = datetime.now(timezone.utc).isoformat()
             record["state"] = "discarded"
             _atomic(self._path(draft_id), encode_json(record))
             return record

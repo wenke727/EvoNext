@@ -150,6 +150,8 @@ class Workshop:
                 raise ContractError("Skill changed since it was read; refresh before saving")
             old = self._read(skill_id, parent)[0] if head else {}
             files = old.get("assets", {}) if assets is None else dict(assets)
+            from evonext.skills.workshop.authoring import validate_files
+            validate_files(skill_id, {"SKILL.md": document, **files})
             asset_list = tuple(SkillAsset(path=p, content=c) for p, c in files.items())
             version = "v2" if files or old.get("schema_version", "").endswith(".v2") else "v1"
             content_hash = skill_content_hash(document, asset_list, version)

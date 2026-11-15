@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from evonext.contracts.model_request import chat_payload
+from evonext.contracts.model_request import chat_payload, bounded_payload
 from evonext.contracts.trajectory import ContractError, encode_json, load_json, sha256
 from evonext.evidence.packages import media_type
 from evonext.evidence.image_views import JPEG_PROFILE, SOURCE_PROFILE, model_image, profile_for_quality
@@ -84,8 +84,9 @@ def keys(operation_id):
     return "workshop-" + sha256(operation_id.encode())
 
 
-def source_input(request, evidence, image_profile=JPEG_PROFILE):
+def source_input(request, evidence, image_profile=JPEG_PROFILE, *, preview_only=False, byte_limit=16 * 1024 * 1024):
     rows, images = [], []
+    encoded_bytes = 0
     for window in request.sources:
         snapshot = evidence.get(window.snapshot_id)
         if snapshot is None:
@@ -116,9 +117,15 @@ def source_input(request, evidence, image_profile=JPEG_PROFILE):
                 if image_profile != SOURCE_PROFILE:
                     raw, view = model_image(raw, image_profile)
                     rows[-1]["image_view"] = view
+                size = ((len(raw) + 2) // 3) * 4
+                encoded_bytes += size
+                if not preview_only and encoded_bytes > byte_limit:
+                    raise ContractError("Workshop images exceed the configured byte budget")
                 images.extend([{"type": "text", "text": reference + " screenshot"},
                     {"type": "image_url", "image_url": {"url":
-                        f"data:{media_type(raw)};base64," + base64.b64encode(raw).decode()}}])
+                        f"data:{media_type(raw)};base64," + ("" if preview_only else base64.b64encode(raw).decode())}}])
+                if preview_only:
+                    images[-1]["base64_bytes"] = size
     return rows, images
 
 
@@ -132,7 +139,8 @@ def submit(request, library, evidence, ledger, cases=None, *, settings=None, lea
             raise ContractError("Operation belongs to another Workshop owner")
         return status(request.operation_id, ledger, library.owner)
     profile = profile_for_quality(settings.model_image_quality) if settings else JPEG_PROFILE
-    payload, rows, images = prepare_authoring(request, library, evidence, cases, image_profile=profile)
+    payload, rows, images = prepare_authoring(request, library, evidence, cases, image_profile=profile,
+        byte_limit=settings.model_max_request_bytes if settings else 16 * 1024 * 1024)
     if learning is not None:
         payload.update(learning)
     if settings is not None and input_budget(payload, rows, images, settings)["input_budget_exceeded"]:
@@ -141,7 +149,7 @@ def submit(request, library, evidence, ledger, cases=None, *, settings=None, lea
     return status(request.operation_id, ledger, library.owner)
 
 
-def prepare_authoring(request, library, evidence, cases=None, *, image_profile=JPEG_PROFILE):
+def prepare_authoring(request, library, evidence, cases=None, *, image_profile=JPEG_PROFILE, preview_only=False, byte_limit=16 * 1024 * 1024):
     with library.lock:
         head = library.current(request.skill_id)
         if (head["revision"] if head else None) != request.base_revision:
@@ -149,7 +157,7 @@ def prepare_authoring(request, library, evidence, cases=None, *, image_profile=J
         original = library.files(request.skill_id, request.base_revision) if head else {}
         if request.mode == "diet" and not original:
             raise ContractError("Diet requires an existing Skill")
-    rows, images = source_input(request, evidence, image_profile)
+    rows, images = source_input(request, evidence, image_profile, preview_only=preview_only, byte_limit=byte_limit)
     frozen_cases = []
     for item in request.cases:
         if cases is None:
@@ -159,7 +167,10 @@ def prepare_authoring(request, library, evidence, cases=None, *, image_profile=J
         if not any(w.snapshot_id == case["snapshot_id"] and case["position"] in w.positions
                    for w in request.sources):
             raise ContractError("Case must belong to a selected source position")
-        frozen_cases.append({"case_id": item.case_id, "summary": case["summary"], "review": review,
+        frozen_cases.append({**{key: case.get(key) for key in
+                               ("case_id", "snapshot_id", "position", "source_step_id",
+                                "issue_kind", "evidence_refs", "analysis_refs", "summary")},
+                             "revision": item.revision, "review": review,
                              "meaning": "reviewed correction proposal, not executed success"})
     policy = Path(__file__).with_name("policy.md").read_text(encoding="utf-8")
     payload = {"request": request.model_dump(), "owner": library.owner, "original": original,
@@ -191,8 +202,12 @@ def input_budget(payload, rows, images, settings):
     if payload["request"].get("evidence_mode") == "on_demand":
         attached = sorted({r["ref"] for r in rows if r["image_attached_to_input"]})
         context = evidence_context(context, rows, attached, [])
-    messages = messages_for(payload["policy"], "AUTHOR", context, images)
-    size = len(encode_json(chat_payload(settings.model_name, messages, 4096)))
+    # Preview substitutes the base64 lengths without building large encoded strings.
+    contents = [{key: value for key, value in part.items() if key != "base64_bytes"} for part in images]
+    messages = messages_for(payload["policy"], "AUTHOR", context, contents)
+    size = len(encode_json(chat_payload(settings.model_name, messages,
+                                       min(4096, settings.model_max_output_tokens))))
+    size += sum(part.get("base64_bytes", 0) for part in images)
     return {"initial_request_bytes": size, "max_request_bytes": settings.model_max_request_bytes,
             "input_budget_exceeded": size > settings.model_max_request_bytes,
             "model_configured": bool(settings.model_name),
@@ -201,7 +216,7 @@ def input_budget(payload, rows, images, settings):
 
 def preview(request, library, evidence, settings, cases=None, *, retrieval=None):
     payload, rows, images = prepare_authoring(request, library, evidence, cases,
-        image_profile=profile_for_quality(settings.model_image_quality))
+        image_profile=profile_for_quality(settings.model_image_quality), preview_only=True)
     if retrieval is not None:
         payload["retrieval"] = retrieval
     return {"steps": rows, "bound_images": len(images) // 2, "model_called": False,
@@ -236,7 +251,8 @@ def run(operation_id, library, evidence, ledger, gateway):
     payload = row["payload"]
     request = AuthorRequest.model_validate(payload["request"])
     image_profile = payload.get("image_profile", SOURCE_PROFILE)
-    rows, images = source_input(request, evidence, image_profile)
+    rows, images = source_input(request, evidence, image_profile,
+        byte_limit=gateway.settings.model_max_request_bytes)
     if sha256(encode_json([rows, images])) != payload["source_input_hash"]:
         raise ContractError("Frozen authoring evidence changed")
     context = author_context(payload, rows)
@@ -258,20 +274,20 @@ def run(operation_id, library, evidence, ledger, gateway):
             current = (evidence_context(data, rows, sorted(loaded), feedback)
                        if request.evidence_mode == "on_demand" else data)
             messages = messages_for(payload["policy"], role, current, images)
-            wire = chat_payload(gateway.settings.model_name, messages, 4096)
+            wire, max_tokens = bounded_payload(gateway, messages)
             if len(encode_json(wire)) > gateway.settings.model_max_request_bytes:
                 raise EvidenceStop("input_byte_budget")
             identity = repetition if not feedback else repetition + "-read-" + str(state["reads"])
             input_receipt = {"messages_hash": sha256(encode_json(messages)), "model": gateway.settings.model_name,
                  "endpoint": gateway.settings.model_base_url,
-                 "budget_scope": gateway.settings.model_budget_scope, "max_tokens": 4096,
+                 "budget_scope": gateway.settings.model_budget_scope, "max_tokens": max_tokens,
                  "image_refs": sorted(loaded), "request_bytes": len(encode_json(wire)),
                  "policy_hash": payload["policy_hash"]}
             if image_profile != SOURCE_PROFILE:
                 input_receipt["image_views"] = image_views.copy()
             ledger.record(key + "-" + identity, row["snapshot_id"], "workshop_input.v1", input_receipt)
             response = gateway.complete(messages, snapshot_id=row["snapshot_id"], operation_id=key,
-                repetition_id=identity, policy_version=payload["policy_hash"], max_tokens=4096)
+                repetition_id=identity, policy_version=payload["policy_hash"], max_tokens=max_tokens)
             state["calls"] += 1
             call_keys.append(response["call_key"])
             delivered.update(loaded)
@@ -342,7 +358,8 @@ def run(operation_id, library, evidence, ledger, gateway):
                 base_revision=request.base_revision, files=files,
                 sources=[s.snapshot_id for s in request.sources],
                 reason=f"{key} attempt:{attempt} {proposed.reason}", mode=request.mode,
-                provenance={"operation_id": operation_id, "source_windows": request.model_dump()["sources"],
+                model_review_pending=True, actor="model:" + gateway.settings.model_name,
+                provenance={"include_images": request.include_images, "frozen_cases": payload["cases"], "operation_id": operation_id, "source_windows": request.model_dump()["sources"],
                             "cases": request.model_dump()["cases"],
                             "source_input_hash": payload["source_input_hash"]})
             drafts.append(draft["draft_id"])
