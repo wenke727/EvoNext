@@ -89,6 +89,24 @@ def test_received_response_reused_and_repeats_distinct():
     model.close()
 
 
+def test_generation_options_are_explicit_bounded_and_part_of_receipt_identity():
+    calls = []
+    model = gateway(lambda r: calls.append(json.loads(r.content)) or httpx.Response(200, json={}))
+    with pytest.raises(ContractError):
+        model.complete([], operation_id="large", max_tokens=16384)
+    assert not calls and not model.receipts.rows
+    model.close()
+    model = gateway(lambda r: calls.append(json.loads(r.content)) or httpx.Response(200, json={}),
+                    model_max_output_tokens=16384)
+    a = model.complete([], operation_id="same")
+    b = model.complete([], operation_id="same", max_tokens=16384, temperature=1, reasoning_effort="high")
+    assert a["call_key"] != b["call_key"]
+    assert "temperature" not in calls[0] and "reasoning_effort" not in calls[0]
+    assert calls[1]["max_tokens"] == 16384 and calls[1]["reasoning_effort"] == "high"
+    with pytest.raises(ContractError):
+        model.complete([], operation_id="invalid", temperature=float("nan"))
+    model.close()
+
 def test_unknown_response_never_automatically_resent():
     calls = []
     def timeout(request):
@@ -170,3 +188,23 @@ def test_policy_config_does_not_accept_secrets(tmp_path):
     (tmp_path / "outcome.json").write_text(json.dumps(config))
     with pytest.raises(ContractError):
         freeze_policy(tmp_path, "outcome", {})
+
+
+@pytest.mark.parametrize("name, token_key", [("gpt-6.1-sol", "max_completion_tokens"),
+    ("gpt-6.1-sol-2026-11-14", "max_completion_tokens"), ("synthetic", "max_tokens")])
+def test_model_specific_output_budget_is_part_of_durable_request(name, token_key):
+    seen = []
+    def handler(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"choices": [{"message": {"content": "ok"}}]})
+    settings = options().model_copy(update={"model_name": name})
+    store = MemoryCallReceipts()
+    model = ModelGateway(settings, transport=httpx.MockTransport(handler), receipts=store)
+    try:
+        first = model.complete([], operation_id="synthetic-token-profile", max_tokens=1024)
+        assert seen[0][token_key] == 1024
+        assert ("max_tokens" if token_key == "max_completion_tokens" else "max_completion_tokens") not in seen[0]
+        assert model.complete([], operation_id="synthetic-token-profile", max_tokens=1024)["reused"]
+        assert len(seen) == 1 and first["call_key"] in store.rows
+    finally:
+        model.close()

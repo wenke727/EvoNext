@@ -1,0 +1,27 @@
+.workshop-panel { padding: 24px; overflow: auto; flex: 1; min-height: 0; background: #f7f9fc; color: #172337; font-size: 14px; }
+.workshop-panel[hidden] { display: none; }
+.workshop-panel > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.workshop-panel h1 { font-size: 22px; margin: 0 0 8px; }
+.workshop-panel h2 { font-size: 16px; margin: 20px 0 12px; }
+.workshop-panel p { color: #54637a; overflow-wrap: anywhere; }
+.workshop-columns { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; }
+.workshop-columns > aside { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.workshop-columns > aside button { text-align: left; overflow-wrap: anywhere; }
+.workshop-columns small { display: block; color: #637188; margin-top: 5px; }
+.workshop-columns > main { min-width: 0; background: white; border: 1px solid #dbe2ec; border-radius: 10px; padding: 20px; }
+.workshop-panel label { display: flex; flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 12px; font-size: 13px; }
+.workshop-fields { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr); gap: 8px 16px; }
+.workshop-fields > button { grid-column: 2; justify-self: start; margin-bottom: 8px; }
+.workshop-fields > label:last-child { grid-column: 1 / -1; }
+.workshop-panel input, .workshop-panel textarea { padding: 9px; border: 1px solid #bac7d8; border-radius: 5px; color: #172337; background: white; }
+.workshop-panel input[type=checkbox] { align-self: start; }
+.workshop-panel button { padding: 8px 12px; border: 1px solid #bac7d8; background: white; color: #24456a; border-radius: 5px; cursor: pointer; }
+.workshop-panel button:disabled { opacity: .45; cursor: default; }
+.workshop-panel button[aria-pressed=true] { background: #e9f0ff; border-color: #5279b9; }
+.workshop-tabs, .workshop-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.workshop-panel .workshop-editor { width: 100%; box-sizing: border-box; min-height: 320px; font: 13px/1.65 Consolas, monospace; resize: vertical; }
+.workshop-panel pre { background: #f0f3f8; padding: 14px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 400px; overflow: auto; font-size: 12px; }
+.workshop-panel details { border-top: 1px solid #dbe2ec; margin-top: 20px; padding-top: 16px; }
+.workshop-panel summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+.workshop-review { border-top: 1px solid #dbe2ec; margin-top: 24px; }
+@media (max-width: 800px) { .workshop-columns { grid-template-columns: 1fr; } .workshop-panel { padding: 12px; } .workshop-fields { display: block; } }

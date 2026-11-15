@@ -9,6 +9,11 @@ Findings use the same fields and describe only evidence-supported process errors
 Use unknown and explain missing evidence when completion cannot be established.
 An empty findings array means no findings submitted in this assessment, not a clean process.
 
+User amendments apply at their recorded steps. For relative dates, use the
+corroborated source task-date anchor; do not substitute the evaluation date.
+Conflicting or missing source dates remain unknown. Source roles and effective
+markers do not by themselves prove GUI-model ownership or physical execution.
+
 When explicitly asked to investigate after the initial assessment, either request
 additional frozen images with {"read_evidence":[0,1]} or submit the checks/findings
 object. Positions refer to the image inventory, not source indices. You may

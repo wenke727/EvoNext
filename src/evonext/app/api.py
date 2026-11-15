@@ -15,6 +15,7 @@ from evonext.compat.legacy import BridgeUncertain, LegacyClient
 from evonext.compat.mongo_source import LegacyMongoSource, SourceUnavailable
 from evonext.evidence.packages import media_type
 from evonext.evidence.service import EvidenceService
+from evonext.evidence.image_views import profile_for_quality
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
 from evonext.evaluation.inputs import InputOptions, prepare_input
@@ -22,6 +23,7 @@ from evonext.evaluation.service import (EvalRequest, submit, status as evaluatio
                                         FindingConfirmation, finding_proposal)
 from evonext.review.store import MemoryCases, PostgresCases
 from evonext.app.case_api import attach_case_routes
+from evonext.app.workshop_api import attach_workshop_routes
 
 
 async def limited_body(request, maximum):
@@ -240,7 +242,8 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
             raise PermissionError("Model calls are explicitly disabled")
         if ledger is None:
             raise HTTPException(503, "Evaluation requires PostgreSQL and migrations")
-        result = submit(snapshot_or_404(snapshot_id), request, ledger)
+        result = submit(snapshot_or_404(snapshot_id), request, ledger,
+                        image_profile=profile_for_quality(settings.model_image_quality))
         if result["status"] == "pending":
             from celery import Celery
             sender = Celery("evonext", broker=secret(settings.broker_url))
@@ -321,4 +324,6 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
 
     attach_case_routes(app, evidence=service, get_store=lambda: active_case_store,
                        auth=auth, settings=settings)
+    attach_workshop_routes(app, evidence=service, get_ledger=lambda: ledger,
+                          get_cases=lambda: active_case_store, settings=settings, auth=auth)
     return app

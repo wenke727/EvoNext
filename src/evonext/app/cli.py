@@ -28,10 +28,14 @@ def main():
     evaluate.add_argument("snapshot_id")
     evaluate.add_argument("--operation-id", required=True)
     evaluate.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
+    evaluate.add_argument("--review-localization", action="store_true")
+    evaluate.add_argument("--bind-decisions", action="store_true")
     replay = commands.add_parser("replay-evaluation", help="Offline synthetic judge response replay")
     replay.add_argument("path", type=Path)
     replay.add_argument("--responses", type=Path, required=True)
     replay.add_argument("--investigation", choices=["off", "auto", "always"], default="auto")
+    replay.add_argument("--review-localization", action="store_true")
+    replay.add_argument("--bind-decisions", action="store_true")
     enqueue = commands.add_parser("enqueue-integrity")
     enqueue.add_argument("snapshot_id")
     probe = commands.add_parser("model-probe")
@@ -46,6 +50,12 @@ def main():
     workshop.add_argument("--revision")
     workshop.add_argument("--source", action="append", default=[])
     workshop.add_argument("--reason", default="manual candidate revision")
+    workshop_api = commands.add_parser("workshop-api", help="Draft/review/author through configured API")
+    workshop_api.add_argument("action", choices=["list", "draft", "show", "review", "commit",
+                                               "discard", "preview", "author", "status", "learning-preview", "learn"])
+    workshop_api.add_argument("--id", help="Draft hash or stable authoring operation ID")
+    workshop_api.add_argument("--file", type=Path, help="Exact JSON request; reuse on recovery")
+    workshop_api.add_argument("--url", default="http://127.0.0.1:8000")
     available = commands.add_parser("list-available", help="Filter a resource owner inventory JSON file")
     available.add_argument("--inventory", required=True, type=Path)
     available.add_argument("--driver", choices=["external_agent", "builtin_agent", "cloud_query"])
@@ -63,7 +73,32 @@ def main():
     case.add_argument("--revision", type=int)
     case.add_argument("--purpose", choices=["diagnosis", "localization", "sft", "dpo"])
     args = parser.parse_args()
-    if args.command == "case":
+    if args.command == "workshop-api":
+        import httpx
+        from urllib.parse import quote
+        from evonext.config import secret
+        paths = {"list": "", "draft": "/drafts", "show": "/drafts/{id}",
+                 "review": "/drafts/{id}/review", "commit": "/drafts/{id}/commit",
+                 "discard": "/drafts/{id}/discard", "preview": "/preview",
+                 "author": "/operations", "status": "/operations/{id}",
+                 "learning-preview": "/learning/preview", "learn": "/learning/operations"}
+        path = paths[args.action]
+        if "{id}" in path and not args.id:
+            parser.error("--id is required")
+        payload = None
+        if args.action in {"draft", "review", "preview", "author", "learning-preview", "learn"}:
+            if not args.file:
+                parser.error("--file is required")
+            payload = json.loads(args.file.read_text(encoding="utf-8"))
+        method = "GET" if args.action in {"list", "show", "status"} else "POST"
+        with httpx.Client(base_url=args.url, headers={"X-API-Key": secret(Settings().api_key)},
+                          timeout=60) as client:
+            response = client.request(method, "/api/v1/workshop" +
+                path.format(id=quote(args.id or "", safe="")), json=payload)
+            if response.is_error:
+                parser.exit(1, f"HTTP {response.status_code}: {response.text}\n")
+            print(json.dumps(response.json(), ensure_ascii=False, indent=2))
+    elif args.command == "case":
         import httpx
         from uuid import UUID
         from evonext.config import secret
@@ -147,7 +182,8 @@ def main():
         service = EvidenceService(MemorySnapshots(), assets, settings)
         service.accept(snapshot)
         responses = load_json(args.responses.read_bytes())["responses"]
-        request = EvalRequest(operation_id="synthetic-replay", investigation=args.investigation)
+        request = EvalRequest(operation_id="synthetic-replay", investigation=args.investigation,
+                              review_localization=args.review_localization, bind_decisions=args.bind_decisions)
         prompt = Path(__file__).parents[1].joinpath("evaluation/outcome.md").read_text(encoding="utf-8")
         result = evaluate(snapshot, request, service, ReplayGateway(responses), prompt, "synthetic-replay")
         result["native_result"]["synthetic_replay"] = True
@@ -156,6 +192,7 @@ def main():
         from evonext.config import secret
         from evonext.evaluation.service import EvalRequest, submit, run
         from evonext.evidence.service import EvidenceService
+        from evonext.evidence.image_views import profile_for_quality
         from evonext.evidence.store import stores
         from evonext.operations.ledger import Ledger
         from evonext.providers.gateway import ModelGateway
@@ -170,7 +207,10 @@ def main():
             snapshot = service.get(args.snapshot_id)
             if snapshot is None:
                 parser.error("Snapshot not found")
-            submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation), ledger)
+            submit(snapshot, EvalRequest(operation_id=args.operation_id, investigation=args.investigation,
+                                         review_localization=args.review_localization,
+                                         bind_decisions=args.bind_decisions), ledger,
+                   image_profile=profile_for_quality(settings.model_image_quality))
             gateway = ModelGateway(settings)
             print(json.dumps(run(args.operation_id, service, ledger, gateway), ensure_ascii=False, indent=2))
         finally:

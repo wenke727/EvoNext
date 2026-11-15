@@ -3,9 +3,11 @@ import { TaskSearch } from "./workbench/navigation/TaskSearch";
 import { EvidenceClient } from "./evidence/client";
 import type { Detail, Summary, SourceTask } from "./evidence/client";
 import { TrajectoryViewer } from "./evidence/TrajectoryViewer";
+import { WorkshopPanel } from "./skills/WorkshopPanel";
 
 export default function App() {
   const [token, setToken] = useState("");
+  const [workshopOpen, setWorkshopOpen] = useState(false);
   const client = useMemo(() => new EvidenceClient(token), [token]);
   const session = useRef(client);
   session.current = client;
@@ -207,6 +209,7 @@ export default function App() {
           onTask={value => { setLegacyTask(value); setLegacyVersion(""); }} onVersion={setLegacyVersion} onSearch={() => void searchTask()} />
         <span className="source-mode-label">{sourceMode ? "旧库 · 只读" : "本地快照"}</span>
         <div className="header-spacer" />
+        <button onClick={() => setWorkshopOpen(value => !value)}>Skill Workshop</button>
         <details className="header-menu library-menu">
           <summary>轨迹 / 导入</summary>
           <div className="menu-panel">
@@ -329,7 +332,9 @@ export default function App() {
           </button>
         </div>
       )}
-      {current ? (
+      <WorkshopPanel key={token} client={client} snapshotId={selected} visible={workshopOpen}
+        onClose={() => setWorkshopOpen(false)} />
+      {!workshopOpen && (current ? (
         <TrajectoryViewer
           key={`${token}:${selected}`}
           client={client}
@@ -372,7 +377,7 @@ export default function App() {
             )}
           </section>
         </main>
-      )}
+      ))}
     </div>
   );
 }

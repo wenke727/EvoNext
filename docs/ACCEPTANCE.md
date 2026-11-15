@@ -1,5 +1,38 @@
 # 实施状态与验收证据
 
+## Skills Workshop 显式候选闭环（2026-11-10）
+
+基于 `origin/feat/agentic-findings-cases` 的 `a3f6a656355df6a219f046cdaed59a9264b523b2`，
+在独立 worktree 实施；未处理主 checkout 的既有合并冲突，也未复制 EvoLoop 私有代码。
+本片完成多文件版本、来源与 base revision 绑定的草稿、人工/模型复核、显式提交、
+有界学习和独立精简，以及 API/CLI/React 操作入口。无后台自动学习或激活。
+
+工程验证：`python -X utf8 -m pytest -q` 为 **235 passed / 4 skipped**；
+前端既有测试 **44 passed**；Ruff、compileall、TypeScript/Vite 构建通过。
+初次未指定 UTF-8 的全量运行有两项既有测试按 Windows GBK 读中文失败；
+UTF-8 模式复验通过，未将编码失败归为源码腐化。新增 33 项合成测试覆盖：
+完整附件 hash/恢复/归档、旧 v1 导出与 Runtime 上下文字节、路径/链接/孤立引用、
+草稿版本冲突和复核绑定、同草稿并发提交、HEAD 落盘后的回执恢复、来源集合保留、
+所选证据与固定 Case 审核版本、no_change/缺证、一次修复停止、精简原文保留、
+未知模型回执不重发、生效模型配置冻结、API 认证与 owner 隔离、保存后重新装配读回。
+模型测试使用真实 gateway 代码加 MockTransport/内存回执；没有收费请求。
+
+本地 Chrome 合成浏览器流程通过：编辑 SKILL.md 与附件、返回轨迹后编辑保留、
+缺引用报错、补齐附件、复核前禁止提交、操作员复核、提交候选、刷新读回、
+逐文件检查、证据预览、模型关闭时学习/精简不可用。
+1440×1000 和 1024×768 桌面宽度检查无横向溢出，表单与 diff 可滚动读取，
+无页面 JavaScript 异常；修正了继承样式导致输入框居中变窄的问题。
+合成截图和 QA 清单保存在忽略的 `.local/qa/workshop-*.png`、
+`.local/qa/workshop-qa.json`。浏览器与临时测试服务在检查后关闭。
+CLI `workshop-api list` 也经本地 HTTP 读回浏览器提交的同一候选与草稿；
+服务重启后文件库的 revision 和提交回执保持一致。
+
+未验范围：真实 PG/Celery 联通与多进程故障恢复、生产目录权限/备份、真实模型的
+规则保留和视觉判断、真实设备执行、none/raw/skill 收益。4 项跳过不算实库通过。
+FileLock 仍只服务同主机本地候选库；模型复核、候选提交和正确的消费绑定均不证明
+任务成功或训练资格。当前只支持文本附件与 CommonMark 引用；复杂搬移会停止并
+要求手工提案。本片不包含 merge/group undo、后台调度或生产 Registry。
+
 ## 本轮提交前审查（2026-11-08）
 
 离线复验：pytest 129 passed / 4 skipped；前端 42 passed；Ruff、compileall、TypeScript/Vite 构建通过。4 项跳过不计为实库验收。本轮未重新访问真实服务或执行模型/设备操作。修复连接切换时旧请求覆盖状态的竞态；缺少 infra SDK 时旧源明确返回不可用；BSON 小整数 Int64 也保留 `$numberLong` 类型信息，新增合成回归。EvaluationPanel 的未提交外观改动已按要求撤回，来源评估说明保留。以下真实服务和浏览器记录为此前验收记录，本轮未复验。
@@ -262,8 +295,74 @@ The authenticated confirmation API reads a saved EvaluationRecord, checks the se
 
 Verification on the integrated working tree: pytest 181 passed, 5 skipped; frontend 44 passed; build, Ruff, compileall and diff check passed. Skipped tests include unavailable integrations and optional dependencies. Playwright on explicitly synthetic, in-memory source/control stores confirmed two findings at positions 4 and 5 create different Case IDs and read back the frozen evaluation reference. API replay returns the original Case. Browser navigation preserves the evaluation URL parameter. No paid model was used. Real PostgreSQL confirmation concurrency and real-model diagnostic accuracy remain unverified in this integration.
 
-## 2026-11-11 · 按主题整理与发布前复验
+## Review/Case convergence on PR #7 · 2026-11-10
 
-剩余工作树按依赖顺序分为 Review/Case 人工纠正、完整轨迹评估与诊断联动两个提交。Review/Case 提交从暂存区单独导出后验证：pytest 163 passed / 5 skipped，前端 44 passed，Ruff、compileall、TypeScript/Vite 构建通过。该导出不含 Evaluation 新模块，确认首个主题可独立构建和测试。
+PR #7 is the single implementation and review branch for Case, shared correction drafts, frozen reviews and Finding confirmation. PR #3–#5 are superseded by this integrated branch. PR #6 is closed.
 
-完整集成树复验：pytest 181 passed / 5 skipped，前端 44 passed，Ruff、compileall、TypeScript/Vite 构建与 diff 检查通过；Alembic 只有 0004 一个 head。去除重复 Pillow 依赖声明，保留统一版本范围。实库测试显式关闭，未运行迁移、付费模型、设备或生产写入；本次没有重跑浏览器验收。以上离线回归不替代真实 PG 并发、队列故障和模型语义校准。
+Comparison used the live branch tips: #3 fd6b041, #4 289332b, #5 a9c8795, #7 dd09cca. The following #5 paths are byte-identical in #7: src/evonext/review (contracts, corrections, service, store, previews), migrations, tests/test_review_case.py, tests/test_review_case_postgres.py, tests/test_review_corrections.py, tests/test_review_corrections_postgres.py, CorrectionEditor.tsx, correction.ts and its frontend tests. The CasePanel delta adds refresh after a Finding creates a Case. #5 includes #4's correction contracts/tests and adds the PostgreSQL correction exercise; #4 carries #3's intake forward with the documented step restriction.
+
+One canonical UUIDv4 Case identity and one source Snapshot/Step anchor are shared by manual intake and Finding confirmation. Multiple distinct issues on a step can still have distinct Case IDs. Both creation paths call CaseService.propose and the same store. Finding confirmation reads the saved evaluation and records its diagnosis pointer, then leaves the Case pending. It grants no review or training eligibility. Review decisions and frozen draft decisions use the same review revision and history on the same Case aggregate.
+
+The sole migration chain is 0001 → 0002 → 0003 → 0004. The isolated fixed-image Outcome migration from closed PR #6 is absent. Alembic reports one head, 0004. No migrations run at application startup. The full 09 v0.3 specification and ADR-005 have been brought into #7; the superseded 09 stub is removed and the documentation index points to the local canonical specification.
+
+Verification on this integrated branch: pytest 201 passed, 5 skipped; frontend 44 passed; frontend build, Ruff, compileall and diff check passed. The skipped tests include isolated PostgreSQL and other external integrations, plus missing Celery/Langfuse packages. Docker is unavailable on this host, so live PostgreSQL concurrency and migration upgrade/downgrade were not rerun. Existing live-test source files are retained unchanged. The six separately reported Evaluation issues remain outside this convergence change.
+
+## 2026-11-14 · Workshop 存量轨迹评估后修复
+
+基于 PR #7 的 `130e9c4` 候选修复三处实测问题：Sol 6.1 的输出预算参数、定向修补丢失被驳回稿、文本窗口与图片选择绑定。新增共享的纯请求序列化合同，Workshop 不导入 providers；API/CLI 请求可独立选取图片，工作台增加图片步骤输入，预算预览显示首轮 wire 字节数及超限标志。提交超限请求在入队前拒绝，后续调用仍由 gateway 逐次限制。默认请求预算未自动提高，源图未改变。
+
+离线全量验证：pytest **240 passed / 5 skipped**，前端 **44 passed**，TypeScript/Vite 构建通过。合成回归覆盖 Sol/日期版本/既有模型的参数与响应复用、新建修补时原基线不变且上一稿完整送达、12 步文本配 4 张指定图、跨窗图片拒绝、空列表不附图、旧省略语义、来源字节不变、选图变更身份冲突、预览与实际 wire 字节相同、超限不新增操作回执，以及 HTTP 预览。实库集成测试仍关闭。
+
+独立于普通测试，在用户已授权的存量轨迹质量评估中，用同一日历样本和同一四步窗口复测 Sol 6.1：本次作者与复核两次调用后产出 approved 候选（约 34.79 秒），未触发修补。此前为 rejected 后修补 needs_evidence；两次结果受生成差异和策略修订影响，不能将本次通过归因于修补逻辑。修补合同的修复由可控回归验证。真实调用走本机隔离 PG 持久收费回执，新 operation_id，原始回执及私有材料仅保留本地；未执行手机、提交/激活候选或修改旧库。机器复核仍不替代独立任务收益验证。
+
+Playwright 使用本机隔离演示服务、12 步合成轨迹与真实 Chromium 验证：Workshop 页面配置完整文本窗口 `0..11`，单独选择 `0,3,8,11` 四图，点击预览后读回 12 步、4 图、首轮请求 7786 bytes、预算未超限及 `model_called=false`。模型执行按钮保持禁用。页面存在既有 favicon 404；未用真实材料做浏览器截图。
+
+## 2026-11-14 · 标准学习闭环规格与正文精简审阅
+
+补充 rebuild/08 §10 的目标合同：相关 4–8 条来源召回、保留上下文的窗口、作者/复核按需读取图片、短指南、任务结束与空闲双触发及增量修补。候选分支同步主干已有 R0–R5 路线，保留原显式 Workshop 切片；这些是设计输入，不是已实现自动召回、按需取证或后台学习。核对上游官方 self-learning/Workshop/dreaming 文档及固定基线经验复核代码，区分 64 个 transcript events 与 4–8 条任务来源，区分方法编写与 Memory 整理。
+
+本地私有案例另建手工精简草稿：正文从 1602 字符至 728 字符；原全部规则移入相关动作前可发现的 references，既有版本不覆盖，未复核/提交/激活新稿。格式、引用及锚点验证通过；该编辑结果只证明结构可读，不代表执行等价或质量增益。本次未调用真实模型、设备或创建定时任务，真实来源与草稿不加入 Git。
+
+文档调整后 pytest 240 passed / 5 skipped，Ruff、compileall 与 diff 检查通过。前端构建按同版源码复验；未新增代码测试冒充新流程验收。
+
+## 2026-11-14 · 标准学习手工触发首片
+
+新增任务主题/种子快照 → 自动有界召回 → 连续选窗 → 作者/复核按需取图 → create/固定 base patch → 草稿读回的完整用例。API、CLI 与 Workshop 面板共用该链路及既有 Celery/PG 回执，不增加学习调度器。默认 4、最多 8 条来源；报告独立来源族、缺额、来源标签权威和遗漏窗口。正文 300–800 中文字只是编辑目标，报告字符数，不冒充 Token 验证。当前检索为已注册快照的词项重合，范围上限和未实现项见 rebuild/08 §10.8。
+
+新增合成回归覆盖：8 条成功/失败来源与 Task/lineage 去重、同族对照不冒充独立样本、holdout/restricted 排除、连续前后态与中英文主题权重、已有 Skill base 固定/歧义拒绝、重复操作不重新召回、按需图片及作者/复核共用缓存、精确首轮字节预算、缺图/越界/图片和调用轮次预算、无图 No Change、无效修补保留上一稿、HTTP 预览不收费与开关拒绝、真实 Celery 类的投递装配（传输替身，无 broker）、API 状态读回。图片发送超时回归保留未确认交付的 hash 和请求引用，并验证 unknown 重放不再次发送。普通测试不访问真实模型、设备或旧库。
+
+最终离线验证：pytest **260 passed / 4 skipped**；前端 **44 passed**，TypeScript/Vite build、Ruff、compileall、diff check 通过。4 项 skip 为未开启的独立 PostgreSQL/基础设施集成和缺少 Langfuse 依赖；Celery 依赖本轮安装后，其装配测试实际运行。未将缺失外部依赖替换成通过的实服务测试。
+
+真实 Chromium + 隔离演示服务验证“从相关经验学习”：输入合成主题，请求 8 条，页面读回 5 条、5 个来源族、缺 3 条、成功/失败提示、连续窗口、首轮字节和不附图状态；holdout 未入选，模型按钮保持禁用。CLI learning-preview 对同一服务也返回相同来源分母，未调用模型。截图仅合成数据；既有 favicon 404 保留。浏览器未执行真实收费学习或候选提交。
+
+另在用户授权的真实样本评估中，使用已有固定版本的成功/失败对照、原图和隔离 PG，调用 Sol 6.1。只提供任务主题，没有手工输入正确答案。实际有 2 条来源、1 个独立来源族，距请求 4 条缺 2 条。首轮模型主动申请 3 张关键图；后续发送发生 WriteTimeout，收费回执为 1 条 received、1 条 unknown。未自动重发、改 operation_id 重试、产出新候选、执行设备或修改旧源。结果为 needs_attention，不能据此宣布自动生成质量通过或总成本已知。真实材料、响应和数据库备份仅留本地忽略目录，不加入公开仓库。
+
+实测选窗预览另发现重复账号名压过排序动作的问题；改为中文查询片段归一化与轨迹内词频加权，合成回归及固定材料的只读选窗检查通过。该修正未再调用真实模型，不将首轮看图请求算作最终版本语义验收。任务结束/空闲后台触发、自动采用、独立执行收益与完整 §10.7 门槛仍未验证。
+
+## 2026-11-14 · 补齐 JPEG 模型消费视图
+
+修复本轮遗漏：Workshop 显式/按需图片与 Evaluation 首轮/Investigator 均直接编码原始 PNG，没有沿用既定的 JPEG 质量及几何预算。新增共享 Evidence 消费视图，默认 JPEG 98，可显式选 90；无色度抽样、32px 对齐、最多 980 patch。几何与 EvoLoop 既定规则一致，缩放器使用本仓库已有 Pillow，因此另命名 profile，不声称与旧 OpenCV 输出逐字节一致。原始资产、快照 JSON、媒体下载和 ZIP 保持原字节。新操作固定 profile，旧操作/已完成记录保留原路径；重复提交不会重绑定图片质量。Workshop Worker 错误回执补充异常类型，不记录异常文本或凭据。
+
+离线全量验证：pytest **274 passed / 4 skipped**；前端 **44 passed**，TypeScript/Vite、Ruff、compileall、diff check 通过。新增回归覆盖横竖图/小图/极端比例、980 patch 几何、RGB 编码与无色度抽样、质量和环境变量配置、坏图/旋转/过大图拒绝、源字节不变、标记后缩放及实际 wire hash、显式选图/动态取图、预览 wire 字节一致、质量冻结、历史 raw profile 恢复与结果复用。原伪 PNG 字节 fixture 改为可解码的合成图片，没有为坏图放宽校验。4 项跳过仍为未开启的独立基础设施/PostgreSQL 集成和缺少 Langfuse。
+
+本地既有三张真实开发截图仅做离线转换：原图共 6,450,477 bytes，base64 共 8,600,640 bytes；原尺寸 1060×2376，派生尺寸 640×1472（920 patch）。质量 98 每张 399,406–458,876 bytes，三图 base64 共 1,677,644 bytes；质量 90 每张 202,479–229,394 bytes。通过 MockTransport 对相同材料运行完整学习输入构造，真实外部调用为零：JPEG 98 的三图 wire 为 1,749,295 bytes，超过默认 1 MiB 时在发送前停止；显式大预算下可构造。JPEG 90 的 wire 为 919,086 bytes，可在默认上限内构造。此为本地字节/合同检查，脚本响应明确为 synthetic，不是新模型质量评估或实际 API 上传成功。
+
+真实 Chromium 在合成服务中验证标准学习预览显示 JPEG 90、每张最多 980 patch、非固定计费 Token 说明；模型按钮禁用。原图消费遗漏能解释请求膨胀，但不能据此证明它是此前超时的唯一原因。已知超时为 WriteTimeout：上传阶段、60 秒、经环境代理，首轮文本成功；只读连通探针经代理返回鉴权拒绝、直连连接超时，说明不能简单关闭代理。没有重发原 unknown、产生新收费调用、改旧库、运行设备或接通任务收尾/空闲触发。后续真实语义/可读性及上传稳定性仍待独立验证。
+
+## 2026-11-14 · 两仓缩放算法同步及优化比较
+
+将几何与 JPEG 编码提取为不依赖产品配置/存储的纯核心，EvoNext 与 EvoLoop 各自持有逐字节相同的模块及同组合同用例，不新增跨仓包、调度或运行时依赖。保留合法默认输入的 Qwen round/floor/ceil 尺寸，补齐非法 factor、预算和无法对齐的输出拒绝。已有 RGB 不再复制整幅像素；EvoLoop 新 JPEG 路径不再先 base64 编码后解码。已整理 JPEG 的原字节复用保留，显式质量 90 生成新派生图而非重标质量 98 的来源。历史 OpenCV 图片使用原 profile 验证，不自动迁移证据或替换在途输入。
+
+离线比较在同一 Pillow 12.2.0 / OpenCV 4.13.0 环境完成：两仓核心文件一致，8 份输入 × 2 个质量档共 16 组字节/metadata 对照与优化前的合法输出一致；3 张本地历史 OpenCV 图复现原 hash。对这批开发图，98 档 JPEG 比原 OpenCV 路径小 6.03–6.56%，端到端中位耗时从约 30–34ms 至 34–38ms，约多 4ms；移除冗余步骤不等于总 CPU 更快。棋盘格合成反例显示 Pillow 双线性较少混叠；Lanczos 在本样本增加体积与耗时，没有据此替换默认。以上不属于独立 OCR/模型质量或执行收益证明。原图/标签/Benchmark/真实模型均未改动或调用，逐次材料仅留本地忽略目录。
+
+EvoNext 全量 pytest **293 passed / 4 skipped**；前端 **44 passed**，构建、Ruff、compileall、diff 检查通过。EvoLoop 受影响的缩放、颜色、轨迹传输和坐标转换回归 **82 passed**，修改文件的 Ruff/compileall/diff 检查通过；未跑整仓测试。同步修正一条基线已失败的陈旧断言，使其核对 Qwen converter 实际使用的共享 smart_resize_image，而不是已不存在的 smart_resize 导出。没有设备、付费模型、部署、原始媒体批量改写或收尾事件接线。
+
+## PR #7 integration and source-bound review repairs · 2026-11-15
+
+The integration retains the current main roadmap and shared Case/Evaluation contracts. Source clocks now come from Snapshot.metadata. Historical raw_model_output tool_call segments are parsed as bounded JSON decision projections, retaining their original field references and excluding think by default; recorded_execution.normalized_tool_call is separately quoted. Invalid or missing decisions may remain unlocated/unknown. Coordinates fall back from an unspecified action unit to the step declaration before using an explicitly selected profile.
+
+Evaluation wire budgets include the complete gateway payload; output tokens and model input receipts use the effective configured limit. Receipts retain base and effective policy hashes. Existing operations whose frozen input changes must be reconciled through their receipts, never automatically resent.
+
+Workshop quotes Case position, source identity, issue and evidence references in both author/reviewer contexts. Model-created drafts stay model_review_pending until model review succeeds; human review, commit and discard cannot close them during that interval. Old unfinished model drafts are recognized from operation provenance. Manual revisions preserve all inherited sources and frozen provenance. The UI restores windows, image selection and Case revisions, clears stale previews and reads evidence from the stored draft. Model citations and source-step links are visible. Creation and discard record configured operator identity and timestamps.
+
+All Library.save calls validate complete attachment structure, including direct CLI saves. Missing Cases/review versions return 404 at the Workshop boundary. Source images are checked against a cumulative budget before base64 encoding; preview computes base64 lengths without allocating those strings. Model calls use configured output limits. No device, model, training or automatic adoption was invoked during these repairs.

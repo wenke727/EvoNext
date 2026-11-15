@@ -8,6 +8,7 @@ import time
 
 from evonext.contracts.runtime import ExecutionGrant, RuntimeRequest
 from evonext.contracts.trajectory import ContractError, Snapshot, encode_json, sha256
+from evonext.contracts.skills import skill_content_hash
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,9 @@ def prepare_trial(request: RuntimeRequest, snapshot: Snapshot) -> PreparedTrial:
     elif request.context_mode == "skill":
         bundles = []
         for skill in request.skills:
-            if skill.ref.owner != request.owner or sha256(skill.document.encode()) != skill.ref.content_hash:
+            if (skill.ref.owner != request.owner
+                    or skill_content_hash(skill.document, skill.assets, skill.format_version)
+                    != skill.ref.content_hash):
                 raise ContractError("Skill owner or content hash mismatch")
             bundles.append(skill.model_dump(mode="json"))
         context = {"mode": "skill", "skills": bundles}

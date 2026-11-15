@@ -8,6 +8,12 @@
 
 ## 存储初始化
 
+模型 HTTP 请求的字节预算与模型 token 上下文是不同限制。网关使用
+`EVONEXT_MODEL_MAX_REQUEST_BYTES`（默认 1 MiB），评估请求使用
+`max_request_bytes`（默认 950 KiB，初始评分及追加取证共用）；均允许显式设置至
+16 MiB。实际请求必须同时满足两处限制，计入 JSON、文本、base64 图片及消息历史。
+增加字节预算不代表模型支持更多 token；图片仍需声明编码、缩放和原始来源。
+
 连接现有服务，但使用隔离的 Mongo collection、MinIO bucket 和 PG `evonext` schema 开始验收。API 不会自动迁移旧库、创建 bucket 或修改旧索引。操作员显式创建 bucket 并配置访问策略；`alembic upgrade head` 只管理本平台回执表及独立版本表。
 
 Mongo 快照单文档原子接受；图片已上传而快照失败时留下可核对的未引用对象。不要同步删除对象“回滚”，因为同 hash 的图片可能已被其他快照引用。未来 GC 需要保留期、完整引用扫描与单独授权。
@@ -49,3 +55,7 @@ sending/unknown 不自动过期重发，也没有自动 reconciliation UI。先�
 Workshop 使用明确 owner 和本地 FileLock，不支持未经验证的 NFS 多主机锁。目录不应由不可信用户同时修改；此本地模型不是完整远程 ACL。restore 是候选版本恢复，不是手机状态回滚。
 
 启动路径已变为 evonext.app.api:create_app / evonext.app.worker:app。使用旧模块路径的 systemd/脚本须显式更新；HTTP 路径与 evonext CLI 名称未改。未部署到旧生产环境。
+ModelGateway preserves a 4096 output-token default. A caller can explicitly
+configure `model_max_output_tokens` (up to 32768) and provide temperature or
+reasoning_effort for a reviewed model experiment. Generation options are part
+of the exact request hash and receipt identity; they do not enable paid calls.

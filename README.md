@@ -8,13 +8,13 @@
 
 ## 当前交付
 
-后续沿 [当前路线图](docs/ROADMAP.md#演进主线benchmark-牵引的-skill-收益闭环) 推进：Benchmark 基线 → 指南收益 → 自动提炼 → 自动选择 → 受控持续学习。先完成 R0 的实验冻结、单消费者回流和完整差异表；阶段门槛不等于已实现能力。
+后续顺位统一见 [当前路线图](docs/ROADMAP.md)，Workshop 的标准召回、按需取证、短指南及任务收尾/空闲双触发设计见 [模块合同 §10](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md#10-标准学习闭环相关经验召回按需取证与短指南目标规格)。手工触发的标准学习首片已接通，后台双触发仍为目标；当前交付以 ACCEPTANCE 为准。
 
 这是 **M0/M1 工程底座**，不是已经完成生产替换的全功能平台。
 
 **只读工作台阶段完成（2026-11-07）**：真实离线数据浏览、左栏、来源 ORM/grader、Grid/小图导航、重试折叠、marker、显示设置、快捷键与打点原文检索已验收收口。当前版本不宣称完整替代旧平台；真实 Langfuse 联通、编辑/审核、治理管道和其余低频字段留待独立工作包。范围、旧版差异与验证边界见 [验收记录](docs/ACCEPTANCE.md)。
 
-已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。新增本地 Skill 候选维护（版本/CAS/diff/Undo/固定导出）、Runtime 冻结消费与授权合同、严格策略模板、PG 收费调用恢复与请求预算。自动学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
+已实现的基础纵向切片：OpenCUA JSON / ZIP 导入 → Mongo 不可变快照 → MinIO 媒体 → React 单步证据浏览 → JSON / ZIP 导出。另有旧平台 HTTP 桥接、PG 操作回执与 Alembic 迁移、Celery 校验 Worker、可配置模型客户端及 Langfuse generation 打点。本地 Skill Workshop 提供多文件候选、草稿复核/CAS 提交、显式学习与精简、版本/diff/Undo/固定导出；Runtime 消费冻结合同。学习复用 PG 收费回执、请求预算和 Celery，模型结果不自动提交。后台自主学习、实际设备执行和聚合引擎尚未接通。内存模式只用于明确选择的本地演示和测试，生产配置不会失败后偷偷切换内存。
 
 核心约束：
 
@@ -123,6 +123,22 @@ cd web && npm test && npm run build
 本轮离线测试和实际 CI 状态记录在 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。保留基线测试并增加分层、策略、调用恢复、Workshop 和 Runtime 合同回归。实库/设备/真实语义未测不得算通过；配置 CI 不等于本轮 CI 已通过。
 
 本地候选操作与 Runtime 准备命令见 [08](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md)。`prepare-trial` 仅产计划，不执行。模型 probe 需要显式开启 `EVONEXT_MODEL_CALLS_ENABLED`、PG 迁移和稳定 `--operation-id`；同一请求复用已收到响应，结果未知不自动重发。
+
+顶部 **Skill Workshop** 打开候选库和草稿箱。设置 `EVONEXT_WORKSHOP_ROOT` 为明确的本地绝对目录，并配置 `EVONEXT_WORKSHOP_OWNER`、`EVONEXT_REVIEW_OPERATOR_ID`；API 与 Worker 须在同一主机共享该目录。手工编辑、逐文件 diff、复核和提交无需模型。显式学习/精简还需要 PG、Celery 和已启用的 gateway；步骤、可选截图与固定 Case 审核版本由操作者选择，先预览再提交。CLI `evonext workshop-api` 复用相同 HTTP 用例。完整请求与边界见 [Workshop 操作合同](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md#9-workshop-草稿学习与精简)。
+
+“从相关经验学习”只需任务主题或已注册的来源快照：自动检索相关来源、选连续步骤，并允许模型按需读取已绑定截图。默认 4 条、最多 8 条；预览显示实际条数、独立来源族、缺额、来源标签与请求字节。Skill ID 留空时查找已有方法，存在明确匹配则基于固定版本修补；歧义需要指定 ID。模型产物留在草稿箱，提交候选仍是单独操作。
+
+```bash
+# learning.json: {"operation_id":"stable-learning-id","topic":"账号主页的作品排序","source_limit":4}
+evonext workshop-api learning-preview --file learning.json
+# 明确开启模型、PG 回执和 Worker 后提交；恢复时复用同一个文件和 operation_id。
+evonext workshop-api learn --file learning.json
+evonext workshop-api status --id stable-learning-id
+```
+
+当前检索只覆盖已注册工作区的有界快照范围，采用词项重合，不承诺语义检索质量。尚未连接任务结束、空闲整理、设备执行或自动采用；详细限制见 [§10.8](docs/rebuild/08_SKILLS_RUNTIME_AND_PIPELINE.md#108-手工触发首片的现役合同)。
+
+Workshop 和 Evaluation 的新请求共用 JPEG 消费视图：默认 quality=98、无色度抽样、32 像素对齐、最多 980 patch；可显式配置 `EVONEXT_MODEL_IMAGE_QUALITY=90`。原始证据和下载保持原字节，源/派生 hash、尺寸及实际字节数单独记录。980 是几何上限，不是固定计费 Token 或 KB 承诺；请求字节预算仍生效，超限不会自动降质。已冻结操作保持原图片 profile，修改配置不会重发 unknown 请求。见 [图片消费合同](docs/COMPATIBILITY.md#10-模型图片消费视图)。
 
 前端依赖已固定在 `web/package-lock.json`，使用 `npm ci` 安装。Python 依赖仍采用版本范围；可复现部署另行验收。
 

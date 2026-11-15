@@ -5,11 +5,12 @@ from math import atan2, cos, pi, sin
 
 from PIL import Image, ImageDraw
 
-from evonext.contracts.trajectory import ContractError, sha256
+from evonext.contracts.trajectory import ContractError, encode_json, sha256
 from evonext.evidence.packages import media_type
+from evonext.evidence.image_views import JPEG_PROFILE, SOURCE_PROFILE, model_image
 
 
-def marked_image(raw, step):
+def marked_image(raw, step, runtime_coordinate_profile="source", *, lossless=False):
     runtime = step.get("runtime") or {}
     action = runtime.get("dispatched_action") if isinstance(runtime, dict) else None
     source = "dispatched"
@@ -20,8 +21,12 @@ def marked_image(raw, step):
             action = action.get("arguments")
     if not isinstance(action, dict):
         return raw, None
-    space = action.get("coordinate_space", step.get("coordinate_space"))
-    if space not in ("pixel", "normalized_1000"):
+    space = action.get("coordinate_space")
+    if space not in ("pixel", "normalized_1000", "normalized_fraction"):
+        space = step.get("coordinate_space")
+    if space is None and source == "dispatched" and runtime_coordinate_profile == "evoloop_fraction_v1":
+        space = "normalized_fraction"
+    if space not in ("pixel", "normalized_1000", "normalized_fraction"):
         return raw, None
     kind = action.get("action")
     if kind in ("swipe", "drag"):
@@ -38,7 +43,8 @@ def marked_image(raw, step):
         for point in points:
             if not isinstance(point, list) or len(point) != 2:
                 return raw, None
-            limits = (1000, 1000) if space == "normalized_1000" else (image.width-1, image.height-1)
+            limits = ((1000, 1000) if space == "normalized_1000" else
+                      (1, 1) if space == "normalized_fraction" else (image.width-1, image.height-1))
             if any(type(n) not in (int, float) or not 0 <= n <= limit for n, limit in zip(point, limits)):
                 return raw, None
             xy.append(tuple(round(n * (size-1) / max(limit, 1))
@@ -55,20 +61,39 @@ def marked_image(raw, step):
         for offset in (-pi/6, pi/6):
             draw.line([(x,y), (x-2*r*cos(angle+offset), y-2*r*sin(angle+offset))], fill="red", width=3)
     output = BytesIO()
-    canvas.save(output, format="PNG")
+    if runtime_coordinate_profile == "evoloop_fraction_v1" and not lossless:
+        canvas.save(output, format="JPEG", quality=98, subsampling=0, optimize=True)
+    else:
+        canvas.save(output, format="PNG")
     return output.getvalue(), source
 
 
-def image_message(snapshot, descriptor, evidence, mode):
+def image_message(snapshot, descriptor, evidence, mode, runtime_coordinate_profile="source",
+                  image_profile=JPEG_PROFILE):
     raw = evidence.read_media(snapshot.id, descriptor["locator"])
     if sha256(raw) != descriptor["sha256"]:
         raise ContractError("Screenshot hash mismatch")
-    data, source = (marked_image(raw, snapshot.document["traj"][descriptor["position"]])
+    data, source = (marked_image(raw, snapshot.document["traj"][descriptor["position"]],
+                                 runtime_coordinate_profile, lossless=image_profile != SOURCE_PROFILE)
                     if mode == "auto" else (raw, None))
+    view = None
+    if image_profile != SOURCE_PROFILE:
+        data, view = model_image(data, image_profile)
+        view["rendered_sha256"] = view["source_sha256"]
+        view["source_sha256"] = descriptor["sha256"]
+        view["source_bytes"] = len(raw)
     reference = descriptor["evidence_ref"]
     label = reference if source is None else f"{reference} (before action, {source} marker)"
     receipt = {"evidence_ref": reference, "sha256": descriptor["sha256"],
                "view_sha256": sha256(data), "marker_source": source,
-               "renderer": "action-marker.v1" if source else None}
+               "runtime_coordinate_profile": runtime_coordinate_profile,
+               "renderer": ("action-marker.evoloop-fraction.jpeg98.v1"
+                            if runtime_coordinate_profile == "evoloop_fraction_v1" and image_profile == SOURCE_PROFILE
+                            else "action-marker.v1")
+                   if source else None}
+    if view is not None:
+        receipt["image_view"] = view
+        # Preserve the relationship to source pixel coordinates after resizing.
+        label += "\nImage consumption view (source coordinates unchanged): " + encode_json(view).decode()
     url = f"data:{media_type(data)};base64," + base64.b64encode(data).decode()
     return [{"type": "text", "text": label}, {"type": "image_url", "image_url": {"url": url}}], receipt
