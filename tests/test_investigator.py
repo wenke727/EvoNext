@@ -366,3 +366,34 @@ def test_operator_confirmation_api_uses_saved_finding_and_replays(monkeypatch):
         assert [case["position"] for case in cases] == [4, 5]
         assert cases[0]["case_id"] != cases[1]["case_id"]
         assert cases[0]["review_status"] != "human_gold"
+
+
+def test_judge_uses_effective_token_limit_and_complete_wire_budget():
+    from types import SimpleNamespace
+    from evonext.contracts.model_request import bounded_payload
+    snapshot, evidence, prompt = setup()
+    gateway = ScriptedGateway([assessment(snapshot, "pass", 11)])
+    gateway.settings = SimpleNamespace(model_name="synthetic", model_max_output_tokens=2048)
+    request = EvalRequest(operation_id="small-output")
+    evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
+    messages, identity = gateway.calls[0]
+    assert identity["max_tokens"] == 2048
+    # A boundary that admits messages but cannot admit the complete HTTP payload.
+    limit = len(encode_json(messages))
+    assert limit < len(encode_json(bounded_payload(gateway, messages)[0]))
+    gateway.calls.clear()
+    with pytest.raises(ContractError, match="budget"):
+        evaluate(snapshot, request.model_copy(update={"max_request_bytes": limit}),
+                 evidence, gateway, prompt, "synthetic")
+    assert not gateway.calls
+
+
+def test_null_action_coordinates_fall_back_to_step_pixels():
+    from evonext.evaluation.images import marked_image
+    image = BytesIO()
+    Image.new("RGB", (100, 100), "white").save(image, format="PNG")
+    step = {"coordinate_space": "pixel", "runtime": {"dispatched_action": {
+        "action": "click", "coordinate": [50, 50], "coordinate_space": None}}}
+    derived, source = marked_image(image.getvalue(), step, "evoloop_fraction_v1")
+    assert source == "dispatched"
+    assert derived != image.getvalue()

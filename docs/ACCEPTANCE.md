@@ -356,3 +356,13 @@ Playwright 使用本机隔离演示服务、12 步合成轨迹与真实 Chromium
 离线比较在同一 Pillow 12.2.0 / OpenCV 4.13.0 环境完成：两仓核心文件一致，8 份输入 × 2 个质量档共 16 组字节/metadata 对照与优化前的合法输出一致；3 张本地历史 OpenCV 图复现原 hash。对这批开发图，98 档 JPEG 比原 OpenCV 路径小 6.03–6.56%，端到端中位耗时从约 30–34ms 至 34–38ms，约多 4ms；移除冗余步骤不等于总 CPU 更快。棋盘格合成反例显示 Pillow 双线性较少混叠；Lanczos 在本样本增加体积与耗时，没有据此替换默认。以上不属于独立 OCR/模型质量或执行收益证明。原图/标签/Benchmark/真实模型均未改动或调用，逐次材料仅留本地忽略目录。
 
 EvoNext 全量 pytest **293 passed / 4 skipped**；前端 **44 passed**，构建、Ruff、compileall、diff 检查通过。EvoLoop 受影响的缩放、颜色、轨迹传输和坐标转换回归 **82 passed**，修改文件的 Ruff/compileall/diff 检查通过；未跑整仓测试。同步修正一条基线已失败的陈旧断言，使其核对 Qwen converter 实际使用的共享 smart_resize_image，而不是已不存在的 smart_resize 导出。没有设备、付费模型、部署、原始媒体批量改写或收尾事件接线。
+
+## PR #7 integration and source-bound review repairs · 2026-11-15
+
+The integration retains the current main roadmap and shared Case/Evaluation contracts. Source clocks now come from Snapshot.metadata. Historical raw_model_output tool_call segments are parsed as bounded JSON decision projections, retaining their original field references and excluding think by default; recorded_execution.normalized_tool_call is separately quoted. Invalid or missing decisions may remain unlocated/unknown. Coordinates fall back from an unspecified action unit to the step declaration before using an explicitly selected profile.
+
+Evaluation wire budgets include the complete gateway payload; output tokens and model input receipts use the effective configured limit. Receipts retain base and effective policy hashes. Existing operations whose frozen input changes must be reconciled through their receipts, never automatically resent.
+
+Workshop quotes Case position, source identity, issue and evidence references in both author/reviewer contexts. Model-created drafts stay model_review_pending until model review succeeds; human review, commit and discard cannot close them during that interval. Old unfinished model drafts are recognized from operation provenance. Manual revisions preserve all inherited sources and frozen provenance. The UI restores windows, image selection and Case revisions, clears stale previews and reads evidence from the stored draft. Model citations and source-step links are visible. Creation and discard record configured operator identity and timestamps.
+
+All Library.save calls validate complete attachment structure, including direct CLI saves. Missing Cases/review versions return 404 at the Workshop boundary. Source images are checked against a cumulative budget before base64 encoding; preview computes base64 lengths without allocating those strings. Model calls use configured output limits. No device, model, training or automatic adoption was invoked during these repairs.

@@ -22,7 +22,7 @@ def marked_image(raw, step, runtime_coordinate_profile="source", *, lossless=Fal
     if not isinstance(action, dict):
         return raw, None
     space = action.get("coordinate_space")
-    if space is None:
+    if space not in ("pixel", "normalized_1000", "normalized_fraction"):
         space = step.get("coordinate_space")
     if space is None and source == "dispatched" and runtime_coordinate_profile == "evoloop_fraction_v1":
         space = "normalized_fraction"

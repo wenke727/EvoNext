@@ -239,9 +239,9 @@ export function WorkshopPanel({ client, snapshotId, visible, onClose }: {
         <details>
           <summary>从证据学习 / 精简现有 Skill</summary>
           <p>最多一次修复。精简保持段落原文，仍须复核规则是否在正确时机可读。缺证可停止。</p>
-          <label>证据步骤（0-based，逗号分隔）<input value={positions} disabled={!!binding} onChange={e => setPositions(e.target.value)} /></label>
-          <label>可选 Case（ID@审核版本）<input value={caseRef} disabled={!!binding} onChange={e => setCaseRef(e.target.value)} /></label>
-          <label><input type="checkbox" checked={images} disabled={!!binding} onChange={e => setImages(e.target.checked)} />包含已绑定截图（最多 4 张）</label>
+          <label>证据步骤（0-based，逗号分隔）<input value={positions} disabled={!!binding?.proposal.provenance.source_windows?.length} onChange={e => setPositions(e.target.value)} /></label>
+          <label>可选 Case（ID@审核版本）<input value={caseRef} disabled={!!binding?.proposal.provenance.source_windows?.length} onChange={e => setCaseRef(e.target.value)} /></label>
+          <label><input type="checkbox" checked={images} disabled={!!binding?.proposal.provenance.source_windows?.length} onChange={e => setImages(e.target.checked)} />包含已绑定截图（最多 4 张）</label>
           {images && <label>图片步骤（文本窗口内，最多 4 个；留空不附图）
             <input aria-label="图片步骤" value={imagePositions} disabled={busy || !!binding}
               onChange={e => { setImagePositions(e.target.value); setPreview(""); }} placeholder="0,3,8,11" />
