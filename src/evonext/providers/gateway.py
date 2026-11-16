@@ -13,6 +13,16 @@ from evonext.providers.telemetry import Tracing
 log = logging.getLogger(__name__)
 
 
+def call_key(settings, request_bytes, *, snapshot_id, operation_id, policy_version, repetition_id):
+    """One identity calculation for admission and read-only reconciliation."""
+    identity = {"profile": "evonext.model-call.v1", "scope": settings.model_budget_scope,
+                "endpoint": str(httpx.URL(settings.model_base_url.rstrip("/") + "/")),
+                "operation_id": operation_id, "snapshot_id": snapshot_id,
+                "policy_version": policy_version, "repetition_id": repetition_id,
+                "request_sha256": sha256(request_bytes)}
+    return sha256(encode_json(identity))
+
+
 class ModelGateway:
     def __init__(self, settings, transport=None, tracing=None, receipts=None):
         if not settings.model_name or not secret(settings.model_api_key):
@@ -51,11 +61,9 @@ class ModelGateway:
             if not self.settings.postgres_dsn or self.settings.demo:
                 raise ContractError("Paid calls require a configured PostgreSQL receipt store")
             self.receipts = PostgresCallReceipts(secret(self.settings.postgres_dsn))
-        identity = {"profile": "evonext.model-call.v1", "scope": self.settings.model_budget_scope,
-                    "endpoint": str(self.client.base_url), "operation_id": operation_id,
-                    "snapshot_id": snapshot_id, "policy_version": policy_version,
-                    "repetition_id": repetition_id, "request_sha256": sha256(request_bytes)}
-        key = sha256(encode_json(identity))
+        key = call_key(self.settings, request_bytes, snapshot_id=snapshot_id,
+                       operation_id=operation_id, policy_version=policy_version,
+                       repetition_id=repetition_id)
         limits = {60: self.settings.model_calls_per_minute,
                   3600: self.settings.model_calls_per_hour, 86400: self.settings.model_calls_per_day}
         # A single deployment/account scope shares budget across different model routes.

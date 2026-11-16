@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { EvidenceClient, IssueKind } from "./client";
+import { reconcileEvaluation, recoverEvaluation, type Recovery } from "./evaluation-recovery";
 
 type Preview = {
   step_count: number;
@@ -7,15 +8,18 @@ type Preview = {
   text_budget_exceeded: boolean;
   images: { position: number; selected: boolean; availability: string }[];
 };
+type EvaluationResult = {
+    execution_status: string;
+    outcome: string;
+    checks: { check_id: string; judgment: string; reason: string; evidence_refs: string[] }[];
+    native_result: { stop_reason?: string; error_localization?: string; findings: { issue_kind?: IssueKind; judgment: string; position?: number | null; check_id: string; reason: string; evidence_refs: string[] }[] };
+};
 type Evaluation = {
   snapshot_id: string;
   status: string;
   error?: { error_type: string };
-  result?: {
-    outcome: string;
-    checks: { check_id: string; judgment: string; reason: string; evidence_refs: string[] }[];
-    native_result: { error_localization?: string; findings: { issue_kind?: IssueKind; judgment: string; position?: number | null; check_id: string; reason: string; evidence_refs: string[] }[] };
-  };
+  result?: EvaluationResult;
+  initial_result?: EvaluationResult;
 };
 
 export function EvaluationInput({ client, snapshot, focusPosition, onClose, onStep }: {
@@ -34,7 +38,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
     caseIds.current.set(index, id);
     setSavingCase(true); setError("");
     try {
-      await client.request(`/api/v1/evaluations/${operation}/findings/${index}/cases`, {
+      await client.request(`/api/v1/evaluations/${encodeURIComponent(operation)}/findings/${index}/cases`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ case_id: id, summary: reason, confirmed: true }),
       });
@@ -51,6 +55,24 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
   const [operation] = useState(() => new URLSearchParams(location.hash.slice(1)).get("evaluation") || crypto.randomUUID());
   const resume = useRef(Boolean(new URLSearchParams(location.hash.slice(1)).get("evaluation")));
   const [running, setRunning] = useState(resume.current);
+  const [started, setStarted] = useState(resume.current);
+  const [recovery, setRecovery] = useState<Recovery | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  async function checkRecovery() {
+    setRecovering(true); setError("");
+    try { setRecovery(await reconcileEvaluation(client, operation, snapshot)); }
+    catch (reason) { setError(String(reason)); }
+    finally { setRecovering(false); }
+  }
+  async function recover() {
+    if (!recovery || !window.confirm("确认恢复原评估？已收到的响应将复用，原预算内尚未执行的调用可能继续。")) return;
+    setRecovering(true); setError("");
+    try {
+      await recoverEvaluation(client, operation, snapshot, recovery);
+      setRecovery(null); resume.current = true; setRunning(true);
+    } catch (reason) { setError(String(reason)); setRecovery(null); }
+    finally { setRecovering(false); }
+  }
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   useEffect(() => {
     if (!running) return;
@@ -58,7 +80,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
-        const response = await client.request(`/api/v1/evaluations/${operation}`, { signal: controller.signal });
+        const response = await client.request(`/api/v1/evaluations/${encodeURIComponent(operation)}`, { signal: controller.signal });
         const value: Evaluation = await response.json();
         if (controller.signal.aborted) return;
         if (value.snapshot_id !== snapshot) throw new Error("评估属于另一份轨迹快照");
@@ -101,6 +123,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
     };
   }, [client, snapshot]);
+  const displayedResult = evaluation?.result || evaluation?.initial_result;
   return <dialog ref={dialog} className="shortcut-dialog" aria-label="评估输入预览" onClose={onClose}>
     <div className="dialog-heading">
       <h2>评估输入预览</h2>
@@ -112,7 +135,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
       <p>完整轨迹共 {preview.step_count} 步，全部步骤保留在评估文本中（{preview.text_bytes} 字节）。</p>
       <p>首轮选择 {preview.images.filter(image => image.selected).length} 张图片。
         缺少绑定或图片的步骤有 {preview.images.filter(image => image.availability !== "bound_unverified").length} 个。</p>
-      <p>图片字节尚待读取核验。当前为输入预览，尚未调用模型。</p>
+      <p>{started ? "评估请求已固定；图片实际送达与调用状态以回执为准。" : "图片字节尚待读取核验。当前为输入预览，尚未调用模型。"}</p>
       {preview.text_budget_exceeded && <p role="alert">完整文本超过首轮预算，需要调整预算或取证方案。</p>}
       <div className="dialog-heading">
         {preview.images.filter(image => image.selected).map(image =>
@@ -121,31 +144,43 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
           </button>)}
       </div>
       <p>默认隐藏已有评分、人审、原始模型输出及未映射字段，原文仍可从轨迹 JSON 查看。</p>
-      <label>模型图片 <select value={markers} disabled={running || evaluation !== null}
+      <label>模型图片 <select value={markers} disabled={running || started}
         onChange={event => setMarkers(event.target.value)}>
         <option value="auto">动作前图、动作绑定与坐标明确时标记</option>
         <option value="off">只用原图</option>
       </select></label>
-      <label>调查范围 <select value={investigation} disabled={running || evaluation !== null}
+      <label>调查范围 <select value={investigation} disabled={running || started}
         onChange={event => setInvestigation(event.target.value)}>
         <option value="auto">结果未知或失败尚未定位时追加取证</option>
         <option value="always" disabled={focusPosition < 0}>调查当前 Step {focusPosition}</option>
         <option value="off">仅 Fast Judge</option>
       </select></label>
-      <button disabled={running || preview.text_budget_exceeded || evaluation?.status === "completed"}
+      <button disabled={running || started || preview.text_budget_exceeded}
         onClick={() => {
           const params = new URLSearchParams(location.hash.slice(1));
           params.set("evaluation", operation);
-          history.replaceState(null, "", `${location.pathname}#${params}`);
+          history.replaceState(null, "", `${location.pathname}${location.search}#${params}`);
           resume.current = false;
-          setError(""); setRunning(true);
+          setStarted(true); setError(""); setRunning(true);
         }}>运行 Fast Judge（模型调用）</button>
       {running && <p role="status">评估处理中 · {operation}</p>}
       {evaluation?.status === "needs_attention" && <p role="alert">评估需要核对 · {evaluation.error?.error_type}</p>}
+      {started && evaluation?.status !== "completed" && <>
+        <button disabled={recovering} onClick={() => void checkRecovery()}>核对调用回执 / 队列恢复</button>
+        {recovery && <div role="status">
+          <p>恢复核对 · {recovery.recovery_state} · 尝试 {recovery.attempt}</p>
+          {recovery.calls.map(call => <p key={call.repetition_id}>{call.repetition_id} · {call.status}</p>)}
+          {recovery.can_recover
+            ? <button disabled={recovering} onClick={() => void recover()}>确认恢复原评估</button>
+            : <p>当前不可恢复，请核对回执或恢复次数限制。sending / unknown 不能重新付费发送。</p>}
+        </div>}
+      </>}
       {caseNotice && <p role="status">{caseNotice}</p>}
-      {evaluation?.result && <>
-        <h3>任务结论 · {evaluation.result.outcome}</h3>
-        {evaluation.result.checks.map(check => <div key={check.check_id}>
+      {displayedResult && <>
+        {!evaluation?.result && <p>Fast Judge 初判已保存，后续调查尚未完成。</p>}
+        {displayedResult.execution_status === "partial" && <p role="status">评估部分完成 · {displayedResult.native_result.stop_reason}，保留已有结论。</p>}
+        <h3>任务结论 · {displayedResult.outcome}</h3>
+        {displayedResult.checks.map(check => <div key={check.check_id}>
           <p>{check.check_id} · {check.judgment} · {check.reason}</p>
           {check.evidence_refs.map(ref => {
             const match = ref.match(/\/steps\/(\d+)(?:\/image)?$/);
@@ -154,11 +189,11 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
             </button>;
           })}
         </div>)}
-        {evaluation.result.outcome === "failure" && evaluation.result.native_result.error_localization === "undetermined" && <p>已确认任务失败，错误步骤尚未定位。</p>}
-        {evaluation.result.native_result.findings.map((finding, index) => <p key={finding.check_id}>
+        {displayedResult.outcome === "failure" && displayedResult.native_result.error_localization === "undetermined" && <p>已确认任务失败，错误步骤尚未定位。</p>}
+        {displayedResult.native_result.findings.map((finding, index) => <p key={finding.check_id}>
           过程发现 · {finding.issue_kind || "unknown"} · {finding.reason}
           {finding.position != null && finding.judgment === "fail" &&
-            <button disabled={savingCase} onClick={() => void confirmFinding(index, finding.reason)}>确认问题并创建 Case</button>}
+            <button disabled={savingCase || !evaluation?.result} onClick={() => void confirmFinding(index, finding.reason)}>确认问题并创建 Case</button>}
           {finding.position != null && <button onClick={() => { onStep(finding.position!); onClose(); }}>查看 Step {finding.position}</button>}
         </p>)}
       </>}

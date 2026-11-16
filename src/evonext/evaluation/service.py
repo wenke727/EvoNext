@@ -47,17 +47,46 @@ def submit(snapshot, request, ledger, *, image_profile=JPEG_PROFILE):
     return status(request.operation_id, ledger)
 
 
+MAX_RECOVERY_ATTEMPTS = 10
+
+
+def current_attempt(operation_id, ledger):
+    request_key, _ = keys(operation_id)
+    for attempt in range(1, MAX_RECOVERY_ATTEMPTS + 1):
+        if ledger.get(f"{request_key}-recovery-{attempt}") is None:
+            return attempt - 1
+    return MAX_RECOVERY_ATTEMPTS
+
+
+def error_key(operation_id, attempt=0):
+    request_key, _ = keys(operation_id)
+    return request_key + "-error" + (f"-{attempt}" if attempt else "")
+
+
+def record_error(operation_id, ledger, error, *, attempt=0, stage="worker"):
+    request_key, _ = keys(operation_id)
+    row = ledger.get(request_key)
+    key = error_key(operation_id, attempt)
+    # Retain the first immutable failure of each explicit delivery attempt.
+    if row and ledger.get(key) is None:
+        ledger.record(key, row["snapshot_id"], "evaluation_error.v1", {
+            "error_type": type(error).__name__, "stage": stage, "automatic_retry": False})
+
+
 def status(operation_id, ledger):
     request_key, result_key = keys(operation_id)
     row = ledger.get(request_key)
     if row is None or row["kind"] != "evaluation_request.v1":
         return None
     result = ledger.get(result_key)
-    error = ledger.get(request_key + "-error")
-    return {"operation_id": operation_id, "snapshot_id": row["snapshot_id"],
+    attempt = current_attempt(operation_id, ledger)
+    error = ledger.get(error_key(operation_id, attempt))
+    initial = ledger.get(result_key + "-initial")
+    return {"operation_id": operation_id, "snapshot_id": row["snapshot_id"], "attempt": attempt,
             "status": "completed" if result else "needs_attention" if error else "pending",
             "error": error["payload"] if error and not result else None,
-            "result": result["payload"] if result else None}
+            "result": result["payload"] if result else None,
+            "initial_result": initial["payload"] if initial else None}
 
 
 def run(operation_id, evidence, ledger, gateway):
@@ -76,14 +105,20 @@ def run(operation_id, evidence, ledger, gateway):
     from evonext.evaluation.core import evaluate
 
     def pin_input(messages, repetition):
+        from evonext.contracts.model_request import bounded_payload
+        from evonext.providers.gateway import call_key
+        wire, tokens = bounded_payload(gateway, messages)
+        identity = call_key(gateway.settings, encode_json(wire), snapshot_id=snapshot.id,
+                            operation_id=operation_id, repetition_id=repetition,
+                            policy_version=sha256(messages[0]["content"].encode()))
         ledger.record(request_key + "-input-" + repetition, snapshot.id, "evaluation_model_input.v1", {
-            "messages_sha256": sha256(encode_json(messages)),
+            "messages_sha256": sha256(encode_json(messages)), "call_key": identity,
             "model": gateway.settings.model_name, "endpoint": gateway.settings.model_base_url,
             "budget_scope": gateway.settings.model_budget_scope,
             "base_policy_hash": payload["policy_hash"],
             "effective_policy_hash": sha256(messages[0]["content"].encode()),
             "policy_hash": sha256(messages[0]["content"].encode()),
-            "max_tokens": min(4096, gateway.settings.model_max_output_tokens)})
+            "max_tokens": tokens})
 
     def save_initial(record):
         ledger.record(record["record_id"], snapshot.id, "evaluation_initial.v1", record)

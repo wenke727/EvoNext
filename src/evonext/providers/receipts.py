@@ -30,6 +30,7 @@ class CallReceipts(Protocol):
     def begin(self, key: str, scope: str, limits: dict[int, int]) -> ResponseReceipt | None: ...
     def receive(self, key: str, response: ResponseReceipt) -> None: ...
     def unknown(self, key: str) -> None: ...
+    def inspect(self, key: str) -> str | None: ...
     def close(self) -> None: ...
 
 
@@ -69,6 +70,11 @@ class MemoryCallReceipts:
         with self.lock:
             if self.rows[key]["status"] != "received":
                 self.rows[key]["status"] = "unknown"
+
+    def inspect(self, key):
+        with self.lock:
+            row = self.rows.get(key)
+            return row["status"] if row else None
 
     def close(self):
         return None
@@ -130,6 +136,12 @@ class PostgresCallReceipts:
         with self.engine.begin() as db:
             db.execute(text("UPDATE evonext.model_call_receipts SET status='unknown', updated_at=now() "
                             "WHERE call_key=:key AND status <> 'received'"), {"key": key})
+
+    def inspect(self, key):
+        from sqlalchemy import text
+        with self.engine.connect() as db:
+            return db.execute(text("SELECT status FROM evonext.model_call_receipts "
+                                   "WHERE call_key=:key"), {"key": key}).scalar_one_or_none()
 
     def close(self):
         self.engine.dispose()

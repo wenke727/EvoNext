@@ -34,22 +34,21 @@ def verify(snapshot_id: str):
 
 
 @app.task(name="evonext.evaluate", acks_late=True)
-def evaluate(operation_id: str):
-    from evonext.evaluation.service import run, keys
+def evaluate(operation_id: str, attempt: int = 0):
+    from evonext.evaluation.service import run, keys, record_error
     from evonext.evidence.service import EvidenceService
     from evonext.providers.gateway import ModelGateway
     repository, assets = stores(settings)
     ledger = Ledger(secret(settings.postgres_dsn))
     gateway = None
     try:
+        request_key, _ = keys(operation_id)
+        if attempt and ledger.get(f"{request_key}-recovery-{attempt}") is None:
+            raise ValueError("Recovery attempt was not admitted")
         gateway = ModelGateway(settings)
         return run(operation_id, EvidenceService(repository, assets, settings), ledger, gateway)
     except Exception as exc:
-        request_key, _ = keys(operation_id)
-        row = ledger.get(request_key)
-        if row:
-            ledger.record(request_key + "-error", row["snapshot_id"], "evaluation_error.v1",
-                          {"error_type": type(exc).__name__, "automatic_retry": False})
+        record_error(operation_id, ledger, exc, attempt=attempt)
         raise
     finally:
         if gateway is not None:

@@ -19,6 +19,7 @@ from evonext.evidence.image_views import profile_for_quality
 from evonext.evidence.index import EvidenceNotFound, StoredEvidenceError
 from evonext.evidence.store import stores
 from evonext.evaluation.inputs import InputOptions, prepare_input
+from evonext.evaluation.recovery import RecoveryRequest
 from evonext.evaluation.service import (EvalRequest, submit, status as evaluation_status,
                                         FindingConfirmation, finding_proposal)
 from evonext.review.store import MemoryCases, PostgresCases
@@ -245,15 +246,11 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
         result = submit(snapshot_or_404(snapshot_id), request, ledger,
                         image_profile=profile_for_quality(settings.model_image_quality))
         if result["status"] == "pending":
-            from celery import Celery
-            sender = Celery("evonext", broker=secret(settings.broker_url))
+            from evonext.evaluation.recovery import enqueue
             try:
-                sender.send_task("evonext.evaluate", args=[request.operation_id], queue="evonext.bulk",
-                                 retry=False)
+                enqueue(request.operation_id, ledger, secret(settings.broker_url))
             except Exception as exc:
-                raise HTTPException(503, "Request saved; queue delivery unverified. Reuse operation_id to reconcile.") from exc
-            finally:
-                sender.close()
+                raise HTTPException(503, "Request saved; reconcile via the evaluation recovery endpoint.") from exc
         return result
 
     @app.get("/api/v1/evaluations/{operation_id}", dependencies=auth)
@@ -264,6 +261,46 @@ def create_app(settings=None, repository=None, assets=None, case_store=None, *, 
         if result is None:
             raise HTTPException(404, "Evaluation not found")
         return result
+
+    def recovery_receipts():
+        if ledger is None:
+            raise HTTPException(503, "Evaluation store unavailable")
+        from evonext.providers.receipts import PostgresCallReceipts
+        return PostgresCallReceipts(secret(settings.postgres_dsn))
+
+    @app.get("/api/v1/evaluations/{operation_id}/recovery", dependencies=auth)
+    def read_recovery(operation_id: str):
+        from evonext.evaluation.recovery import reconcile
+        receipts = recovery_receipts()
+        try:
+            result = reconcile(operation_id, ledger, receipts)
+            if result is None:
+                raise HTTPException(404, "Evaluation not found")
+            return result
+        finally:
+            receipts.close()
+
+    @app.post("/api/v1/evaluations/{operation_id}/recovery", dependencies=auth)
+    def recover_evaluation(operation_id: str, request: RecoveryRequest):
+        if not settings.model_calls_enabled:
+            raise PermissionError("Model calls are explicitly disabled")
+        from evonext.evaluation.recovery import admit_recovery, enqueue
+        receipts = recovery_receipts()
+        try:
+            if evaluation_status(operation_id, ledger) is None:
+                raise HTTPException(404, "Evaluation not found")
+            try:
+                result, dispatch = admit_recovery(operation_id, request, ledger, receipts)
+            except ContractError as exc:
+                raise HTTPException(409, str(exc)) from exc
+            if dispatch:
+                try:
+                    enqueue(operation_id, ledger, secret(settings.broker_url), attempt=result["attempt"])
+                except Exception as exc:
+                    raise HTTPException(503, "Recovery saved; queue delivery unverified. Reconcile again.") from exc
+            return result
+        finally:
+            receipts.close()
 
     @app.get("/api/v1/snapshots/{snapshot_id}/trajectory", dependencies=auth)
     def download_trajectory(snapshot_id: str):
