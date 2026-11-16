@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { EvidenceClient } from "./client";
+import type { EvidenceClient, IssueKind } from "./client";
 
 type Preview = {
   step_count: number;
@@ -14,7 +14,7 @@ type Evaluation = {
   result?: {
     outcome: string;
     checks: { check_id: string; judgment: string; reason: string; evidence_refs: string[] }[];
-    native_result: { error_localization?: string; findings: { judgment: string; position?: number | null; check_id: string; reason: string; evidence_refs: string[] }[] };
+    native_result: { error_localization?: string; findings: { issue_kind?: IssueKind; judgment: string; position?: number | null; check_id: string; reason: string; evidence_refs: string[] }[] };
   };
 };
 
@@ -156,7 +156,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
         </div>)}
         {evaluation.result.outcome === "failure" && evaluation.result.native_result.error_localization === "undetermined" && <p>已确认任务失败，错误步骤尚未定位。</p>}
         {evaluation.result.native_result.findings.map((finding, index) => <p key={finding.check_id}>
-          过程发现 · {finding.reason}
+          过程发现 · {finding.issue_kind || "unknown"} · {finding.reason}
           {finding.position != null && finding.judgment === "fail" &&
             <button disabled={savingCase} onClick={() => void confirmFinding(index, finding.reason)}>确认问题并创建 Case</button>}
           {finding.position != null && <button onClick={() => { onStep(finding.position!); onClose(); }}>查看 Step {finding.position}</button>}

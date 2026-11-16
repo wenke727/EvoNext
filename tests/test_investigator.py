@@ -154,7 +154,7 @@ def test_known_failure_reads_earlier_steps_for_localization():
     request = EvalRequest(operation_id="synthetic")
     result = evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
     assert result["outcome"] == "failure"
-    assert result["native_result"]["findings"] == findings
+    assert result["native_result"]["findings"] == [dict(item, issue_kind="unknown") for item in findings]
     assert result["native_result"]["error_localization"] == "located"
     gateway = ScriptedGateway([failure, {"read_evidence": [4]}])
     result = evaluate(snapshot, request.model_copy(update={"max_investigation_calls": 1}),
@@ -206,7 +206,7 @@ def test_opt_in_location_review_can_check_an_earlier_wrong_action():
     ])
     request = EvalRequest(operation_id="synthetic-review", review_localization=True)
     result = evaluate(snapshot, request, evidence, gateway, prompt, "synthetic")
-    assert result["native_result"]["findings"] == [early, late]
+    assert result["native_result"]["findings"] == [dict(item, issue_kind="unknown") for item in (early, late)]
     assert len(gateway.calls) == 3
     assert result["native_result"]["initial_assessment"]["findings"] == [late]
 
@@ -436,6 +436,33 @@ def test_initial_outcome_committed_before_failed_optional_investigation(judgment
         {"stage": "investigation", "repetition_id": "investigation-1", "error_type": "TimeoutError"}]
     assert run(request.operation_id, evidence, ledger, gateway) == result
     assert len(gateway.calls) == 1
+
+
+@pytest.mark.parametrize("kind", ["step_action", "tool_execution", "environment", "safety", "data_or_label", "unknown", None])
+def test_finding_type_survives_validation_and_case_confirmation(kind):
+    from uuid import uuid4
+    from evonext.evaluation.service import finding_proposal, FindingConfirmation
+    snapshot, evidence, prompt = setup()
+    finding = {"position": 9, "judgment": "fail", "check_id": "synthetic-type",
+               "reason": "Synthetic source-supported issue", "evidence_refs": [f"{snapshot.id}/steps/9"]}
+    if kind is not None:
+        finding["issue_kind"] = kind
+    gateway = ScriptedGateway([assessment(snapshot, "fail", 11, [finding])])
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-kind", investigation="off"),
+                      evidence, gateway, prompt, "synthetic-kind")
+    expected = kind or "unknown"
+    assert result["native_result"]["findings"][0]["issue_kind"] == expected
+    confirmation = FindingConfirmation(case_id=str(uuid4()), summary="Operator confirms this issue", confirmed=True)
+    assert finding_proposal(result, 0, confirmation).issue_kind == expected
+    # Historical saved findings have no classification and must remain unknown.
+    result["native_result"]["findings"][0].pop("issue_kind")
+    assert finding_proposal(result, 0, confirmation).issue_kind == "unknown"
+
+
+def test_finding_rejects_unsupported_type():
+    from evonext.evaluation.core import StepFinding
+    with pytest.raises(ValueError):
+        StepFinding(check_id="synthetic", judgment="unknown", issue_kind="guess")
 
 
 @pytest.mark.parametrize("failure", ["invalid_reply", "missing_evidence"])

@@ -8,6 +8,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
 
+IssueKind = Literal["task_outcome", "step_action", "tool_execution", "environment",
+                    "safety", "data_or_label", "unknown"]
+
+
 class ContractError(ValueError):
     pass
 

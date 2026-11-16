@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from evonext.contracts.trajectory import ContractError, encode_json, sha256
+from evonext.contracts.trajectory import ContractError, IssueKind, encode_json, sha256
 
 SnapshotId = str
 
@@ -29,8 +29,7 @@ class CaseProposal(BaseModel):
     snapshot_id: SnapshotId = Field(pattern=r"^[0-9a-f]{64}$")
     position: int = Field(ge=0)
     source_step_id: str | None = Field(default=None, min_length=1, max_length=256)
-    issue_kind: Literal["task_outcome", "step_action", "tool_execution", "environment",
-                        "safety", "data_or_label", "unknown"]
+    issue_kind: IssueKind
     summary: str = Field(min_length=8, max_length=2000)
     evidence_refs: list[str] = Field(min_length=1, max_length=16)
     analysis_refs: list[AnalysisRef] = Field(default_factory=list, max_length=8)

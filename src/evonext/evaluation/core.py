@@ -2,7 +2,7 @@
 
 from pydantic import Field
 
-from evonext.contracts.trajectory import Check, ContractError, EvaluationRecord, encode_json, load_json, sha256
+from evonext.contracts.trajectory import Check, ContractError, EvaluationRecord, IssueKind, encode_json, load_json, sha256
 from evonext.evaluation.inputs import prepare_input
 from evonext.contracts.model_request import bounded_payload
 from evonext.evaluation.images import image_message
@@ -10,6 +10,7 @@ from evonext.evidence.image_views import JPEG_PROFILE
 
 
 class StepFinding(Check):
+    issue_kind: IssueKind = "unknown"
     position: int | None = Field(default=None, strict=True, ge=0)
     decision_ref: str | None = Field(default=None, strict=True)
 

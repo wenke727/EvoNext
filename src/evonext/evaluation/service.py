@@ -111,7 +111,7 @@ def finding_proposal(result, index, confirmation):
     if position is None or finding["judgment"] != "fail":
         raise ContractError("Only a located error can become a step Case")
     return CaseProposal(case_id=confirmation.case_id, snapshot_id=result["snapshot_id"],
-        position=position, issue_kind="step_action", summary=confirmation.summary,
+        position=position, issue_kind=finding.get("issue_kind", "unknown"), summary=confirmation.summary,
         evidence_refs=[f"step:{position}"], analysis_refs=[{
             "kind": "diagnosis", "producer": "evonext.evaluation",
             "record_id": result["record_id"], "snapshot_id": result["snapshot_id"]}])

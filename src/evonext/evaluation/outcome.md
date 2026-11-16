@@ -24,3 +24,9 @@ uncertain causes, alternative explanations and missing evidence in reasons.
 For each located process error, include its zero-based position and cite the owning step.
 Use judgment fail for an established error. Omit position when the faulty decision is unclear.
 A terminal failure alone cannot identify the faulty decision.
+
+Each finding includes issue_kind: step_action, tool_execution, environment,
+safety, data_or_label, task_outcome, or unknown. Classify from delivered evidence;
+a located finding is not necessarily an action error. Use unknown when unsupported.
+Image frame_relation and action_binding are source declarations. Unknown timing
+must stay unknown; markers do not prove dispatch, physical execution or effect.
