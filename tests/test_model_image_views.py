@@ -79,7 +79,8 @@ def test_evaluation_markers_precede_resize_and_receipt_binds_actual_wire_bytes()
     raw = picture()
     assets, repo = MemoryAssets(), MemorySnapshots()
     digest = assets.put(raw)
-    step = {'image': 'images/source.png', 'runtime': {'dispatched_action': {
+    step = {'image': 'images/source.png', 'frame_relation': 'before_action',
+        'action_id': 'synthetic-tap', 'runtime': {'dispatched_action': {'action_id': 'synthetic-tap',
         'action': 'click', 'coordinate': [500, 500], 'coordinate_space': 'normalized_1000'}}}
     snap = Snapshot.create(encode_json({'task_id': 'synthetic-derived-marker',
         'instruction': 'Inspect', 'traj': [step]}), media={'images/source.png': digest})

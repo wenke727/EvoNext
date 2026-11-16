@@ -172,12 +172,13 @@ def test_source_marker_changes_only_derived_pixels():
     Image.new("RGB", (100, 100), "white").save(buf, format="PNG")
     raw = buf.getvalue()
     action = {"action": "click", "coordinate": [500, 500], "coordinate_space": "normalized_1000"}
-    step = {"runtime": {"dispatched_action": action}, "value": {"bbox": [0, 0, 10, 10]}}
+    step = {"frame_relation": "before_action", "action_id": "synthetic-tap",
+            "runtime": {"dispatched_action": dict(action, action_id="synthetic-tap")}, "value": {"bbox": [0, 0, 10, 10]}}
     view, source = marked_image(raw, step)
     assert source == "dispatched"
     assert Image.open(BytesIO(view)).getpixel((50, 46)) == (255, 0, 0)
     assert Image.open(BytesIO(raw)).getpixel((50, 46)) == (255, 255, 255)
-    del action["coordinate_space"]
+    del step["runtime"]["dispatched_action"]["coordinate_space"]
     assert marked_image(raw, step) == (raw, None)
 
 
@@ -293,7 +294,8 @@ def test_fraction_marker_needs_explicit_profile_and_preserves_declared_pixel_spa
     stream = BytesIO()
     Image.new("RGB", (100, 100), "white").save(stream, format="PNG")
     raw = stream.getvalue()
-    step = {"runtime": {"dispatched_action": {"action": "click", "coordinate": [0.5, 0.5]}}}
+    step = {"frame_relation": "before_action", "action_id": "synthetic-tap",
+            "runtime": {"dispatched_action": {"action_id": "synthetic-tap", "action": "click", "coordinate": [0.5, 0.5]}}}
     assert marked_image(raw, step) == (raw, None)
     view, _ = marked_image(raw, step, "evoloop_fraction_v1")
     color = Image.open(BytesIO(view)).getpixel((50, 46))
@@ -396,8 +398,9 @@ def test_null_action_coordinates_fall_back_to_step_pixels():
     from evonext.evaluation.images import marked_image
     image = BytesIO()
     Image.new("RGB", (100, 100), "white").save(image, format="PNG")
-    step = {"coordinate_space": "pixel", "runtime": {"dispatched_action": {
-        "action": "click", "coordinate": [50, 50], "coordinate_space": None}}}
+    step = {"coordinate_space": "pixel", "frame_relation": "before_action",
+            "action_id": "synthetic-tap", "runtime": {"dispatched_action": {
+        "action_id": "synthetic-tap", "action": "click", "coordinate": [50, 50], "coordinate_space": None}}}
     derived, source = marked_image(image.getvalue(), step, "evoloop_fraction_v1")
     assert source == "dispatched"
     assert derived != image.getvalue()

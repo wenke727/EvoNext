@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel, ConfigDict, Field
 
 from evonext.contracts.trajectory import encode_json, sha256
+from evonext.evaluation.images import frame_binding
 
 
 class InputOptions(BaseModel):
@@ -24,7 +25,7 @@ class InputOptions(BaseModel):
 FACT_FIELDS = (
     "tool_call", "action", "dispatch", "dispatched_action", "execution_result",
     "observed_result", "observation", "user_interrupt", "current_time", "step_type",
-    "effective",
+    "effective", "frame_relation", "action_id",
 )
 
 
@@ -125,6 +126,7 @@ def prepare_input(snapshot, options: InputOptions):
                                     for container, values in facts.items()},
                       "observation_relation": {
                           "current_image": reference + "/image",
+                          "frame_binding": frame_binding(step),
                           "next_recorded_image": f"{snapshot.id}/steps/{position + 1}/image"
                               if position + 1 < len(document["traj"]) else None,
                           "semantics": "Current is the source step's observation. A next recorded image is not verified action effect or execution ownership.",
@@ -132,6 +134,7 @@ def prepare_input(snapshot, options: InputOptions):
         locator = step.get("image")
         images.append({"position": position, "evidence_ref": reference + "/image",
                        "locator": locator, "sha256": media.get(locator),
+                       "frame_binding": frame_binding(step),
                        "availability": "bound_unverified" if locator in media else
                            ("unbound" if locator else "missing"), "selected": False})
     candidates = [item for item in images if item["availability"] == "bound_unverified"]
@@ -151,7 +154,7 @@ def prepare_input(snapshot, options: InputOptions):
     context = {"instruction": document["instruction"], "task_id": document["task_id"],
                "source_context": source_context(snapshot), "steps": steps}
     context_bytes = encode_json(context)
-    return {"profile": "evonext.evaluation-input.v3", "snapshot_id": snapshot.id,
+    return {"profile": "evonext.evaluation-input.v4", "snapshot_id": snapshot.id,
             "source_manifest": snapshot.manifest, "source_version": snapshot.summary()["source_version"],
             "source_trajectory_path": f"/api/v1/snapshots/{snapshot.id}/trajectory",
             "step_count": len(steps), "options": options.model_dump(),

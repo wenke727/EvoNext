@@ -29,7 +29,7 @@ def test_source_clock_amendment_role_and_dispatch_survive_a_readonly_view():
     raw = source.trajectory_json
     preview = prepare_input(source, InputOptions(include_think=True))
     context = preview["model_context"]
-    assert preview["profile"] == "evonext.evaluation-input.v3"
+    assert preview["profile"] == "evonext.evaluation-input.v4"
     anchor = context["source_context"]["task_date_anchor"]
     assert anchor["status"] == "corroborated_local_date"
     assert anchor["date"] == "2026-07-18"

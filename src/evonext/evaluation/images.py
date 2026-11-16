@@ -10,7 +10,7 @@ from evonext.evidence.packages import media_type
 from evonext.evidence.image_views import JPEG_PROFILE, SOURCE_PROFILE, model_image
 
 
-def marked_image(raw, step, runtime_coordinate_profile="source", *, lossless=False):
+def marker_action(step):
     runtime = step.get("runtime") or {}
     action = runtime.get("dispatched_action") if isinstance(runtime, dict) else None
     source = "dispatched"
@@ -19,8 +19,36 @@ def marked_image(raw, step, runtime_coordinate_profile="source", *, lossless=Fal
         action = step.get("value", {}).get("tool_call")
         if isinstance(action, dict) and action.get("name") == "mobile_use":
             action = action.get("arguments")
-    if not isinstance(action, dict):
+    return action, source
+
+
+def frame_binding(step):
+    """Named step-frame profile: source declarations, never inferred adjacency.
+
+    Step frame_relation/action_id bind its single image to a source action.
+    The selected action must carry the same nonempty ID; a step ID alone is
+    insufficient. Other source layouts remain unknown until explicitly adapted.
+    """
+    relation = step.get("frame_relation")
+    if not isinstance(relation, str) or relation not in {"before_action", "after_action", "terminal", "unbound"}:
+        relation = "unknown"
+    action, source = marker_action(step)
+    action_id = action.get("action_id") if isinstance(action, dict) else None
+    bound = (isinstance(action_id, str) and bool(action_id)
+             and step.get("action_id") == action_id
+             and (not isinstance(action, dict) or action.get("step_id", step.get("step_id")) == step.get("step_id")))
+    return {"profile": "step-frame-binding.v1", "frame_relation": relation,
+            "action_binding": "source_bound" if bound else "unknown",
+            "action_id": action_id if bound else None, "step_id": step.get("step_id"),
+            "action_source": source if bound else None,
+            "execution_verified": False}
+
+
+def marked_image(raw, step, runtime_coordinate_profile="source", *, lossless=False):
+    binding = frame_binding(step)
+    if binding["frame_relation"] != "before_action" or binding["action_binding"] != "source_bound":
         return raw, None
+    action, source = marker_action(step)
     space = action.get("coordinate_space")
     if space not in ("pixel", "normalized_1000", "normalized_fraction"):
         space = step.get("coordinate_space")
@@ -83,9 +111,12 @@ def image_message(snapshot, descriptor, evidence, mode, runtime_coordinate_profi
         view["source_sha256"] = descriptor["sha256"]
         view["source_bytes"] = len(raw)
     reference = descriptor["evidence_ref"]
-    label = reference if source is None else f"{reference} (before action, {source} marker)"
+    binding = frame_binding(snapshot.document["traj"][descriptor["position"]])
+    label = f"{reference} (frame_relation={binding['frame_relation']}, action_binding={binding['action_binding']}; source declaration, execution unverified)"
+    if source is not None:
+        label += f" ({source} marker)"
     receipt = {"evidence_ref": reference, "sha256": descriptor["sha256"],
-               "view_sha256": sha256(data), "marker_source": source,
+               "view_sha256": sha256(data), "marker_source": source, "frame_binding": binding,
                "runtime_coordinate_profile": runtime_coordinate_profile,
                "renderer": ("action-marker.evoloop-fraction.jpeg98.v1"
                             if runtime_coordinate_profile == "evoloop_fraction_v1" and image_profile == SOURCE_PROFILE

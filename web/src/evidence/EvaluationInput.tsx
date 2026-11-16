@@ -123,7 +123,7 @@ export function EvaluationInput({ client, snapshot, focusPosition, onClose, onSt
       <p>默认隐藏已有评分、人审、原始模型输出及未映射字段，原文仍可从轨迹 JSON 查看。</p>
       <label>模型图片 <select value={markers} disabled={running || evaluation !== null}
         onChange={event => setMarkers(event.target.value)}>
-        <option value="auto">有明确坐标时标记动作</option>
+        <option value="auto">动作前图、动作绑定与坐标明确时标记</option>
         <option value="off">只用原图</option>
       </select></label>
       <label>调查范围 <select value={investigation} disabled={running || evaluation !== null}
