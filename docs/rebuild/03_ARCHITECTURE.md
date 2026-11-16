@@ -214,3 +214,29 @@ FastAPI/Pydantic、React/TypeScript/Vite、PyMongo、MinIO SDK、SQLAlchemy/Alem
 完整文本超过预算时返回超限信息和完整投影，发送入口必须停止并请求调整策略，禁止静默截断。输入预览尚未构建模型请求，不产生 EvaluationRecord 或已送达回执。Marker 的 auto/off 配置、坐标绑定、原图与派发来源说明在图片实际送达切片实现。
 
 后续评估沿用 Spec/Run/Attempt/Record 语义与 providers.gateway，收到原响应后再解析。记录任务义务逐项判断、Outcome、过程发现、unknown、送达证据、模型/策略身份、usage 及停止原因。已确认结果后仍可按需读取同一冻结轨迹的其他证据；缺少证据时报告所缺内容。普通测试只用明确合成输入，实际模型语义校准另行授权。
+
+
+### 9.7 面向学习的诊断（目标规格，尚未实现）
+
+本节承接《Review Evaluation Flow》后两轮设计讨论。当前交付仍是 Outcome 与步骤 Finding、有界调查及人工确认；下面的新诊断合同不计入已完成能力，也不在本轮触发真实模型、设备、训练或发布。
+
+诊断回答三个独立问题：错误决策在哪里、在哪个状态提出纠正、从哪个可核验状态恢复执行。最早观察到的错误、候选因果偏航、最近一次偏航、最后可信状态与候选恢复点可以不同；任何一项证据不足都保留 unknown。Outcome 可早停，process_diagnosis 需要另行明确覆盖范围与预算，不能把空 Findings 或局部调查当成全轨迹正确。
+
+**对象与权威。** 后续不可变 DiagnosisRecord 引用原 EvaluationRecord 和同一个冻结 Snapshot，按 Error–Recovery Episode 组织跨步骤关系。Episode 是诊断片段，不是 Case 身份；Case 始终固定一个 Snapshot 的一个 Step，同一步可细化到模块调用或 batch action，并保留多个同一步纠正候选。不同步骤的错误或纠偏决策分别建 Case，可以共同引用一个 Episode；不创建无 Step 的 Case，也不把同根因当作跨步合并 Case 的理由。机器 Finding、人工 Review、纠正候选、真实 Trial、独立验证和训练准入分别保有权威。
+
+候选输出至少覆盖以下独立信息，最终 JSON schema 留到实现切片中冻结，当前不新增空接口或成功桩：
+
+| 信息 | 目标语义 |
+|---|---|
+| 诊断片段 | episode_id、候选错误决策 position/action_index、受影响位置、证据引用、替代解释、缺证、causal_status=hypothesis/supported/unknown |
+| 纠偏尝试 | 尝试纠正的具体决策位置、原始动作与来源；不因尝试过就认定恢复成功 |
+| 恢复后态 | 独立可观察的 restored_at 与效果证据；动作发生点和效果被验证的点分开 |
+| 动作质量 | valid / invalid / unknown；错误页面上的合理返回动作仍可 valid |
+| 状态与关系 | on_track / off_track / recovering / restored / unknown；divergence / consequence / correction_attempt / independent_error / unknown |
+| 效果与覆盖 | verified / failed / partial / unknown；process_coverage 和未调查部分明确，因果假设不冒充证实 |
+
+**纠正和执行。** 原始轨迹中的自主恢复与 Teacher 在新 Trial 中产生的恢复分别记录血缘。纠正候选只引用该决策时可见的历史及动作前证据；回顾诊断可以看未来截图，但不能把未来观测泄漏成当时 Agent 已知的信息。BBox 是区域标注，不自动成为点击动作。Teacher 替代动作先是候选；真实恢复要核对任务相关状态等价，执行后产生新后缀和新证据，不拼接原来的未来步骤。独立 Evaluation 读新 Trial，再决定改善、退化、无变化、补证或停止。
+
+**训练准入。** 不从 Diagnosis 直接输出具有授权效力的 sft_mask，也不按“首错之前全部保留、之后全部丢弃”切片。后续 Training Admission 依据已审核的动作质量、执行与恢复验证、用途限制和数据血缘，分别选择评估、回归、SFT、偏好/DPO、PRM 或排除。Mask=0 不代表删除原始上下文；有效恢复可作为正向候选，错误原动作不成为正向目标，不确定项暂不准入。偏好对要求相同的前置决策上下文，替代动作的 Teacher 建议和独立验证状态分开保存。一个 Step 的 batch actions 需细化到 action_index，不能整步替代所有动作标签。
+
+后续最小切片的验收应使用显式合成轨迹覆盖：多处独立错误；错误后自主恢复且最终成功；纠偏动作执行但恢复失败；合理动作发生在 off_track 状态；缺失动作时序；同一 Step 多个 batch actions；Teacher 新分支与原路径不得拼接。先稳定 Diagnosis 合同与人工读回，再接真实纠正 Trial 和独立训练准入；顺位只在 ROADMAP 维护。

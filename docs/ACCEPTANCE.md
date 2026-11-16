@@ -366,3 +366,20 @@ Evaluation wire budgets include the complete gateway payload; output tokens and 
 Workshop quotes Case position, source identity, issue and evidence references in both author/reviewer contexts. Model-created drafts stay model_review_pending until model review succeeds; human review, commit and discard cannot close them during that interval. Old unfinished model drafts are recognized from operation provenance. Manual revisions preserve all inherited sources and frozen provenance. The UI restores windows, image selection and Case revisions, clears stale previews and reads evidence from the stored draft. Model citations and source-step links are visible. Creation and discard record configured operator identity and timestamps.
 
 All Library.save calls validate complete attachment structure, including direct CLI saves. Missing Cases/review versions return 404 at the Workshop boundary. Source images are checked against a cumulative budget before base64 encoding; preview computes base64 lengths without allocating those strings. Model calls use configured output limits. No device, model, training or automatic adoption was invoked during these repairs.
+
+## 2026-11-16 · Evaluation 四项 P1 与后续诊断规格
+
+本轮在已进入主干的 `98bb513` 完整轨迹评估切片上修复可靠性与证据语义，不重放原附件。实现范围：
+
+1. Fast Judge 初判先写不可变 PG Ledger 回执，最终记录关联 initial_record_id；有界调查超时、非法响应、读取证据失败时保留已验证 Outcome/Checks/Findings，记录 partial、失败阶段及 repetition。初判保存失败时停止后续调用，原始付费响应仍由 gateway 先于解析持久化。
+2. 输入 v4 明示 frame_relation 与动作身份绑定。只有明确 before_action 且动作 ID、可用的 owning Step ID 一致时绘制 marker；after_action、terminal、unbound、未知/非法关系及身份不符均保持原图。源图、源 JSON 与原动作不改写。此绑定是源声明，不是设备执行验证。
+3. Finding 使用结构化 issue_kind，人工确认 Case 保留分类；未分类的历史 Finding 为 unknown。Case 继续固定一个 Snapshot/Step，同一步多个候选与独立审核权威不变。
+4. API/Workbench 增加只读回执核对及人工确认恢复。队列提交异常记录未核验送达；恢复追加独立 admission/error 回执并沿用原调用身份。已收到响应重放不重复计费，sending/unknown/旧输入无法核验时拒绝恢复。重复确认原准入不再次入队，Worker 失败不覆盖前一尝试错误；模型路由/输入变化会在新收费 admission 前被拒绝。
+
+本地验证：pytest **329 passed / 4 skipped**；Ruff、compileall、git diff --check 通过；前端 **46 项测试**和 TypeScript/Vite 构建通过。定向回归覆盖调查超时/非法引用/证据中断、初判先提交、截图时序与跨动作/跨步骤绑定、不同 Finding 类型及旧数据默认、队列异常、结果保存中断后的原响应重放、malformed response 免费重放、sending/unknown/旧 pin 阻止恢复、输入路由变更拒绝以及 Worker 分次错误保留。
+
+Playwright 使用真实 Chromium 与明确合成的客户端响应检查：首次入队异常后运行按钮停用，核对 → 人工确认 → 沿原 operation 恢复并展示 partial Outcome 和环境类 Finding；带 operation 深链接重开只读取状态，unknown 回执无恢复按钮且未发出运行/恢复 POST。这是浏览器交互验证及独立 API 合成故障测试，未冒称真实 PG/Celery/模型端到端验收。浏览器合成页面无应用异常，开发服务 favicon 404 属静态资源缺失。
+
+4 个跳过项为本地缺少可选 Langfuse SDK、未授权/配置隔离服务、两项未开启的隔离 PostgreSQL Review/Correction 测试；未计为通过。真实服务并发与故障核对、模型语义校准仍待显式配置/授权。本轮没有付费模型、设备执行、训练、部署、生产写入或 legacy collection 迁移。
+
+后续 Error–Recovery Episode、纠偏/恢复多锚点、动作级质量及独立训练准入整理至[架构 §9.7](rebuild/03_ARCHITECTURE.md#97-面向学习的诊断目标规格尚未实现)，明确为目标规格。未实现 Diagnosis V2、Teacher 新 Trial 或训练切片，不直接生成具有授权效力的 SFT mask。

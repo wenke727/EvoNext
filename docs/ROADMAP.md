@@ -173,7 +173,7 @@ Evidence/gateway/PG/Celery 的学习与精简。API、CLI、工作台共用用�
 
 Evaluation：单条/冻结批次共用 Spec/Run/Attempt/Record；Outcome、Step/Span、控制专项、Agentic 取证保留不同业务语义。执行报错、证据不足、未评估、不适用和业务失败分开。未知不自动重跑；机器结果不覆盖人审。
 
-2026-11-08 增补授权按完整平台轨迹搭建评估/诊断。优先完整轨迹输入、Fast Judge、实际图片送达与有界 Investigator，业务结果持久化暂缓扩展。Outcome 可早停，过程诊断仍可独立启动。完整轨迹与首轮图片预算的关系见 [架构 §9.6](rebuild/03_ARCHITECTURE.md#96-完整轨迹评估与按需诊断)，实际交付见 ACCEPTANCE。
+2026-11-08 增补授权按完整平台轨迹搭建评估/诊断。优先完整轨迹输入、Fast Judge、实际图片送达与有界 Investigator，沿用现有 PG Ledger 保存初判与最终记录，业务结果域暂缓扩展。Outcome 可早停，过程诊断仍可独立启动。完整轨迹与首轮图片预算的关系见 [架构 §9.6](rebuild/03_ARCHITECTURE.md#96-完整轨迹评估与按需诊断)，实际交付见 ACCEPTANCE。 后续多错误片段、纠偏尝试、恢复验证与动作级学习准入仅整理为[架构 §9.7 目标规格](rebuild/03_ARCHITECTURE.md#97-面向学习的诊断目标规格尚未实现)；Case 仍为单一步骤，不将诊断片段变成跨步 Case。
 
 Diagnosis：允许首个有证据的错误区间、多因、替代解释和 unknown；区分 first wrong action 与 first causal divergence。Case 审核决定修复路线，可选 tool/runtime/rule/memory/skill/weight/environment/safety/data/clarification，而不是所有错误都写成 Skill 或训练样本。
 

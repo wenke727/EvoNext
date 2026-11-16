@@ -146,3 +146,14 @@ Workshop 与 Evaluation 的新操作共用 Evidence 所属的 `jpeg98-qwen32-pat
 profile 在新操作提交时冻结；API、CLI 与 Worker 使用同一字段。质量配置修改不改变在途操作；历史缺少该字段的操作按原 `source.v1` 字节路径恢复，已完成结果原样读回。sending/unknown 仍须核对，不因 JPEG 修复、配置修改或后台重复消息自动重发。原 profile 只为冻结历史回放保留，新请求默认不直发原始 PNG。
 
 图片数、任务请求字节预算和 gateway 字节预算继续独立检查，任一超限即停止。图片缩小只改善传输/输入体积，不证明可读性、模型语义质量、费用或执行收益等价。
+
+
+## Evaluation P1 恢复与证据增补（2026-11-16）
+
+- 输入投影升级为 `evonext.evaluation-input.v4`，增加源步骤 `frame_relation/action_id` 和 `step-frame-binding.v1`。只适配 step 的单图声明以及所选动作携带的相同 action_id；动作若带 step_id 也必须匹配 owning step。其他来源布局、未知时序和不匹配身份不猜测。仅明确 before_action 且 source_bound 才绘制对应动作；这不证明设备执行或后态。未知源字段继续保留原 JSON，未映射字段继续报告遗漏。
+- Finding 的 `issue_kind` 复用 Case 枚举；缺失为 unknown。机器分类及操作员确认不授予训练资格。
+- Fast Judge 初判作为独立不可变 `evaluation_initial.v1` 回执先保存；最终记录通过 initial_record_id 引用。追加调查异常或预算停止可返回 execution_status=partial，Outcome 与已验证 Findings 保留；状态 completed 只代表该次运行已保存最终记录，不代表任务成功、调查完整或可训练。初判单独由 initial_result 读回。
+- `GET /api/v1/evaluations/{operation_id}/recovery` 只读核对固定模型输入与收费回执，不预占预算，不请求模型。`POST` 相同路径需 `{expected_attempt, confirmed:true}`，复用原 operation/policy/repetition/输入/模型路由与回执；新增的是显式队列恢复尝试，不是新的收费重试身份。每个 operation 最多 10 次人工恢复，旧错误与恢复准入分别保留；重复同一 expected_attempt 读取既有准入，不再次派发。
+- 可恢复的情况为收费调用前失败或原始响应已收到；后者复用原响应继续解析，原请求预算内尚未执行的调用可能继续。sending/unknown、旧输入回执缺 call_key 或其他无法核验状态均拒绝恢复；必须在外部核对供应方和持久回执，本接口不人工改写收费状态。模型路由、输入或有效策略变化会被不可变输入回执拒绝，不能借恢复发送变更请求。
+- 队列提交异常记录 queue_delivery_unverified 并返回 503；工作台提供核对及确认恢复，刷新后不会靠重复点击运行按钮产生新 operation。API key 认证与现有模型 enable switch 继续适用。Celery 可能重复交付，收费 admission 仍由现有 PG receipt 原子保护；不宣称供应方 exactly-once。
+- 已保存的 EvaluationRecord 不覆盖；本轮未增加独立 DiagnosisRecord 执行器、训练准入或生产数据迁移。旧失败请求无法证明原输入绑定时保持 unverified，不为追求“可恢复”迁改旧回执。
