@@ -85,8 +85,11 @@ def run(operation_id, evidence, ledger, gateway):
             "policy_hash": sha256(messages[0]["content"].encode()),
             "max_tokens": min(4096, gateway.settings.model_max_output_tokens)})
 
+    def save_initial(record):
+        ledger.record(record["record_id"], snapshot.id, "evaluation_initial.v1", record)
+
     record = evaluate(snapshot, request, evidence, gateway, payload["prompt"], result_key, pin_input,
-                      image_profile=payload.get("image_profile", SOURCE_PROFILE))
+                      image_profile=payload.get("image_profile", SOURCE_PROFILE), save_initial=save_initial)
     ledger.record(result_key, snapshot.id, "evaluation_record.v1", record)
     return record
 

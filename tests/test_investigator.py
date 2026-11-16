@@ -128,8 +128,10 @@ def test_bounded_investigation_preserves_unknown(positions, budget, reason):
 def test_cannot_cite_inventory_image_without_reading_it():
     snapshot, evidence, prompt = setup()
     gateway = ScriptedGateway([assessment(snapshot), assessment(snapshot, "pass")])
-    with pytest.raises(ContractError, match="outside"):
-        evaluate(snapshot, EvalRequest(operation_id="synthetic"), evidence, gateway, prompt, "synthetic")
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic"), evidence, gateway, prompt, "synthetic")
+    assert result["execution_status"] == "partial"
+    assert result["outcome"] == "unknown"
+    assert result["native_result"]["stop_reason"] == "investigation_error"
 
 
 def test_time_stop_does_not_claim_staged_image_delivered(monkeypatch):
@@ -227,10 +229,12 @@ def test_failed_review_keeps_an_invalid_response_unaccepted():
     invalid = assessment(snapshot, "fail", 11)
     invalid["checks"][0]["evidence_refs"] = ["wrong-snapshot/steps/11"]
     gateway = ScriptedGateway([invalid, invalid])
-    with pytest.raises(ContractError, match="outside"):
-        evaluate(snapshot, EvalRequest(operation_id="synthetic-unrepaired",
-                                       review_localization=True),
-                 evidence, gateway, prompt, "synthetic")
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-unrepaired",
+                                           review_localization=True),
+                      evidence, gateway, prompt, "synthetic")
+    assert result["outcome"] == "unknown"
+    assert result["checks"] == []
+    assert result["execution_status"] == "partial"
 
 
 def test_decision_binding_rejects_another_steps_delivered_action():
@@ -397,3 +401,57 @@ def test_null_action_coordinates_fall_back_to_step_pixels():
     derived, source = marked_image(image.getvalue(), step, "evoloop_fraction_v1")
     assert source == "dispatched"
     assert derived != image.getvalue()
+
+
+@pytest.mark.parametrize("judgment", ["pass", "fail"])
+def test_initial_outcome_committed_before_failed_optional_investigation(judgment):
+    from evonext.evaluation.service import submit, run, keys
+    from test_evaluation_input import SyntheticLedger
+    snapshot, evidence, _ = setup()
+    ledger = SyntheticLedger()
+    request = EvalRequest(operation_id="synthetic-checkpoint", investigation="always")
+    submit(snapshot, request, ledger)
+    _, result_key = keys(request.operation_id)
+
+    class FailingGateway(ScriptedGateway):
+        settings = Settings(demo=True, _env_file=None, model_name="synthetic")
+
+        def complete(self, messages, **identity):
+            if identity["repetition_id"] != "0":
+                initial = ledger.get(result_key + "-initial")["payload"]
+                assert initial["outcome"] == ("success" if judgment == "pass" else "failure")
+                assert initial["execution_status"] == "completed"
+                raise TimeoutError("synthetic investigator outage")
+            return super().complete(messages, **identity)
+
+    gateway = FailingGateway([assessment(snapshot, judgment, 11)])
+    result = run(request.operation_id, evidence, ledger, gateway)
+    assert result["execution_status"] == "partial"
+    assert result["outcome"] == ("success" if judgment == "pass" else "failure")
+    assert result["native_result"]["initial_record_id"] == result_key + "-initial"
+    assert result["native_result"]["investigation_events"] == [
+        {"stage": "investigation", "repetition_id": "investigation-1", "error_type": "TimeoutError"}]
+    assert run(request.operation_id, evidence, ledger, gateway) == result
+    assert len(gateway.calls) == 1
+
+
+@pytest.mark.parametrize("failure", ["invalid_reply", "missing_evidence"])
+def test_optional_investigation_failure_preserves_supported_failure(failure, monkeypatch):
+    snapshot, evidence, prompt = setup()
+    initial = assessment(snapshot, "fail", 11)
+    replies = [initial, {"unexpected": "synthetic malformed assessment"}]
+    if failure == "missing_evidence":
+        replies[1] = {"read_evidence": [0]}
+        original_read = evidence.read_media
+        def read_media(snapshot_id, locator):
+            if locator == "images/0.png":
+                raise OSError("synthetic evidence outage")
+            return original_read(snapshot_id, locator)
+        monkeypatch.setattr(evidence, "read_media", read_media)
+    result = evaluate(snapshot, EvalRequest(operation_id="synthetic-partial"), evidence,
+                      ScriptedGateway(replies), prompt, "synthetic-partial")
+    assert result["execution_status"] == "partial"
+    assert result["outcome"] == "failure"
+    assert result["checks"] == initial["checks"]
+    assert result["native_result"]["initial_assessment"] == initial
+    assert result["native_result"]["investigation_events"][-1]["repetition_id"] == "investigation-1"

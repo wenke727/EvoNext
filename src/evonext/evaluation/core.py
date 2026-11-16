@@ -58,7 +58,7 @@ def validate_assessment(native, obligations, refs, bind_decisions=False):
 
 
 def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_call=None,
-             *, image_profile=JPEG_PROFILE):
+             *, image_profile=JPEG_PROFILE, save_initial=None):
     obligations = request.obligations or {"task_goal": snapshot.document["instruction"]}
     if any(not key.strip() or not value.strip() for key, value in obligations.items()):
         raise ContractError("Obligation IDs and descriptions must be nonempty")
@@ -133,31 +133,56 @@ def evaluate(snapshot, request, evidence, gateway, prompt, record_id, before_cal
             if any(image["position"] <= earliest and image["evidence_ref"] not in refs
                    for image in preview["images"]):
                 should_investigate = True
+    def build_record(identity, execution_status="completed"):
+        return EvaluationRecord(record_id=identity, snapshot_id=snapshot.id,
+            grader_id="fast_judge_investigator" if len(calls) > 1 else "fast_judge",
+            grader_version=policy_hash, execution_status=execution_status,
+            outcome=outcome, checks=checks, trace_id=output["trace_id"], native_result={
+                "findings": [{key: value for key, value in finding.model_dump().items()
+                              if key != "decision_ref" or value is not None} for finding in findings],
+                "error_localization": "located" if located_errors(findings) else "undetermined",
+                "process_coverage": "not_exhaustive", "call_key": output["call_key"],
+                "initial_assessment": initial, "investigation_events": events,
+                "initial_validation_error": initial_validation_error,
+                "calls": [{key: call[key] for key in ("call_key", "declared_model", "observed_model", "usage", "trace_id")} for call in calls],
+                "declared_model": output["declared_model"], "observed_model": output["observed_model"],
+                "usage": output["usage"], "usage_scope": "fast_judge_only",
+                "input_profile": preview["profile"],
+                "localization_review_requested": request.review_localization,
+                "decisions_bound": request.bind_decisions,
+                "cost": None, "delivered_evidence_refs": sorted(refs),
+                "media_receipts": media_receipts, "image_profile": image_profile,
+                "input_context_sha256": preview["context_sha256"],
+                "stop_reason": stop_reason}).model_dump(mode="json")
+    initial_id = record_id + "-initial"
+    if save_initial is not None:
+        save_initial(build_record(initial_id, "partial" if initial_validation_error else "completed"))
+    execution_status = "completed"
     if should_investigate:
         from evonext.evaluation.investigator import investigate
-        native, calls, events, stop_reason = investigate(
-            snapshot, request, evidence, gateway, prompt, preview, messages,
-            refs, media_receipts, initial, calls, before_call, initial_validation_error,
-            image_profile=image_profile)
-        checks, findings, outcome = validate_assessment(native, obligations, refs, request.bind_decisions)
-    record = EvaluationRecord(record_id=record_id, snapshot_id=snapshot.id,
-        grader_id="fast_judge_investigator" if len(calls) > 1 else "fast_judge",
-        grader_version=policy_hash, execution_status="completed",
-        outcome=outcome, checks=checks, trace_id=output["trace_id"], native_result={
-            "findings": [{key: value for key, value in finding.model_dump().items()
-                          if key != "decision_ref" or value is not None} for finding in findings],
-            "error_localization": "located" if located_errors(findings) else "undetermined",
-            "process_coverage": "not_exhaustive", "call_key": output["call_key"],
-            "initial_assessment": initial, "investigation_events": events,
-            "initial_validation_error": initial_validation_error,
-            "calls": [{key: call[key] for key in ("call_key", "declared_model", "observed_model", "usage", "trace_id")} for call in calls],
-            "declared_model": output["declared_model"], "observed_model": output["observed_model"],
-            "usage": output["usage"], "usage_scope": "fast_judge_only",
-            "input_profile": preview["profile"],
-            "localization_review_requested": request.review_localization,
-            "decisions_bound": request.bind_decisions,
-            "cost": None, "delivered_evidence_refs": sorted(refs),
-            "media_receipts": media_receipts, "image_profile": image_profile,
-            "input_context_sha256": preview["context_sha256"],
-            "stop_reason": stop_reason}).model_dump(mode="json")
+        active_repetition = None
+
+        def investigation_input(messages, repetition):
+            nonlocal active_repetition
+            active_repetition = repetition
+            if before_call is not None:
+                before_call(messages, repetition)
+
+        try:
+            native, calls, events, stop_reason = investigate(
+                snapshot, request, evidence, gateway, prompt, preview, messages,
+                refs, media_receipts, initial, calls, investigation_input, initial_validation_error,
+                image_profile=image_profile, events=events)
+            checks, findings, outcome = validate_assessment(native, obligations, refs, request.bind_decisions)
+            if stop_reason != "investigator_submitted":
+                execution_status = "partial"
+        except Exception as exc:
+            # Optional diagnosis cannot erase a validated Outcome. Raw paid responses
+            # remain in the gateway receipt store, including malformed assessments.
+            execution_status = "partial"
+            stop_reason = "investigation_error"
+            events.append({"stage": "investigation", "repetition_id": active_repetition,
+                           "error_type": type(exc).__name__})
+    record = build_record(record_id, execution_status)
+    record["native_result"]["initial_record_id"] = initial_id if save_initial else None
     return record

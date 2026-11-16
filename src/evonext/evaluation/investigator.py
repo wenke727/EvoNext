@@ -9,7 +9,7 @@ from evonext.evidence.image_views import JPEG_PROFILE
 
 def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
                 refs, media_receipts, initial, calls, before_call, initial_validation_error=None,
-                *, image_profile=JPEG_PROFILE):
+                *, image_profile=JPEG_PROFILE, events=None):
     from evonext.evaluation.core import validate_assessment
     if any(type(p) is not int or not 0 <= p < preview["step_count"] for p in request.focus_positions):
         raise ContractError("Investigation focus is outside the frozen trajectory")
@@ -17,7 +17,7 @@ def investigate(snapshot, request, evidence, gateway, prompt, preview, messages,
         raise ContractError("Initial images exceed the total investigation image budget")
     deadline = time.monotonic() + 180
     current = initial
-    events = []
+    events = [] if events is None else events
     pending = []
     messages = messages + [{"role": "assistant", "content": encode_json(initial).decode()},
         {"role": "user", "content": encode_json({
