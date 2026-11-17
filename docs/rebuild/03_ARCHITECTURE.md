@@ -76,7 +76,8 @@ DAL 最小读取设计见 [ADR-003](../adr/0003-evidence-data-access.md)：Snaps
 | 图片、冻结包、较大产物 | MinIO | 字节/hash/version 明确，签名 URL 只是 locator；不重压历史图片冒充原 bytes |
 | 操作、收费调用、实验/运行/数据集关系 | PostgreSQL | 每类事实一个 owner；不复制整份轨迹；只追加本平台 schema 的迁移 |
 | 本地 Skill 候选 | 明确 owner 的 Workshop 文件目录 | 成熟 FileLock + 原子指针；不可变 revision；不是多机分布式生产库 |
-| 队列 | Celery / 既有 Redis | 传 ID；不是任务成功、评分或审核权威 |
+| 通用后台队列 | Celery / 既有 Redis | bulk/完整性校验等后台任务；传 ID，不是业务成功或审核权威 |
+| 本地设备领取与租约 | PostgreSQL evonext.local_trials + device_slots | 只管理物理设备任务 admission/独占/交接；按 [ADR-004](../adr/0004-local-device-execution-queue.md)，不是第二个通用 Broker |
 | 模型观测 | Langfuse | trace/usage/版本关联；不是设备状态或业务事实源 |
 
 当前 Mongo wrapper 保存原 JSON 字符串和摘要以支持 byte-preserving 包；它不要求所有查询都解析全文。新增 App/model/source/Case/评价索引应为按快照绑定的可重建投影，不改变 OpenCUA 交换格式，不再造第二个 Task 真值。
@@ -107,7 +108,9 @@ FastAPI/Pydantic、React/TypeScript/Vite、PyMongo、MinIO SDK、SQLAlchemy/Alem
 
 完整 Import/Evaluation/Experiment 状态各自由领域拥有；收费回执只管外部调用，不替代业务 Run。一个 Request 不再外套一个重复真值的 Job。模型调用期间不持 DB 锁。纯评估 retry 复用冻结执行证据，不再次操作设备。已保存 Record 而摘要投影失败，只补投影。
 
-本地 target 为具体 device，云 target 为 batch 资源，两者分开表达；资源租约、抢占、复位和实际并行度由执行 owner 负责。API 不阻塞等待长执行。当前 Runtime 仅 prepare 与 grant/receipt 验证，不提供已执行假回执。
+本地 target 与云 batch 分开表达；资源租约、抢占、复位和实际并行度由执行 owner 负责。API 不阻塞等待长执行。当前 Runtime 仅 prepare 与 grant/receipt 验证，不提供已执行假回执。
+
+本地设备 MVP 由一个 LocalExecutionHost 管理本机配置的多台手机，每台手机一个串行 run_device_queue；不同手机并行。LocalTaskQueue 与 DeviceLeaseManager 由同一个 PostgresLocalExecutionStore 实现，claim_next 在一个事务中锁定 READY 设备并领取一项合格任务；finish 在一个事务中保存回执、结束任务并按 cleanup 结果释放或隔离设备。租约过期不自动恢复 READY，必须经过可信宿主 reconcile。执行顺序和边界见 [ADR-004](../adr/0004-local-device-execution-queue.md)；当前代码是否实现仍以 ACCEPTANCE 为准。
 
 性能目标保留原 06：50/200/2000 步、1k/10k 请求与分页实测；禁止每项完成重写全量批次或对每个 grader 复制所有图文。阈值是待测目标，不继承 AIHOT 的生产跑分。
 
